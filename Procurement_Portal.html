@@ -2529,45 +2529,38 @@ function downloadPRPdf(id){
   drawHeader();
   y = 84;
 
-  // Info grid — bordered 2-column cells
+  // Info grid — bordered 2-column cells (compact)
+  function userNameByEmail(email){
+    const u = allUsers.find(x=>x.email && String(x.email).toLowerCase()===String(email||'').toLowerCase());
+    return u ? u.name : null;
+  }
+  const lmName = userNameByEmail(pr.lineManagerEmail);
+  const lmVal = lmName ? lmName+'  ('+pr.lineManagerEmail+')' : (pr.lineManagerEmail||'—');
   const gridData = [
     ['Requestor', pr.requestorName+'  ('+pr.requestorEmail+')', 'Department', pr.department||'—'],
     ['Project', pr.project||'—', 'Station / location', pr.station||'—'],
-    ['Entity', pr.entity, 'Line manager', pr.lineManagerEmail||'—'],
+    ['Entity', pr.entity, 'Line manager', lmVal],
     ['Date raised', fmtDate(pr.dateRaised), 'Needed by', pr.neededBy?fmtDate(pr.neededBy):'—']
   ];
   const colW = contentW/2;
-  const cellH = 32;
+  const cellH = 24;
   doc.setDrawColor(215,215,215);
   gridData.forEach((row,i)=>{
     checkPageBreak(cellH);
     const rowY = y;
     doc.rect(marginL, rowY, colW, cellH);
     doc.rect(marginL+colW, rowY, colW, cellH);
-    doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(140,140,140);
-    doc.text(row[0].toUpperCase(), marginL+10, rowY+13);
-    doc.text(row[2].toUpperCase(), marginL+colW+10, rowY+13);
-    doc.setFontSize(10); doc.setTextColor(25,25,25);
-    const v1 = doc.splitTextToSize(String(row[1]), colW-20)[0]||'';
-    const v2 = doc.splitTextToSize(String(row[3]), colW-20)[0]||'';
-    doc.text(v1, marginL+10, rowY+25);
-    doc.text(v2, marginL+colW+10, rowY+25);
+    doc.setFont('helvetica','normal'); doc.setFontSize(6.5); doc.setTextColor(140,140,140);
+    doc.text(row[0].toUpperCase(), marginL+8, rowY+9);
+    doc.text(row[2].toUpperCase(), marginL+colW+8, rowY+9);
+    doc.setFontSize(9); doc.setTextColor(25,25,25);
+    const v1 = doc.splitTextToSize(String(row[1]), colW-16)[0]||'';
+    const v2 = doc.splitTextToSize(String(row[3]), colW-16)[0]||'';
+    doc.text(v1, marginL+8, rowY+19);
+    doc.text(v2, marginL+colW+8, rowY+19);
     y += cellH;
   });
-  y += 18;
-
-  // Justification
-  checkPageBreak(40);
-  doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
-  doc.text('Justification', marginL, y); y += 14;
-  doc.setDrawColor(215,215,215);
-  const justLines = doc.splitTextToSize(pr.justification||'—', contentW-24);
-  const justBoxH = 16*justLines.length + 16;
-  checkPageBreak(justBoxH);
-  doc.rect(marginL, y, contentW, justBoxH);
-  doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(40,40,40);
-  doc.text(justLines, marginL+12, y+18);
-  y += justBoxH + 18;
+  y += 16;
 
   if(pr.notes){
     checkPageBreak(40);
@@ -2576,13 +2569,14 @@ function downloadPRPdf(id){
     const noteLines = doc.splitTextToSize(pr.notes, contentW-24);
     const noteBoxH = 16*noteLines.length + 16;
     checkPageBreak(noteBoxH);
+    doc.setDrawColor(215,215,215);
     doc.rect(marginL, y, contentW, noteBoxH);
     doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(40,40,40);
     doc.text(noteLines, marginL+12, y+18);
     y += noteBoxH + 18;
   }
 
-  // Line items table
+  // Line items table — with the justification shown as a spanning row right under the header
   checkPageBreak(50);
   doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
   doc.text('Line items', marginL, y); y += 14;
@@ -2601,6 +2595,14 @@ function downloadPRPdf(id){
     y += 20;
   }
   lineHeaderRow();
+  const justLines = doc.splitTextToSize('Justification:  '+(pr.justification||'—'), contentW-16);
+  const justRowH = 12*justLines.length + 10;
+  checkPageBreak(justRowH);
+  doc.setDrawColor(215,215,215);
+  doc.rect(marginL, y, contentW, justRowH);
+  doc.setFont('helvetica','italic'); doc.setFontSize(8.5); doc.setTextColor(70,70,70);
+  doc.text(justLines, marginL+8, y+13);
+  y += justRowH;
   doc.setFont('helvetica','normal'); doc.setTextColor(30,30,30);
   let zebra = false;
   lines.forEach(li=>{
@@ -2626,24 +2628,29 @@ function downloadPRPdf(id){
   doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(br,bg,bb);
   doc.text('Estimated total:  '+fmtMoney(pr.totalEstAmount), marginL+contentW-8, y, {align:'right'});
   doc.setTextColor(0,0,0);
-  y += 26;
+
+  // Generous spacing before Approval History (roughly 3 blank lines)
+  y += 58;
 
   // Approval history table
   checkPageBreak(50);
   doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
-  doc.text('Approval history', marginL, y); y += 14;
+  doc.text('Approval history', marginL, y); y += 16;
   const hist = approvals.filter(a=>a.prId===pr.id).sort((a,b)=> new Date(a.timestamp)-new Date(b.timestamp));
   const hw = [contentW*0.20, contentW*0.24, contentW*0.14, contentW*0.28, contentW*0.14];
   const hx = [marginL, marginL+hw[0], marginL+hw[0]+hw[1], marginL+hw[0]+hw[1]+hw[2], marginL+hw[0]+hw[1]+hw[2]+hw[3]];
-  doc.setFillColor(theme.tint[0],theme.tint[1],theme.tint[2]);
-  doc.rect(marginL, y, contentW, 18, 'F');
-  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(br,bg,bb);
-  doc.text('Stage', hx[0]+6, y+12);
-  doc.text('Actor', hx[1]+6, y+12);
-  doc.text('Decision', hx[2]+6, y+12);
-  doc.text('Comments', hx[3]+6, y+12);
-  doc.text('Date', hx[4]+6, y+12);
-  y += 18;
+  function historyHeaderRow(){
+    doc.setFillColor(theme.tint[0],theme.tint[1],theme.tint[2]);
+    doc.rect(marginL, y, contentW, 18, 'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(br,bg,bb);
+    doc.text('Stage', hx[0]+6, y+12);
+    doc.text('Actor', hx[1]+6, y+12);
+    doc.text('Decision', hx[2]+6, y+12);
+    doc.text('Comments', hx[3]+6, y+12);
+    doc.text('Date', hx[4]+6, y+12);
+    y += 18;
+  }
+  historyHeaderRow();
   doc.setFont('helvetica','normal');
   if(!hist.length){
     checkPageBreak(16);
@@ -2651,24 +2658,45 @@ function downloadPRPdf(id){
     doc.text('No approval actions recorded yet.', marginL+6, y+12);
     y += 16;
   }
-  const decisionColor = {Approve:[15,110,86],Reject:[161,45,45],Query:[133,79,11],Delegate:[133,79,11]};
+  const decisionLabel = {Approve:'Approved', Reject:'Rejected', Query:'Sent back', Delegate:'Approved'};
+  const decisionColor = {Approve:[15,110,86],Reject:[161,45,45],Query:[133,79,11],Delegate:[15,110,86]};
+  let hZebra = false;
   hist.forEach(a=>{
-    const stageLbl = a.stage==='Delegate'?'Delegated':stageLabel(a.stage);
-    const commentTxt = a.comments||'—';
+    const stageLbl = a.stage==='Delegate'?'Delegated approval':stageLabel(a.stage);
+    let commentTxt = a.comments||'—';
+    if(a.action==='Delegate'){
+      const m = commentTxt.match(/Delegated to ([^(]+)\(/);
+      const delegateName = m ? m[1].trim() : 'the delegated approver';
+      commentTxt = 'Further delegated to '+delegateName+' for final approval.';
+    }
     const cLines = doc.splitTextToSize(commentTxt, hw[3]-12);
     const rowH = Math.max(16, 11*cLines.length+6);
     checkPageBreak(rowH);
+    if(hZebra){ doc.setFillColor(249,249,249); doc.rect(marginL, y, contentW, rowH, 'F'); }
+    hZebra = !hZebra;
+    doc.setDrawColor(230,230,230);
+    doc.rect(marginL, y, contentW, rowH);
     doc.setFontSize(8.5); doc.setTextColor(30,30,30);
     doc.text(stageLbl, hx[0]+6, y+11);
     doc.text(doc.splitTextToSize(a.actorName||'', hw[1]-10), hx[1]+6, y+11);
     const dc = decisionColor[a.action]||[30,30,30];
     doc.setTextColor(dc[0],dc[1],dc[2]);
-    doc.text(a.action||'', hx[2]+6, y+11);
+    doc.setFont('helvetica','bold');
+    doc.text(decisionLabel[a.action]||a.action||'', hx[2]+6, y+11);
+    doc.setFont('helvetica','normal');
     doc.setTextColor(30,30,30);
     doc.text(cLines, hx[3]+6, y+11);
     doc.text(fmtDate(a.timestamp), hx[4]+6, y+11);
     y += rowH;
   });
+
+  if(pr.status==='Approved'){
+    y += 14;
+    checkPageBreak(18);
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(15,110,86);
+    doc.text('All required approvals have been obtained for this purchase request.', marginL, y);
+    doc.setTextColor(0,0,0);
+  }
 
   drawFooter();
   doc.save(pr.prNumber+'.pdf');
