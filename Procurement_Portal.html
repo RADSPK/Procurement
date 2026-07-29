@@ -2470,120 +2470,207 @@ function pdfStatusBlock(pr){
   return `<button class="tb-btn" style="font-size:11px;padding:5px 10px" onclick="downloadPRPdf('${pr.id}')">📄 Download PDF</button>`;
 }
 function statusPdfLabel(status){ const m = STATUS_MAP[status]; return m?m[1]:(status||'—'); }
+function pdfTheme(entity){
+  return entity==='AHKF'
+    ? { brand:[26,58,92], tint:[239,245,251], name:'Akhter Hameed Khan Foundation', abbr:'AHKF' }
+    : { brand:[123,31,46], tint:[253,240,241], name:'Research & Development Solutions', abbr:'RADS' };
+}
 function downloadPRPdf(id){
   const pr = purchaseRequests.find(p=>p.id===id);
   if(!pr){ toast('PR not found','error'); return; }
   if(!window.jspdf){ toast('PDF library still loading — try again in a second','error'); return; }
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({unit:'pt', format:'a4'});
-  const marginL = 48, marginR = 48;
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
+  const marginL = 40, marginR = 40;
   const contentW = pageW - marginL - marginR;
-  let y = 56;
+  const theme = pdfTheme(pr.entity);
+  const [br,bg,bb] = theme.brand;
+  let y = 0;
+  let pageNum = 1;
 
+  function drawHeader(){
+    doc.setFillColor(br,bg,bb);
+    doc.rect(0, 0, pageW, 60, 'F');
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica','bold'); doc.setFontSize(13);
+    doc.text(theme.name, marginL, 26);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.5);
+    doc.text('Procurement portal — purchase request document', marginL, 40);
+    doc.setFont('helvetica','bold'); doc.setFontSize(12);
+    doc.text(pr.prNumber, pageW-marginR, 26, {align:'right'});
+    doc.setFont('helvetica','normal'); doc.setFontSize(9);
+    const statusTxt = statusPdfLabel(pr.status);
+    const pillW = doc.getTextWidth(statusTxt)+18;
+    doc.setFillColor(255,255,255);
+    doc.roundedRect(pageW-marginR-pillW, 32, pillW, 15, 7.5, 7.5, 'F');
+    doc.setTextColor(br,bg,bb);
+    doc.text(statusTxt, pageW-marginR-pillW/2, 42.5, {align:'center'});
+    doc.setTextColor(0,0,0);
+  }
+  function drawFooter(){
+    doc.setDrawColor(225,225,225);
+    doc.line(marginL, pageH-38, pageW-marginR, pageH-38);
+    doc.setFontSize(7.5); doc.setTextColor(150,150,150); doc.setFont('helvetica','normal');
+    doc.text('Generated from the Procurement Portal on '+fmtDate(new Date().toISOString())+' — reflects the request\'s status at time of download.', marginL, pageH-26);
+    doc.text(theme.abbr+' · Page '+pageNum, pageW-marginR, pageH-26, {align:'right'});
+  }
   function checkPageBreak(need){
-    if(y + need > pageH - 60){ doc.addPage(); y = 56; }
+    if(y + need > pageH - 50){
+      drawFooter();
+      doc.addPage();
+      pageNum++;
+      drawHeader();
+      y = 84;
+    }
   }
 
-  doc.setFont('helvetica','bold'); doc.setFontSize(18);
-  doc.text('Purchase Request', marginL, y);
-  doc.setFontSize(11); doc.setFont('helvetica','normal');
-  doc.text(pr.prNumber, pageW-marginR, y, {align:'right'});
-  y += 18;
-  doc.setFontSize(10); doc.setTextColor(110,110,110);
-  doc.text('Status: '+statusPdfLabel(pr.status), pageW-marginR, y, {align:'right'});
-  doc.setTextColor(0,0,0);
-  y += 18;
-  doc.setDrawColor(210,210,210);
-  doc.line(marginL, y, pageW-marginR, y);
-  y += 22;
+  drawHeader();
+  y = 84;
 
-  const infoRows = [
-    ['Requestor', pr.requestorName+' ('+pr.requestorEmail+')'],
-    ['Department', pr.department||'—'],
-    ['Project', pr.project||'—'],
-    ['Station / Location', pr.station||'—'],
-    ['Entity', pr.entity],
-    ['Line Manager', pr.lineManagerEmail||'—'],
-    ['Date Raised', fmtDate(pr.dateRaised)],
-    ['Needed By', pr.neededBy?fmtDate(pr.neededBy):'—']
+  // Info grid — bordered 2-column cells
+  const gridData = [
+    ['Requestor', pr.requestorName+'  ('+pr.requestorEmail+')', 'Department', pr.department||'—'],
+    ['Project', pr.project||'—', 'Station / location', pr.station||'—'],
+    ['Entity', pr.entity, 'Line manager', pr.lineManagerEmail||'—'],
+    ['Date raised', fmtDate(pr.dateRaised), 'Needed by', pr.neededBy?fmtDate(pr.neededBy):'—']
   ];
-  doc.setFontSize(10);
-  infoRows.forEach(([label,val])=>{
-    checkPageBreak(14);
-    doc.setFont('helvetica','bold'); doc.text(label+':', marginL, y);
-    doc.setFont('helvetica','normal');
-    const lines = doc.splitTextToSize(String(val), contentW-140);
-    doc.text(lines, marginL+140, y);
-    y += 14*Math.max(1,lines.length);
+  const colW = contentW/2;
+  const cellH = 32;
+  doc.setDrawColor(215,215,215);
+  gridData.forEach((row,i)=>{
+    checkPageBreak(cellH);
+    const rowY = y;
+    doc.rect(marginL, rowY, colW, cellH);
+    doc.rect(marginL+colW, rowY, colW, cellH);
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(140,140,140);
+    doc.text(row[0].toUpperCase(), marginL+10, rowY+13);
+    doc.text(row[2].toUpperCase(), marginL+colW+10, rowY+13);
+    doc.setFontSize(10); doc.setTextColor(25,25,25);
+    const v1 = doc.splitTextToSize(String(row[1]), colW-20)[0]||'';
+    const v2 = doc.splitTextToSize(String(row[3]), colW-20)[0]||'';
+    doc.text(v1, marginL+10, rowY+25);
+    doc.text(v2, marginL+colW+10, rowY+25);
+    y += cellH;
   });
-  y += 8;
+  y += 18;
 
-  checkPageBreak(30);
-  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.text('Justification', marginL, y); y+=16;
-  doc.setFont('helvetica','normal'); doc.setFontSize(10);
-  const justLines = doc.splitTextToSize(pr.justification||'—', contentW);
-  doc.text(justLines, marginL, y); y += 14*justLines.length + 10;
+  // Justification
+  checkPageBreak(40);
+  doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
+  doc.text('Justification', marginL, y); y += 14;
+  doc.setDrawColor(215,215,215);
+  const justLines = doc.splitTextToSize(pr.justification||'—', contentW-24);
+  const justBoxH = 16*justLines.length + 16;
+  checkPageBreak(justBoxH);
+  doc.rect(marginL, y, contentW, justBoxH);
+  doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(40,40,40);
+  doc.text(justLines, marginL+12, y+18);
+  y += justBoxH + 18;
 
   if(pr.notes){
-    checkPageBreak(30);
-    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.text('Additional Notes', marginL, y); y+=16;
-    doc.setFont('helvetica','normal'); doc.setFontSize(10);
-    const noteLines = doc.splitTextToSize(pr.notes, contentW);
-    doc.text(noteLines, marginL, y); y += 14*noteLines.length + 10;
+    checkPageBreak(40);
+    doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
+    doc.text('Additional notes', marginL, y); y += 14;
+    const noteLines = doc.splitTextToSize(pr.notes, contentW-24);
+    const noteBoxH = 16*noteLines.length + 16;
+    checkPageBreak(noteBoxH);
+    doc.rect(marginL, y, contentW, noteBoxH);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(40,40,40);
+    doc.text(noteLines, marginL+12, y+18);
+    y += noteBoxH + 18;
   }
 
-  checkPageBreak(40);
-  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.text('Line Items', marginL, y); y += 16;
+  // Line items table
+  checkPageBreak(50);
+  doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
+  doc.text('Line items', marginL, y); y += 14;
   const lines = safeParse(pr.lineItemsJson, []);
-  const colX = [marginL, marginL+230, marginL+300, marginL+370, marginL+ (contentW-60)];
-  doc.setFontSize(9);
-  doc.setFillColor(245,245,245);
-  doc.rect(marginL, y-11, contentW, 16, 'F');
-  doc.setFont('helvetica','bold');
-  doc.text('Description', colX[0]+2, y);
-  doc.text('Qty', colX[1]+2, y);
-  doc.text('Unit', colX[2]+2, y);
-  doc.text('Rate', colX[3]+2, y);
-  doc.text('Amount', colX[4]+2, y);
-  y += 16;
-  doc.setFont('helvetica','normal');
+  const cw = [contentW*0.42, contentW*0.13, contentW*0.13, contentW*0.16, contentW*0.16];
+  const cx = [marginL, marginL+cw[0], marginL+cw[0]+cw[1], marginL+cw[0]+cw[1]+cw[2], marginL+cw[0]+cw[1]+cw[2]+cw[3]];
+  function lineHeaderRow(){
+    doc.setFillColor(theme.tint[0],theme.tint[1],theme.tint[2]);
+    doc.rect(marginL, y, contentW, 20, 'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(br,bg,bb);
+    doc.text('Description', cx[0]+8, y+13);
+    doc.text('Qty', cx[1]+cw[1]-8, y+13, {align:'right'});
+    doc.text('Unit', cx[2]+8, y+13);
+    doc.text('Rate', cx[3]+cw[3]-8, y+13, {align:'right'});
+    doc.text('Amount', cx[4]+cw[4]-8, y+13, {align:'right'});
+    y += 20;
+  }
+  lineHeaderRow();
+  doc.setFont('helvetica','normal'); doc.setTextColor(30,30,30);
+  let zebra = false;
   lines.forEach(li=>{
     const amt = (Number(li.qty)||0)*(Number(li.estUnitRate)||0);
-    const descLines = doc.splitTextToSize(li.description||'', colX[1]-colX[0]-6);
-    checkPageBreak(14*descLines.length);
-    doc.text(descLines, colX[0]+2, y);
-    doc.text(String(li.qty||0), colX[1]+2, y);
-    doc.text(li.unit||'—', colX[2]+2, y);
-    doc.text(fmtMoney(li.estUnitRate), colX[3]+2, y);
-    doc.text(fmtMoney(amt), colX[4]+2, y);
-    y += 14*Math.max(1, descLines.length);
+    const descLines = doc.splitTextToSize(li.description||'', cw[0]-16);
+    const rowH = Math.max(18, 12*descLines.length+6);
+    checkPageBreak(rowH);
+    if(zebra){ doc.setFillColor(249,249,249); doc.rect(marginL, y, contentW, rowH, 'F'); }
+    zebra = !zebra;
+    doc.setFontSize(9);
+    doc.text(descLines, cx[0]+8, y+13);
+    doc.text(String(li.qty||0), cx[1]+cw[1]-8, y+13, {align:'right'});
+    doc.text(li.unit||'—', cx[2]+8, y+13);
+    doc.text(fmtMoney(li.estUnitRate), cx[3]+cw[3]-8, y+13, {align:'right'});
+    doc.text(fmtMoney(amt), cx[4]+cw[4]-8, y+13, {align:'right'});
+    y += rowH;
   });
-  y += 4;
-  doc.setDrawColor(210,210,210);
-  doc.line(marginL, y, marginL+contentW, y); y+=16;
-  doc.setFont('helvetica','bold');
-  doc.text('Estimated Total: '+fmtMoney(pr.totalEstAmount), marginL+contentW, y, {align:'right'});
+  checkPageBreak(24);
+  doc.setDrawColor(br,bg,bb); doc.setLineWidth(1.2);
+  doc.line(marginL, y, marginL+contentW, y);
+  doc.setLineWidth(0.5);
+  y += 16;
+  doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(br,bg,bb);
+  doc.text('Estimated total:  '+fmtMoney(pr.totalEstAmount), marginL+contentW-8, y, {align:'right'});
+  doc.setTextColor(0,0,0);
   y += 26;
 
-  checkPageBreak(30);
-  doc.setFontSize(11); doc.text('Approval History', marginL, y); y+=16;
-  doc.setFontSize(9); doc.setFont('helvetica','normal');
+  // Approval history table
+  checkPageBreak(50);
+  doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
+  doc.text('Approval history', marginL, y); y += 14;
   const hist = approvals.filter(a=>a.prId===pr.id).sort((a,b)=> new Date(a.timestamp)-new Date(b.timestamp));
-  if(!hist.length){ doc.text('—', marginL, y); y+=14; }
+  const hw = [contentW*0.20, contentW*0.24, contentW*0.14, contentW*0.28, contentW*0.14];
+  const hx = [marginL, marginL+hw[0], marginL+hw[0]+hw[1], marginL+hw[0]+hw[1]+hw[2], marginL+hw[0]+hw[1]+hw[2]+hw[3]];
+  doc.setFillColor(theme.tint[0],theme.tint[1],theme.tint[2]);
+  doc.rect(marginL, y, contentW, 18, 'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(br,bg,bb);
+  doc.text('Stage', hx[0]+6, y+12);
+  doc.text('Actor', hx[1]+6, y+12);
+  doc.text('Decision', hx[2]+6, y+12);
+  doc.text('Comments', hx[3]+6, y+12);
+  doc.text('Date', hx[4]+6, y+12);
+  y += 18;
+  doc.setFont('helvetica','normal');
+  if(!hist.length){
+    checkPageBreak(16);
+    doc.setFontSize(9); doc.setTextColor(140,140,140);
+    doc.text('No approval actions recorded yet.', marginL+6, y+12);
+    y += 16;
+  }
+  const decisionColor = {Approve:[15,110,86],Reject:[161,45,45],Query:[133,79,11],Delegate:[133,79,11]};
   hist.forEach(a=>{
-    const stageLbl = a.stage==='Delegate'?'Delegated Approval':stageLabel(a.stage);
-    const line = stageLbl+' — '+a.actorName+': '+a.action+(a.comments?' ('+a.comments+')':'')+'  ·  '+fmtDate(a.timestamp);
-    const wrapped = doc.splitTextToSize(line, contentW);
-    checkPageBreak(13*wrapped.length);
-    doc.text(wrapped, marginL, y);
-    y += 13*wrapped.length;
+    const stageLbl = a.stage==='Delegate'?'Delegated':stageLabel(a.stage);
+    const commentTxt = a.comments||'—';
+    const cLines = doc.splitTextToSize(commentTxt, hw[3]-12);
+    const rowH = Math.max(16, 11*cLines.length+6);
+    checkPageBreak(rowH);
+    doc.setFontSize(8.5); doc.setTextColor(30,30,30);
+    doc.text(stageLbl, hx[0]+6, y+11);
+    doc.text(doc.splitTextToSize(a.actorName||'', hw[1]-10), hx[1]+6, y+11);
+    const dc = decisionColor[a.action]||[30,30,30];
+    doc.setTextColor(dc[0],dc[1],dc[2]);
+    doc.text(a.action||'', hx[2]+6, y+11);
+    doc.setTextColor(30,30,30);
+    doc.text(cLines, hx[3]+6, y+11);
+    doc.text(fmtDate(a.timestamp), hx[4]+6, y+11);
+    y += rowH;
   });
 
-  doc.setFontSize(8); doc.setTextColor(150,150,150);
-  doc.text('Generated from the Procurement Portal on '+fmtDate(new Date().toISOString())+' — reflects the request\'s status at time of download.', marginL, pageH-30);
-
+  drawFooter();
   doc.save(pr.prNumber+'.pdf');
 }
 function renderPRDetail(){
