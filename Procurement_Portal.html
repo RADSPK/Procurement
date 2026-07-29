@@ -1237,7 +1237,7 @@ const TYPE_CLS = {Retainership:'tb-ret','Need Basis':'tb-need','Pre-Qualified':'
 // ═══════════════════════════════
 // API CONFIG — set this to your deployed Apps Script Web App URL
 // ═══════════════════════════════
-const API_URL = 'https://script.google.com/macros/s/AKfycby9oVK53GI0-MdoJOwed9pSbWIZpaMMIwCV5N9lKX4uvCnwAShWYdAWFWlLbaIvR8YuJw/exec';
+const API_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
 
 // ═══════════════════════════════
 // STATE
@@ -1284,7 +1284,7 @@ async function api(action, payload){
   const res = await fetch(API_URL, {
     method:'POST',
     headers:{'Content-Type':'text/plain;charset=utf-8'}, // avoids CORS preflight on Apps Script
-    body: JSON.stringify(Object.assign({action}, payload))
+    body: JSON.stringify(Object.assign({}, payload, {action}))
   });
   const out = await res.json();
   if(!out.ok) throw new Error(out.error||'Request failed');
@@ -1457,6 +1457,9 @@ async function bootApp(){
   if(currentUser.role==='Admin'){
     document.getElementById('sb-admin-label').style.display='';
     document.getElementById('sb-admin').style.display='';
+  }
+  if(!canSeeDashboard()){
+    document.getElementById('sb-home').style.display='none';
   }
   await loadAll();
   goHome();
@@ -2015,7 +2018,11 @@ function closeCompareModal(){ document.getElementById('compareOverlay').classLis
 // ═══════════════════════════════
 // HOME
 // ═══════════════════════════════
+function canSeeDashboard(){
+  return currentUser && (currentUser.role==='OperationsManager' || currentUser.role==='OpsProcurement' || currentUser.role==='Admin');
+}
 function goHome(){
+  if(!canSeeDashboard()){ showApprovalsList(); return; }
   currentCat=null; fCat=''; fSub=''; fCity=''; fType=''; fText='';
   document.getElementById('heroSearch').value='';
   document.getElementById('heroClr').classList.remove('visible');
@@ -2497,7 +2504,11 @@ function renderPRDetail(){
         <div style="font-size:12px;color:var(--b400);margin-top:2px">Raised by ${escHtml(pr.requestorName)} (${escHtml(pr.requestorEmail)}) · ${escHtml(pr.department)||'—'} · ${pr.entity}</div>
         <div style="font-size:11px;color:var(--b400);margin-top:2px">Line Manager: ${escHtml(pr.lineManagerEmail)}${pr.project?' · Project: '+escHtml(pr.project):''}${pr.station?' · Station: '+escHtml(pr.station):''}</div>
       </div>
-      ${statusBadge(pr.status)}
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        ${statusBadge(pr.status)}
+        ${pr.status==='Approved' && pr.pdfUrl ? `<a href="${escAttr(pr.pdfUrl)}" target="_blank" class="tb-btn" style="font-size:11px;padding:5px 10px">📄 Download PDF</a>` : ''}
+        ${pr.status==='Approved' && !pr.pdfUrl ? `<span style="font-size:10px;color:var(--b400)">PDF generating…</span>` : ''}
+      </div>
     </div>
     <div class="stepper">${stepsHtml}</div>
     <div class="table-shell" style="padding:18px;margin-bottom:16px">
@@ -2528,7 +2539,7 @@ function actOnPRPrompt(id,action){
 }
 async function actOnPR(id,action,comments){
   try{
-    const r=await api('actOnPR',{id,action,comments});
+    const r=await api('actOnPR',{id,decision:action,comments});
     mergeInto(purchaseRequests,r);
     toast(action==='Approve'?'✅ Approved':action==='Reject'?'❌ Rejected':'↩ Sent back to Line Manager');
     renderPRDetail(); updateSidebarCounts();
@@ -2547,7 +2558,7 @@ function openDelegatePicker(id){
 }
 async function delegatePR(id, delegateEmail, comments){
   try{
-    const r=await api('actOnPR',{id, action:'Delegate', delegateEmail, comments});
+    const r=await api('actOnPR',{id, decision:'Delegate', delegateEmail, comments});
     mergeInto(purchaseRequests,r);
     toast('↗ Delegated to '+(r.delegatedApproverName||delegateEmail));
     renderPRDetail(); updateSidebarCounts();
@@ -2912,7 +2923,7 @@ async function actOnPRQ(id,action){
   let comments='';
   if(action==='Reject'){ comments=prompt('Reason for rejection:')||''; if(!comments){ toast('A reason is required','error'); return; } }
   try{
-    const r=await api('actOnPaymentRequest',{id,action,comments});
+    const r=await api('actOnPaymentRequest',{id,decision:action,comments});
     mergeInto(paymentRequests,r);
     toast(action==='Approve'?'✅ Approved for payment':action==='MarkPaid'?'💰 Marked as paid':'❌ Rejected');
     renderPRQList();
