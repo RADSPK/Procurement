@@ -301,6 +301,21 @@ textarea.finput{min-height:72px;resize:vertical}
 .login-err{background:var(--rose-l);color:var(--rose);font-size:12px;font-weight:600;padding:9px 12px;border-radius:var(--r8);margin-bottom:14px;display:none}
 .login-foot{margin-top:18px;font-size:11px;color:var(--b400);text-align:center}
 
+/* ══ LANDING (two-tab: Make a Request / Staff Login) ══ */
+.landing-shell{position:fixed;inset:0;background:linear-gradient(135deg,var(--sidebar) 0%,#1a2438 60%,var(--rads-d) 140%);display:flex;flex-direction:column;align-items:center;overflow-y:auto;padding:44px 16px 60px;z-index:2000}
+.landing-brand{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.landing-title{font-size:18px;font-weight:900;color:#fff;letter-spacing:-.3px}
+.landing-sub{font-size:12px;color:rgba(255,255,255,.55)}
+.landing-tabs{display:flex;gap:4px;background:rgba(255,255,255,.08);padding:4px;border-radius:12px;margin-bottom:26px}
+.landing-tab{padding:9px 20px;border-radius:9px;font-size:12.5px;font-weight:700;color:rgba(255,255,255,.65);cursor:pointer;border:none;background:transparent;font-family:var(--f);transition:all .15s}
+.landing-tab.active{background:#fff;color:var(--b900);box-shadow:var(--shadow-sm)}
+.landing-panel{width:100%;max-width:760px}
+.request-card{background:var(--surface);border-radius:var(--r20);padding:32px 34px;box-shadow:var(--shadow-xl)}
+.request-card-title{font-size:17px;font-weight:900;color:var(--b900);margin-bottom:4px}
+.request-card-sub{font-size:12px;color:var(--b400);margin-bottom:22px}
+.lm-status-ok{color:var(--green-d);font-weight:700}
+.lm-status-bad{color:var(--rose);font-weight:700}
+
 /* ══ STATUS BADGES (workflow) ══ */
 .stbadge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;white-space:nowrap;text-transform:uppercase;letter-spacing:.03em}
 .st-draft{background:var(--b100);color:var(--b500)}
@@ -351,27 +366,82 @@ textarea.finput{min-height:72px;resize:vertical}
 </head>
 <body>
 
-<!-- ════════════════ LOGIN SCREEN ════════════════ -->
-<div class="login-shell" id="loginShell">
-  <div class="login-card">
-    <div class="login-brand">
-      <div class="login-mark">P</div>
-      <div>
-        <div class="login-title">Procurement Portal</div>
-        <div class="login-sub">RADS &amp; AHKF Finance Department</div>
+<!-- ════════════════ LANDING: MAKE A REQUEST / STAFF LOGIN ════════════════ -->
+<div class="landing-shell" id="landingShell">
+  <div class="landing-brand">
+    <div class="login-mark">P</div>
+    <div>
+      <div class="landing-title">Procurement Portal</div>
+      <div class="landing-sub">RADS &amp; AHKF</div>
+    </div>
+  </div>
+  <div class="landing-tabs">
+    <button class="landing-tab active" id="tab-request" onclick="switchLandingTab('request')">📝 Make a Request</button>
+    <button class="landing-tab" id="tab-login" onclick="switchLandingTab('login')">🔐 Staff Login</button>
+  </div>
+
+  <!-- ── REQUEST PANEL ── -->
+  <div class="landing-panel" id="panel-request">
+    <div class="request-card" id="pubFormCard">
+      <div class="request-card-title">Submit a Purchase Request</div>
+      <div class="request-card-sub">Open to all RADS &amp; AHKF staff — no account needed. Your request goes straight to your Line Manager.</div>
+      <div class="login-err" id="pubErr"></div>
+      <div class="fgrid">
+        <div class="fg"><label class="flabel">Your Full Name <span class="req">*</span></label><input class="finput" id="pub_name" type="text"></div>
+        <div class="fg"><label class="flabel">Your Email <span class="req">*</span></label><input class="finput" id="pub_email" type="email" placeholder="you@resdev.org"></div>
+        <div class="fg"><label class="flabel">Department</label><input class="finput" id="pub_department" type="text"></div>
+        <div class="fg"><label class="flabel">Entity <span class="req">*</span></label>
+          <select class="finput" id="pub_entity"><option value="RADS">RADS</option><option value="AHKF">AHKF</option></select>
+        </div>
+        <div class="fg s2">
+          <label class="flabel">Line Manager's Email <span class="req">*</span></label>
+          <input class="finput" id="pub_lmEmail" type="email" placeholder="linemanager@resdev.org" oninput="checkLineManager()">
+          <div id="pub_lmStatus" style="font-size:11px;margin-top:5px"></div>
+        </div>
+        <div class="fg"><label class="flabel">Needed By</label><input class="finput" id="pub_neededBy" type="date"></div>
+        <div class="fg s2"><label class="flabel">Justification <span class="req">*</span></label><textarea class="finput" id="pub_justification" placeholder="Why is this purchase needed?"></textarea></div>
+        <div class="fsec s2"><span class="fsec-label">Line Items</span></div>
+        <div class="s2" style="grid-column:1/-1">
+          <table class="li-table">
+            <thead><tr><th style="width:38%">Description</th><th style="width:12%">Qty</th><th style="width:14%">Unit</th><th style="width:20%">Est. Unit Rate</th><th style="width:12%">Amount</th><th></th></tr></thead>
+            <tbody id="pub_lineItems"></tbody>
+          </table>
+          <button class="li-add" onclick="pubAddLine()">＋ Add line item</button>
+          <div class="li-total-row">Estimated Total: <span id="pub_total">Rs. 0</span></div>
+        </div>
       </div>
+      <button class="tb-btn primary" style="width:100%;padding:12px;font-size:13px;margin-top:20px" id="pubSubmitBtn" onclick="submitPublicPR()">➤ Submit Purchase Request</button>
     </div>
-    <div class="login-err" id="loginErr"></div>
-    <div class="fg s2" style="margin-bottom:12px">
-      <label class="flabel">Email</label>
-      <input class="finput" id="li_email" type="email" placeholder="you@rads.org.pk" onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="request-card" id="pubSuccessCard" style="display:none;text-align:center">
+      <div style="font-size:44px;margin-bottom:10px">✅</div>
+      <div style="font-size:18px;font-weight:900;color:var(--b900);margin-bottom:6px" id="pubSuccessTitle">Request Submitted</div>
+      <div style="font-size:13px;color:var(--b500);margin-bottom:20px" id="pubSuccessSub"></div>
+      <button class="tb-btn primary" onclick="resetPublicForm()">Submit Another Request</button>
     </div>
-    <div class="fg s2" style="margin-bottom:18px">
-      <label class="flabel">Password</label>
-      <input class="finput" id="li_pw" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+  </div>
+
+  <!-- ── LOGIN PANEL ── -->
+  <div class="landing-panel" id="panel-login" style="display:none;max-width:380px">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="login-mark">P</div>
+        <div>
+          <div class="login-title">Staff Login</div>
+          <div class="login-sub">Line Managers, Procurement, Finance, Operations &amp; Admin</div>
+        </div>
+      </div>
+      <div class="login-err" id="loginErr"></div>
+      <div class="fg s2" style="margin-bottom:12px">
+        <label class="flabel">Email</label>
+        <input class="finput" id="li_email" type="email" placeholder="you@rads.org.pk" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div class="fg s2" style="margin-bottom:18px">
+        <label class="flabel">Password</label>
+        <input class="finput" id="li_pw" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="tb-btn primary" style="width:100%;padding:11px;font-size:13px" id="loginBtn" onclick="doLogin()">Sign in</button>
+      <div class="login-foot">Contact your Admin if you don't have an account yet.</div>
     </div>
-    <button class="tb-btn primary" style="width:100%;padding:11px;font-size:13px" id="loginBtn" onclick="doLogin()">Sign in</button>
-    <div class="login-foot">Contact your Admin if you don't have an account yet.</div>
   </div>
 </div>
 
@@ -837,7 +907,7 @@ Example Vendor,SUPPLIES,Printing,John Doe,0300-1234567,Islamabad,Blue Area,john@
   <div class="modal-hdr">
     <div class="modal-hdr-left">
       <div class="modal-title" id="prFormTitle">New Purchase Request</div>
-      <div class="modal-sub">Add line items, then save as draft or submit for approval</div>
+      <div class="modal-sub">Adjust line items or justification before approving</div>
     </div>
     <button class="modal-close" onclick="closePRForm()">✕</button>
   </div>
@@ -845,7 +915,7 @@ Example Vendor,SUPPLIES,Printing,John Doe,0300-1234567,Islamabad,Blue Area,john@
     <div class="fgrid">
       <div class="fg">
         <label class="flabel">Entity <span class="req">*</span></label>
-        <select class="finput" id="pf_entity"><option value="RADS">RADS</option><option value="AHKF">AHKF</option></select>
+        <select class="finput" id="pf_entity" disabled><option value="RADS">RADS</option><option value="AHKF">AHKF</option></select>
       </div>
       <div class="fg">
         <label class="flabel">Needed By</label>
@@ -868,8 +938,7 @@ Example Vendor,SUPPLIES,Printing,John Doe,0300-1234567,Islamabad,Blue Area,john@
   </div>
   <div class="modal-foot">
     <button class="tb-btn" onclick="closePRForm()">Cancel</button>
-    <button class="tb-btn" onclick="savePR(false)">💾 Save Draft</button>
-    <button class="tb-btn primary" onclick="savePR(true)">➤ Submit for Approval</button>
+    <button class="tb-btn primary" onclick="savePR()">💾 Save Changes</button>
   </div>
 </div>
 </div>
@@ -1051,10 +1120,11 @@ Example Vendor,SUPPLIES,Printing,John Doe,0300-1234567,Islamabad,Blue Area,john@
       <div class="fg s2"><label class="flabel">Email <span class="req">*</span></label><input class="finput" id="uf_email" type="email"></div>
       <div class="fg"><label class="flabel">Role <span class="req">*</span></label>
         <select class="finput" id="uf_role">
-          <option value="Requestor">Requestor</option>
           <option value="LineManager">Line Manager</option>
+          <option value="OpsProcurement">Procurement Department</option>
           <option value="Finance">Finance</option>
-          <option value="OpsProcurement">Operations &amp; Procurement</option>
+          <option value="OperationsManager">Operations Manager</option>
+          <option value="CEO">CEO</option>
           <option value="Admin">Admin</option>
         </select>
       </div>
@@ -1157,7 +1227,8 @@ let paymentRequests = [];
 let currentPRId = null, currentRFQId = null, currentPOId = null;
 let pfLineSeq = 0, qfLineSeq = 0;
 let editingPRId = null, editingUserId = null, currentQuoteVendorId = null;
-const PR_STAGES = ['LineManager','Finance','OpsProcurement'];
+const PR_STAGES = ['LineManager','Procurement','Finance','OperationsManager'];
+const STAGE_ROLE = {Procurement:'OpsProcurement', Finance:'Finance', OperationsManager:'OperationsManager'};
 
 // ═══════════════════════════════
 // API LAYER
@@ -1180,6 +1251,103 @@ async function apiGet(params){
   const out = await res.json();
   if(!out.ok) throw new Error(out.error||'Request failed');
   return out.data;
+}
+
+// ═══════════════════════════════
+// LANDING TABS
+// ═══════════════════════════════
+function switchLandingTab(tab){
+  document.getElementById('tab-request').classList.toggle('active', tab==='request');
+  document.getElementById('tab-login').classList.toggle('active', tab==='login');
+  document.getElementById('panel-request').style.display = tab==='request' ? 'block' : 'none';
+  document.getElementById('panel-login').style.display = tab==='login' ? 'block' : 'none';
+}
+
+// ═══════════════════════════════
+// PUBLIC REQUEST FORM (no login required)
+// ═══════════════════════════════
+let pubLineSeq = 0;
+let lmCheckTimer = null;
+function checkLineManager(){
+  clearTimeout(lmCheckTimer);
+  const el = document.getElementById('pub_lmStatus');
+  const email = document.getElementById('pub_lmEmail').value.trim();
+  if(!email){ el.textContent=''; return; }
+  el.textContent='Checking…'; el.className='';
+  lmCheckTimer = setTimeout(async ()=>{
+    try{
+      const r = await api('lookupLineManager', {email});
+      if(r.found){ el.textContent='✓ Goes to '+r.name; el.className='lm-status-ok'; }
+      else { el.textContent='No matching Line Manager account found for this email'; el.className='lm-status-bad'; }
+    }catch(e){ el.textContent=''; }
+  }, 500);
+}
+function pubAddLine(vals){
+  vals = vals||{desc:'',qty:1,unit:'',rate:0};
+  const id='publ'+(pubLineSeq++);
+  const tr=document.createElement('tr'); tr.id=id;
+  tr.innerHTML=`<td><input type="text" value="${escAttr(vals.desc)}" placeholder="Item description"></td>
+    <td><input type="number" min="0" step="1" value="${vals.qty}" oninput="pubRecalc()"></td>
+    <td><input type="text" value="${escAttr(vals.unit)}" placeholder="pcs/box"></td>
+    <td><input type="number" min="0" step="0.01" value="${vals.rate}" oninput="pubRecalc()"></td>
+    <td class="pub-amt" style="font-weight:700;white-space:nowrap">Rs. 0</td>
+    <td><button class="li-rm" onclick="document.getElementById('${id}').remove();pubRecalc()">✕</button></td>`;
+  document.getElementById('pub_lineItems').appendChild(tr);
+  pubRecalc();
+}
+function pubRecalc(){
+  let total=0;
+  document.querySelectorAll('#pub_lineItems tr').forEach(tr=>{
+    const inp=tr.querySelectorAll('input');
+    const qty=Number(inp[1].value)||0, rate=Number(inp[3].value)||0, amt=qty*rate;
+    total+=amt; tr.querySelector('.pub-amt').textContent=fmtMoney(amt);
+  });
+  document.getElementById('pub_total').textContent=fmtMoney(total);
+}
+function pubGetLines(){
+  return [...document.querySelectorAll('#pub_lineItems tr')].map(tr=>{
+    const inp=tr.querySelectorAll('input');
+    return {description:inp[0].value.trim(), qty:Number(inp[1].value)||0, unit:inp[2].value.trim(), estUnitRate:Number(inp[3].value)||0};
+  }).filter(li=>li.description);
+}
+function resetPublicForm(){
+  document.getElementById('pub_name').value='';
+  document.getElementById('pub_email').value='';
+  document.getElementById('pub_department').value='';
+  document.getElementById('pub_entity').value='RADS';
+  document.getElementById('pub_lmEmail').value='';
+  document.getElementById('pub_lmStatus').textContent='';
+  document.getElementById('pub_neededBy').value='';
+  document.getElementById('pub_justification').value='';
+  document.getElementById('pub_lineItems').innerHTML=''; pubLineSeq=0; pubAddLine();
+  document.getElementById('pubErr').style.display='none';
+  document.getElementById('pubSuccessCard').style.display='none';
+  document.getElementById('pubFormCard').style.display='block';
+}
+async function submitPublicPR(){
+  const errEl=document.getElementById('pubErr'); errEl.style.display='none';
+  const name=document.getElementById('pub_name').value.trim();
+  const email=document.getElementById('pub_email').value.trim();
+  const department=document.getElementById('pub_department').value.trim();
+  const entity=document.getElementById('pub_entity').value;
+  const lineManagerEmail=document.getElementById('pub_lmEmail').value.trim();
+  const neededBy=document.getElementById('pub_neededBy').value;
+  const justification=document.getElementById('pub_justification').value.trim();
+  const lineItems=pubGetLines();
+  if(!name||!email||!lineManagerEmail||!justification||!lineItems.length){
+    errEl.textContent='Please fill in your name, email, line manager\'s email, justification, and at least one line item.';
+    errEl.style.display='block'; return;
+  }
+  const btn=document.getElementById('pubSubmitBtn'); btn.disabled=true; btn.textContent='Submitting…';
+  try{
+    const result = await api('submitPR', {requestorName:name, requestorEmail:email, department, entity, lineManagerEmail, neededBy, justification, lineItems});
+    document.getElementById('pubFormCard').style.display='none';
+    document.getElementById('pubSuccessTitle').textContent = result.pr.prNumber+' Submitted';
+    document.getElementById('pubSuccessSub').textContent = 'Sent to '+result.lineManagerName+' for approval. You\'ll be contacted if any information is needed.';
+    document.getElementById('pubSuccessCard').style.display='block';
+  }catch(e){
+    errEl.textContent=e.message||'Could not submit request'; errEl.style.display='block';
+  } finally { btn.disabled=false; btn.textContent='➤ Submit Purchase Request'; }
 }
 
 // ═══════════════════════════════
@@ -1215,12 +1383,12 @@ async function doLogout(){
   try{ await api('logout', {email: currentUser.email}); }catch(e){}
   clearSession(); currentUser=null;
   document.getElementById('appShell').style.display='none';
-  document.getElementById('loginShell').style.display='flex';
+  document.getElementById('landingShell').style.display='flex';
   document.getElementById('li_pw').value='';
 }
 
 async function bootApp(){
-  document.getElementById('loginShell').style.display='none';
+  document.getElementById('landingShell').style.display='none';
   document.getElementById('appShell').style.display='flex';
   document.getElementById('sbUserName').textContent = currentUser.name;
   document.getElementById('sbUserRole').textContent = roleLabel(currentUser.role)+' · '+currentUser.entity;
@@ -1233,7 +1401,7 @@ async function bootApp(){
 }
 
 function roleLabel(r){
-  return {Requestor:'Requestor', LineManager:'Line Manager', Finance:'Finance', OpsProcurement:'Operations & Procurement', Admin:'Admin'}[r]||r;
+  return {LineManager:'Line Manager', OpsProcurement:'Procurement Department', Finance:'Finance', OperationsManager:'Operations Manager', CEO:'CEO', Admin:'Admin'}[r]||r;
 }
 
 // ═══════════════════════════════
@@ -1816,11 +1984,9 @@ function renderProcTaskBanner(){
   const wrap=document.getElementById('procTaskBanner');
   if(!wrap) return;
   const myPending = pendingApprovalsForMe();
-  const myDrafts = purchaseRequests.filter(pr=>pr.status==='Draft' && pr.requestorEmail===currentUser.email);
   const myPendingPRQ = (currentUser.role==='Finance'||currentUser.role==='Admin') ? paymentRequests.filter(p=>p.status==='PendingFinance') : [];
   const cards=[];
   if(myPending.length) cards.push({icon:'✅',label:myPending.length+' purchase request'+(myPending.length!==1?'s':'')+' awaiting your approval',fn:'showApprovalsList()',color:'var(--amber)'});
-  if(myDrafts.length) cards.push({icon:'📝',label:myDrafts.length+' draft PR'+(myDrafts.length!==1?'s':'')+' not yet submitted',fn:'showPRList()',color:'var(--b400)'});
   if(myPendingPRQ.length) cards.push({icon:'💳',label:myPendingPRQ.length+' payment request'+(myPendingPRQ.length!==1?'s':'')+' pending Finance review',fn:'showPRQList()',color:'var(--rose)'});
   if(!cards.length){ wrap.innerHTML=''; return; }
   wrap.innerHTML = `<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
@@ -2097,10 +2263,13 @@ function escAttr(s){ return escHtml(s).replace(/'/g,'&#39;'); }
 function fmtDate(iso){ if(!iso) return '—'; try{ return new Date(iso).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }catch(e){ return String(iso).slice(0,10); } }
 function fmtMoney(n){ return 'Rs. '+Number(n||0).toLocaleString(undefined,{maximumFractionDigits:0}); }
 function emptyState(icon,head,sub){ return `<div class="empty-state"><div class="empty-icon">${icon}</div><div class="empty-head">${head}</div><div class="empty-sub">${sub}</div></div>`; }
-function stageLabel(s){ return {LineManager:'Line Manager',Finance:'Finance',OpsProcurement:'Ops & Procurement',Draft:'Draft','—':'—'}[s]||s; }
+function stageLabel(s){ return {LineManager:'Line Manager',Procurement:'Procurement Dept',Finance:'Finance',OperationsManager:'Operations Manager',Delegate:'Delegated Approval','—':'—'}[s]||s; }
 const STATUS_MAP = {
-  Draft:['st-draft','Draft'], PendingLineManager:['st-pending','Pending Line Manager'],
-  PendingFinance:['st-pending','Pending Finance'], PendingOpsProcurement:['st-pending','Pending Ops & Procurement'],
+  PendingLineManager:['st-pending','Pending Line Manager'],
+  PendingProcurement:['st-pending','Pending Procurement'],
+  PendingFinance:['st-pending','Pending Finance'],
+  PendingOperationsManager:['st-pending','Pending Operations Manager'],
+  PendingDelegate:['st-pending','Pending Delegated Approval'],
   Approved:['st-approved','Approved'], Rejected:['st-rejected','Rejected'],
   RFQIssued:['st-active','RFQ Issued'], POIssued:['st-done','PO Issued'],
   Issued:['st-active','Issued'], PartiallyDelivered:['st-active','Partially Delivered'],
@@ -2117,8 +2286,11 @@ function mergeInto(arr,rec){ const i=arr.findIndex(x=>x.id===rec.id); if(i>-1) a
 function pendingApprovalsForMe(){
   if(!currentUser) return [];
   return purchaseRequests.filter(pr=>{
-    if(!['LineManager','Finance','OpsProcurement'].includes(pr.currentStage)) return false;
-    return currentUser.role==='Admin' || pr.currentStage===currentUser.role;
+    const stage = pr.currentStage;
+    if(stage==='LineManager') return currentUser.role==='Admin' || String(currentUser.email).toLowerCase()===String(pr.lineManagerEmail||'').toLowerCase();
+    if(stage==='Delegate') return currentUser.role==='Admin' || String(currentUser.email).toLowerCase()===String(pr.delegatedApproverEmail||'').toLowerCase();
+    if(STAGE_ROLE[stage]) return currentUser.role==='Admin' || currentUser.role===STAGE_ROLE[stage];
+    return false;
   });
 }
 function clearTopbar(){ document.getElementById('topbarRight').innerHTML=''; }
@@ -2128,8 +2300,7 @@ function clearTopbar(){ document.getElementById('topbarRight').innerHTML=''; }
 // ═══════════════════════════════
 function showPRList(){
   setBc([{l:'Dashboard',fn:'goHome()'},{l:'Purchase Requests'}]);
-  setSbActive('sb-pr');
-  document.getElementById('topbarRight').innerHTML = `<button class="tb-btn primary" onclick="openPRForm()">＋ New Purchase Request</button>`;
+  setSbActive('sb-pr'); clearTopbar();
   renderPRList();
   showView('pr');
 }
@@ -2148,27 +2319,22 @@ function renderPRList(){
         <span>📅 Raised ${fmtDate(pr.dateRaised)}</span>
         <span class="rec-amt">${fmtMoney(pr.totalEstAmount)}</span>
       </div>
-    </div>`).join('') : emptyState('📝','No purchase requests yet','Click "New Purchase Request" to raise one');
+    </div>`).join('') : emptyState('📝','No purchase requests yet','Requests are submitted via the public "Make a Request" form and will appear here');
 }
 
+// PR line items can only be EDITED (by the addressed Line Manager, before they act, or Admin) —
+// new PRs are created exclusively through the public "Make a Request" form.
 function openPRForm(editId2){
-  editingPRId = editId2||null;
+  editingPRId = editId2;
+  if(!editingPRId) return;
   document.getElementById('pf_lineItems').innerHTML=''; pfLineSeq=0;
-  if(editingPRId){
-    const pr=purchaseRequests.find(p=>p.id===editingPRId);
-    document.getElementById('prFormTitle').textContent='Edit Purchase Request — '+pr.prNumber;
-    document.getElementById('pf_entity').value=pr.entity;
-    document.getElementById('pf_neededBy').value=pr.neededBy||'';
-    document.getElementById('pf_justification').value=pr.justification||'';
-    const lines=safeParse(pr.lineItemsJson,[]);
-    if(lines.length) lines.forEach(l=>pfAddLine({desc:l.description,qty:l.qty,unit:l.unit,rate:l.estUnitRate})); else pfAddLine();
-  } else {
-    document.getElementById('prFormTitle').textContent='New Purchase Request';
-    document.getElementById('pf_entity').value = currentUser.entity==='AHKF'?'AHKF':'RADS';
-    document.getElementById('pf_neededBy').value='';
-    document.getElementById('pf_justification').value='';
-    pfAddLine();
-  }
+  const pr=purchaseRequests.find(p=>p.id===editingPRId);
+  document.getElementById('prFormTitle').textContent='Edit Purchase Request — '+pr.prNumber;
+  document.getElementById('pf_entity').value=pr.entity;
+  document.getElementById('pf_neededBy').value=pr.neededBy||'';
+  document.getElementById('pf_justification').value=pr.justification||'';
+  const lines=safeParse(pr.lineItemsJson,[]);
+  if(lines.length) lines.forEach(l=>pfAddLine({desc:l.description,qty:l.qty,unit:l.unit,rate:l.estUnitRate})); else pfAddLine();
   document.getElementById('prFormOverlay').classList.add('open');
 }
 function closePRForm(){ document.getElementById('prFormOverlay').classList.remove('open'); editingPRId=null; }
@@ -2201,22 +2367,19 @@ function pfGetLines(){
     return {description:inp[0].value.trim(), qty:Number(inp[1].value)||0, unit:inp[2].value.trim(), estUnitRate:Number(inp[3].value)||0};
   }).filter(li=>li.description);
 }
-async function savePR(submit){
-  const entity=document.getElementById('pf_entity').value;
+async function savePR(){
+  if(!editingPRId) return;
   const justification=document.getElementById('pf_justification').value.trim();
   const neededBy=document.getElementById('pf_neededBy').value;
   const lineItems=pfGetLines();
   if(!justification){ toast('Justification is required','error'); return; }
   if(!lineItems.length){ toast('Add at least one line item','error'); return; }
   try{
-    const result = editingPRId
-      ? await api('updatePR', {id:editingPRId, neededBy, justification, lineItems, submit})
-      : await api('createPR', {entity, neededBy, justification, lineItems, submit});
+    const result = await api('updatePR', {id:editingPRId, neededBy, justification, lineItems});
     mergeInto(purchaseRequests, result);
     closePRForm();
-    toast(submit?'✅ PR submitted for approval':'💾 Draft saved');
-    updateSidebarCounts();
-    showPRList();
+    toast('💾 Changes saved');
+    if(currentPRId===result.id) renderPRDetail();
   }catch(e){ toast(e.message||'Could not save','error'); }
 }
 
@@ -2240,20 +2403,25 @@ function renderPRDetail(){
     let cls='step';
     if(pr.status==='Rejected' && i===stageIdx) cls+=' rejected';
     else if(i<passedIdx) cls+=' done';
-    else if(pr.currentStage===s && pr.status!=='Draft') cls+=' current';
+    else if(pr.currentStage===s) cls+=' current';
     return `<div class="${cls}">${stageLabel(s)}</div>` + (i<PR_STAGES.length-1?'<span class="step-arrow">→</span>':'');
-  }).join('');
+  }).join('') + (pr.currentStage==='Delegate' ? `<span class="step-arrow">→</span><div class="step current">Delegated to ${escHtml(pr.delegatedApproverName)}</div>` : '');
 
-  const canAct = pr.currentStage===currentUser.role || currentUser.role==='Admin';
-  const isPendingApproval = ['PendingLineManager','PendingFinance','PendingOpsProcurement'].includes(pr.status);
+  let canAct=false;
+  if(pr.currentStage==='LineManager') canAct = currentUser.role==='Admin' || String(currentUser.email).toLowerCase()===String(pr.lineManagerEmail||'').toLowerCase();
+  else if(pr.currentStage==='Delegate') canAct = currentUser.role==='Admin' || String(currentUser.email).toLowerCase()===String(pr.delegatedApproverEmail||'').toLowerCase();
+  else if(STAGE_ROLE[pr.currentStage]) canAct = currentUser.role==='Admin' || currentUser.role===STAGE_ROLE[pr.currentStage];
+
+  const isPendingApproval = ['PendingLineManager','PendingProcurement','PendingFinance','PendingOperationsManager','PendingDelegate'].includes(pr.status);
+  const canEdit = pr.status==='PendingLineManager' && (currentUser.role==='Admin' || String(currentUser.email).toLowerCase()===String(pr.lineManagerEmail||'').toLowerCase());
+
   let actionsHtml='';
-  if(pr.status==='Draft' && pr.requestorEmail===currentUser.email){
-    actionsHtml = `<button class="tb-btn" onclick="openPRForm('${pr.id}')">✏️ Edit</button>
-      <button class="tb-btn primary" onclick="quickSubmitPR('${pr.id}')">➤ Submit for Approval</button>`;
-  } else if(isPendingApproval && canAct){
-    actionsHtml = `<button class="tb-btn" style="background:var(--rose-l);color:var(--rose);border-color:#FECDD3" onclick="actOnPRPrompt('${pr.id}','Reject')">✕ Reject</button>
-      <button class="tb-btn" onclick="actOnPRPrompt('${pr.id}','Query')">↩ Send Back / Query</button>
-      <button class="tb-btn primary" onclick="actOnPRPrompt('${pr.id}','Approve')">✓ Approve</button>`;
+  if(isPendingApproval && canAct){
+    actionsHtml = `${canEdit?`<button class="tb-btn" onclick="openPRForm('${pr.id}')">✏️ Edit</button>`:''}
+      <button class="tb-btn" style="background:var(--rose-l);color:var(--rose);border-color:#FECDD3" onclick="actOnPRPrompt('${pr.id}','Reject')">✕ Reject</button>
+      ${pr.currentStage!=='Delegate' ? `<button class="tb-btn" onclick="actOnPRPrompt('${pr.id}','Query')">↩ Send Back to Line Manager</button>` : ''}
+      ${pr.currentStage==='OperationsManager' ? `<button class="tb-btn" style="background:var(--violet-l);color:#5B21B6;border-color:#DDD6FE" onclick="openDelegatePicker('${pr.id}')">↗ Delegate (CEO / Finance Head / Other)</button>`:''}
+      <button class="tb-btn primary" onclick="actOnPRPrompt('${pr.id}','Approve')">✓ Approve${pr.currentStage==='OperationsManager'?' & Finalize':''}</button>`;
   } else if(pr.status==='Approved' && (currentUser.role==='OpsProcurement'||currentUser.role==='Admin')){
     const hasRfq = rfqs.some(r=>r.prId===pr.id);
     actionsHtml = hasRfq ? `<span style="font-size:12px;color:var(--b400);align-self:center">RFQ already issued for this PR</span>` :
@@ -2264,7 +2432,8 @@ function renderPRDetail(){
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
       <div>
         <div style="font-size:20px;font-weight:900;color:var(--b900)">${pr.prNumber}</div>
-        <div style="font-size:12px;color:var(--b400);margin-top:2px">Raised by ${escHtml(pr.requestorName)} · ${escHtml(pr.department)||'—'} · ${pr.entity}</div>
+        <div style="font-size:12px;color:var(--b400);margin-top:2px">Raised by ${escHtml(pr.requestorName)} (${escHtml(pr.requestorEmail)}) · ${escHtml(pr.department)||'—'} · ${pr.entity}</div>
+        <div style="font-size:11px;color:var(--b400);margin-top:2px">Line Manager: ${escHtml(pr.lineManagerEmail)}</div>
       </div>
       ${statusBadge(pr.status)}
     </div>
@@ -2287,10 +2456,6 @@ function renderPRDetail(){
     <div style="display:flex;gap:10px;flex-wrap:wrap">${actionsHtml}</div>
   `;
 }
-async function quickSubmitPR(id){
-  try{ const r=await api('updatePR',{id,submit:true}); mergeInto(purchaseRequests,r); toast('✅ Submitted for approval'); renderPRDetail(); updateSidebarCounts(); }
-  catch(e){ toast(e.message,'error'); }
-}
 function actOnPRPrompt(id,action){
   let comments='';
   if(action==='Approve') comments=prompt('Optional comments:')||'';
@@ -2301,7 +2466,26 @@ async function actOnPR(id,action,comments){
   try{
     const r=await api('actOnPR',{id,action,comments});
     mergeInto(purchaseRequests,r);
-    toast(action==='Approve'?'✅ Approved':action==='Reject'?'❌ Rejected':'↩ Sent back to requestor');
+    toast(action==='Approve'?'✅ Approved':action==='Reject'?'❌ Rejected':'↩ Sent back to Line Manager');
+    renderPRDetail(); updateSidebarCounts();
+  }catch(e){ toast(e.message,'error'); }
+}
+function openDelegatePicker(id){
+  const options = allUsers.filter(u=>u.email!==currentUser.email);
+  const list = options.map(u=>`${u.name} <${u.email}> — ${roleLabel(u.role)}`).join('\n');
+  const pick = prompt('Enter the email to delegate final approval to (e.g. CEO, Finance Head, or anyone else on the team):\n\n'+list);
+  if(!pick) return;
+  const email = pick.trim().toLowerCase();
+  const match = allUsers.find(u=>u.email.toLowerCase()===email);
+  if(!match){ toast('No account found for that email','error'); return; }
+  const comments = prompt('Optional note for '+match.name+':')||'';
+  delegatePR(id, match.email, comments);
+}
+async function delegatePR(id, delegateEmail, comments){
+  try{
+    const r=await api('actOnPR',{id, action:'Delegate', delegateEmail, comments});
+    mergeInto(purchaseRequests,r);
+    toast('↗ Delegated to '+(r.delegatedApproverName||delegateEmail));
     renderPRDetail(); updateSidebarCounts();
   }catch(e){ toast(e.message,'error'); }
 }
@@ -2704,7 +2888,7 @@ function openUserForm(id){
     document.getElementById('userFormTitle').textContent='Add User';
     document.getElementById('uf_name').value=''; document.getElementById('uf_department').value=''; document.getElementById('uf_password').value='';
     document.getElementById('uf_email').value=''; document.getElementById('uf_email').disabled=false;
-    document.getElementById('uf_role').value='Requestor'; document.getElementById('uf_entity').value='Both';
+    document.getElementById('uf_role').value='LineManager'; document.getElementById('uf_entity').value='Both';
     document.getElementById('uf_pwWrap').style.display='';
     document.getElementById('uf_activeWrap').style.display='none';
   }
@@ -2739,12 +2923,13 @@ async function saveUser(){
 // APP BOOTSTRAP (replaces old load()+goHome() localStorage init)
 // ═══════════════════════════════
 (function initApp(){
+  pubAddLine(); // seed the public request form with one empty line item
   const restored = restoreSession();
   if(restored && restored.email && restored.sessionToken){
     currentUser = restored;
-    bootApp().catch(()=>{ clearSession(); currentUser=null; document.getElementById('loginShell').style.display='flex'; });
+    bootApp().catch(()=>{ clearSession(); currentUser=null; document.getElementById('landingShell').style.display='flex'; });
   } else {
-    document.getElementById('loginShell').style.display='flex';
+    document.getElementById('landingShell').style.display='flex';
   }
 })();
 
