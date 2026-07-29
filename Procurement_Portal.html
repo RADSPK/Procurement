@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vendor Portal — RADS & AHKF</title>
+<title>Procurement Portal — RADS & AHKF</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root {
   --rads:#7B1F2E; --rads-d:#5A1520; --rads-l:#FDF0F1; --rads-m:#9B2435;
@@ -534,7 +535,7 @@ textarea.finput{min-height:72px;resize:vertical}
       <span class="sb-item-count" id="sb-prq-count">—</span>
     </div>
 
-    <div class="sb-section-label" style="margin-top:4px">Vendor Directory</div>
+    <div class="sb-section-label" id="sb-vendordir-label" style="margin-top:4px">Vendor Directory</div>
     <div id="sbCatList"></div>
 
     <div class="sb-section-label" id="sb-admin-label" style="margin-top:4px;display:none">Admin</div>
@@ -548,7 +549,7 @@ textarea.finput{min-height:72px;resize:vertical}
       <div style="font-size:12px;font-weight:700;color:#fff" id="sbUserName">—</div>
       <div style="font-size:10px;color:rgba(255,255,255,.4)" id="sbUserRole">—</div>
     </div>
-    <button class="sb-add-btn" onclick="openAdd()">＋ Add Vendor</button>
+    <button class="sb-add-btn" id="sbAddVendorBtn" onclick="openAdd()">＋ Add Vendor</button>
     <button class="sb-add-btn" style="background:transparent;border:1.5px solid rgba(255,255,255,.15);margin-top:6px" onclick="doLogout()">Log out</button>
   </div>
 </nav>
@@ -1458,8 +1459,11 @@ async function bootApp(){
     document.getElementById('sb-admin-label').style.display='';
     document.getElementById('sb-admin').style.display='';
   }
-  if(!canSeeDashboard()){
+  if(!canSeeProcurementTools()){
     document.getElementById('sb-home').style.display='none';
+    document.getElementById('sb-vendordir-label').style.display='none';
+    document.getElementById('sbCatList').style.display='none';
+    document.getElementById('sbAddVendorBtn').style.display='none';
   }
   await loadAll();
   goHome();
@@ -1875,6 +1879,7 @@ function runSearch(){
 // CATEGORY VIEW
 // ═══════════════════════════════
 function openCat(cat){
+  if(!canSeeProcurementTools()){ showApprovalsList(); return; }
   currentCat=cat; cvSub=''; cvCity=''; cvType='';
   resetTopbarRight();
   const cfg=CAT[cat];
@@ -2018,11 +2023,11 @@ function closeCompareModal(){ document.getElementById('compareOverlay').classLis
 // ═══════════════════════════════
 // HOME
 // ═══════════════════════════════
-function canSeeDashboard(){
+function canSeeProcurementTools(){
   return currentUser && (currentUser.role==='OperationsManager' || currentUser.role==='OpsProcurement' || currentUser.role==='Admin');
 }
 function goHome(){
-  if(!canSeeDashboard()){ showApprovalsList(); return; }
+  if(!canSeeProcurementTools()){ showApprovalsList(); return; }
   currentCat=null; fCat=''; fSub=''; fCity=''; fType=''; fText='';
   document.getElementById('heroSearch').value='';
   document.getElementById('heroClr').classList.remove('visible');
@@ -2461,6 +2466,126 @@ function openPRDetail(id){
   renderPRDetail();
   showView('pr-detail');
 }
+function pdfStatusBlock(pr){
+  return `<button class="tb-btn" style="font-size:11px;padding:5px 10px" onclick="downloadPRPdf('${pr.id}')">📄 Download PDF</button>`;
+}
+function statusPdfLabel(status){ const m = STATUS_MAP[status]; return m?m[1]:(status||'—'); }
+function downloadPRPdf(id){
+  const pr = purchaseRequests.find(p=>p.id===id);
+  if(!pr){ toast('PR not found','error'); return; }
+  if(!window.jspdf){ toast('PDF library still loading — try again in a second','error'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:'pt', format:'a4'});
+  const marginL = 48, marginR = 48;
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const contentW = pageW - marginL - marginR;
+  let y = 56;
+
+  function checkPageBreak(need){
+    if(y + need > pageH - 60){ doc.addPage(); y = 56; }
+  }
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(18);
+  doc.text('Purchase Request', marginL, y);
+  doc.setFontSize(11); doc.setFont('helvetica','normal');
+  doc.text(pr.prNumber, pageW-marginR, y, {align:'right'});
+  y += 18;
+  doc.setFontSize(10); doc.setTextColor(110,110,110);
+  doc.text('Status: '+statusPdfLabel(pr.status), pageW-marginR, y, {align:'right'});
+  doc.setTextColor(0,0,0);
+  y += 18;
+  doc.setDrawColor(210,210,210);
+  doc.line(marginL, y, pageW-marginR, y);
+  y += 22;
+
+  const infoRows = [
+    ['Requestor', pr.requestorName+' ('+pr.requestorEmail+')'],
+    ['Department', pr.department||'—'],
+    ['Project', pr.project||'—'],
+    ['Station / Location', pr.station||'—'],
+    ['Entity', pr.entity],
+    ['Line Manager', pr.lineManagerEmail||'—'],
+    ['Date Raised', fmtDate(pr.dateRaised)],
+    ['Needed By', pr.neededBy?fmtDate(pr.neededBy):'—']
+  ];
+  doc.setFontSize(10);
+  infoRows.forEach(([label,val])=>{
+    checkPageBreak(14);
+    doc.setFont('helvetica','bold'); doc.text(label+':', marginL, y);
+    doc.setFont('helvetica','normal');
+    const lines = doc.splitTextToSize(String(val), contentW-140);
+    doc.text(lines, marginL+140, y);
+    y += 14*Math.max(1,lines.length);
+  });
+  y += 8;
+
+  checkPageBreak(30);
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.text('Justification', marginL, y); y+=16;
+  doc.setFont('helvetica','normal'); doc.setFontSize(10);
+  const justLines = doc.splitTextToSize(pr.justification||'—', contentW);
+  doc.text(justLines, marginL, y); y += 14*justLines.length + 10;
+
+  if(pr.notes){
+    checkPageBreak(30);
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.text('Additional Notes', marginL, y); y+=16;
+    doc.setFont('helvetica','normal'); doc.setFontSize(10);
+    const noteLines = doc.splitTextToSize(pr.notes, contentW);
+    doc.text(noteLines, marginL, y); y += 14*noteLines.length + 10;
+  }
+
+  checkPageBreak(40);
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.text('Line Items', marginL, y); y += 16;
+  const lines = safeParse(pr.lineItemsJson, []);
+  const colX = [marginL, marginL+230, marginL+300, marginL+370, marginL+ (contentW-60)];
+  doc.setFontSize(9);
+  doc.setFillColor(245,245,245);
+  doc.rect(marginL, y-11, contentW, 16, 'F');
+  doc.setFont('helvetica','bold');
+  doc.text('Description', colX[0]+2, y);
+  doc.text('Qty', colX[1]+2, y);
+  doc.text('Unit', colX[2]+2, y);
+  doc.text('Rate', colX[3]+2, y);
+  doc.text('Amount', colX[4]+2, y);
+  y += 16;
+  doc.setFont('helvetica','normal');
+  lines.forEach(li=>{
+    const amt = (Number(li.qty)||0)*(Number(li.estUnitRate)||0);
+    const descLines = doc.splitTextToSize(li.description||'', colX[1]-colX[0]-6);
+    checkPageBreak(14*descLines.length);
+    doc.text(descLines, colX[0]+2, y);
+    doc.text(String(li.qty||0), colX[1]+2, y);
+    doc.text(li.unit||'—', colX[2]+2, y);
+    doc.text(fmtMoney(li.estUnitRate), colX[3]+2, y);
+    doc.text(fmtMoney(amt), colX[4]+2, y);
+    y += 14*Math.max(1, descLines.length);
+  });
+  y += 4;
+  doc.setDrawColor(210,210,210);
+  doc.line(marginL, y, marginL+contentW, y); y+=16;
+  doc.setFont('helvetica','bold');
+  doc.text('Estimated Total: '+fmtMoney(pr.totalEstAmount), marginL+contentW, y, {align:'right'});
+  y += 26;
+
+  checkPageBreak(30);
+  doc.setFontSize(11); doc.text('Approval History', marginL, y); y+=16;
+  doc.setFontSize(9); doc.setFont('helvetica','normal');
+  const hist = approvals.filter(a=>a.prId===pr.id).sort((a,b)=> new Date(a.timestamp)-new Date(b.timestamp));
+  if(!hist.length){ doc.text('—', marginL, y); y+=14; }
+  hist.forEach(a=>{
+    const stageLbl = a.stage==='Delegate'?'Delegated Approval':stageLabel(a.stage);
+    const line = stageLbl+' — '+a.actorName+': '+a.action+(a.comments?' ('+a.comments+')':'')+'  ·  '+fmtDate(a.timestamp);
+    const wrapped = doc.splitTextToSize(line, contentW);
+    checkPageBreak(13*wrapped.length);
+    doc.text(wrapped, marginL, y);
+    y += 13*wrapped.length;
+  });
+
+  doc.setFontSize(8); doc.setTextColor(150,150,150);
+  doc.text('Generated from the Procurement Portal on '+fmtDate(new Date().toISOString())+' — reflects the request\'s status at time of download.', marginL, pageH-30);
+
+  doc.save(pr.prNumber+'.pdf');
+}
 function renderPRDetail(){
   const pr=purchaseRequests.find(p=>p.id===currentPRId);
   if(!pr){ document.getElementById('prDetailBody').innerHTML=emptyState('❓','Not found',''); return; }
@@ -2506,8 +2631,7 @@ function renderPRDetail(){
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
         ${statusBadge(pr.status)}
-        ${pr.status==='Approved' && pr.pdfUrl ? `<a href="${escAttr(pr.pdfUrl)}" target="_blank" class="tb-btn" style="font-size:11px;padding:5px 10px">📄 Download PDF</a>` : ''}
-        ${pr.status==='Approved' && !pr.pdfUrl ? `<span style="font-size:10px;color:var(--b400)">PDF generating…</span>` : ''}
+        ${pdfStatusBlock(pr)}
       </div>
     </div>
     <div class="stepper">${stepsHtml}</div>
