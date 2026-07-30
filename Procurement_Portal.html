@@ -183,12 +183,16 @@ html,body{height:100%;font-family:var(--f);background:var(--canvas);color:var(--
 .results-count span{color:var(--b400);font-weight:500}
 
 /* ── KPI ROW ── */
-.kpi-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:28px}
-.kpi{background:var(--surface);border-radius:var(--r12);padding:16px 18px;border:1px solid var(--b150,var(--b200));position:relative;cursor:default;transition:border-color .15s}
-.kpi:hover{border-color:var(--b300)}
-.kpi-num{font-size:28px;font-weight:800;line-height:1;color:var(--b900);letter-spacing:-.5px;margin-bottom:5px}
-.kpi.kpi-warn .kpi-num{color:var(--kpi-warn-color,var(--b900))}
-.kpi-lbl{font-size:10.5px;font-weight:600;color:var(--b400);text-transform:uppercase;letter-spacing:.06em}
+.metrics-panel{background:#232327;border-radius:20px;padding:22px 22px 20px;margin-bottom:26px}
+.metrics-section-label{font-size:12.5px;font-weight:700;color:#D4D4D8;margin-bottom:10px;letter-spacing:.01em}
+.metrics-section-label.mt{margin-top:20px}
+.metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px}
+.metric-card{background:#2B2B30;border-radius:14px;padding:16px 16px 14px;position:relative;overflow:hidden}
+.metric-card.clickable{cursor:pointer;transition:background .15s}
+.metric-card.clickable:hover{background:#323238}
+.metric-card-icon{position:absolute;right:12px;bottom:10px;font-size:26px;opacity:.16;pointer-events:none}
+.metric-num{font-size:27px;font-weight:800;color:#E29C96;letter-spacing:-.5px;line-height:1;margin-bottom:5px;position:relative;z-index:1}
+.metric-lbl{font-size:11.5px;color:#9E9EA6;font-weight:500;position:relative;z-index:1}
 
 /* ── CATEGORY MOSAIC ── */
 .mosaic-title{font-size:14px;font-weight:800;color:var(--b700);letter-spacing:.01em;margin-bottom:14px;display:flex;align-items:center;gap:8px}
@@ -630,7 +634,7 @@ textarea.finput{min-height:72px;resize:vertical}
           </button>
           <div class="notice-dropdown" id="noticeDropdown"></div>
         </div>
-        <div class="kpi-row" id="kpiRow"></div>
+        <div class="metrics-panel" id="metricsPanel"></div>
         <div class="mosaic-title">📂 Browse by Category</div>
         <div class="cat-mosaic" id="catMosaic"></div>
       </div>
@@ -1043,10 +1047,15 @@ Example Vendor,SUPPLIES,Printing,John Doe,0300-1234567,Islamabad,Blue Area,john@
       <div class="fg s2">
         <label class="flabel" style="margin-bottom:6px">Standard Clauses to Include</label>
         <div id="rf_standardTerms" style="display:flex;flex-direction:column;gap:7px;font-size:12px;color:var(--b600)">
-          <label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" class="rf-term-cb" value="Quoted prices must be inclusive of all applicable taxes." style="margin-top:2px">Quoted prices must be inclusive of all applicable taxes</label>
+          <label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" class="rf-term-cb" value="Quoted unit prices must be inclusive of VAT, withholding tax, income tax, GST, and all associated costs including transportation, loading, unloading, and packaging." style="margin-top:2px">Quoted unit prices must be inclusive of VAT, withholding tax, income tax, GST, and all associated costs (transportation, loading, unloading, packaging)</label>
           <label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" class="rf-term-cb" value="The quotation must remain valid for the stated validity period." style="margin-top:2px">The quotation must remain valid for the stated validity period</label>
           <label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" class="rf-term-cb" value="The delivery timeline must be clearly stated in the quotation." style="margin-top:2px">The delivery timeline must be clearly stated in the quotation</label>
-          <label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" class="rf-term-cb" value="Payment will be released after satisfactory delivery and inspection." style="margin-top:2px">Payment released after satisfactory delivery and inspection</label>
+          <label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" class="rf-term-cb" value="Suppliers must mention complete specifications with unit and total price on the quotation or company letterhead, signed and stamped." style="margin-top:2px">Suppliers must mention complete specifications, unit and total price on the quotation or company letterhead, signed and stamped</label>
+          <label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" class="rf-term-cb" value="Payment will be made after delivery inspection and written acceptance by the receiving representative, after deduction of all applicable taxes." style="margin-top:2px">Payment made after delivery inspection and written acceptance, after deduction of all applicable taxes</label>
+          <label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" class="rf-term-cb" value="Payment will be made by bank transfer or crossed cheque." style="margin-top:2px">Payment will be made by bank transfer or crossed cheque</label>
+          <label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" class="rf-term-cb" value="Goods will be inspected for quality and quantity against the technical specifications provided in the quotation upon receipt." style="margin-top:2px">Goods inspected for quality and quantity against the quoted specifications upon receipt</label>
+          <label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" class="rf-term-cb" value="Risk, insurance, and transportation costs to the delivery address are the supplier's responsibility." style="margin-top:2px">Risk, insurance, and transportation costs to the delivery address are the supplier's responsibility</label>
+          <label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" class="rf-term-cb" value="Delivery will proceed as per the agreed schedule, which may change according to operational needs." style="margin-top:2px">Delivery will proceed as per the agreed schedule, which may change according to operational needs</label>
           <label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" class="rf-term-cb" value="The organization reserves the right to accept or reject any or all quotations without assigning reasons." style="margin-top:2px">The organization reserves the right to accept or reject any or all quotations without assigning reasons</label>
           <label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" class="rf-term-cb" value="Vendor must provide NTN and STRN details on the quotation." style="margin-top:2px">Vendor must provide NTN and STRN details on the quotation</label>
           <label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" class="rf-term-cb" value="Vendor must provide warranty or after-sales support details, if applicable." style="margin-top:2px">Vendor must provide warranty or after-sales support details, if applicable</label>
@@ -1055,6 +1064,14 @@ Example Vendor,SUPPLIES,Printing,John Doe,0300-1234567,Islamabad,Blue Area,john@
       <div class="fg s2">
         <label class="flabel">Additional Terms (optional)</label>
         <textarea class="finput" id="rf_customTerms" placeholder="Anything specific to this RFQ"></textarea>
+      </div>
+      <div class="fg s2">
+        <label class="flabel">How to Submit the Quotation</label>
+        <textarea class="finput" id="rf_submissionInstructions" placeholder="e.g. By hand or courier, sealed envelope, addressed to the Procurement Officer, RADS Head Office, Islamabad"></textarea>
+      </div>
+      <div class="fg s2">
+        <label class="flabel">Ethics / Reporting Contact (optional)</label>
+        <input class="finput" id="rf_ethicsContact" type="text" placeholder="Phone or email for reporting any breach of ethical conduct during this procurement">
       </div>
 
       <div class="fsec s2"><span class="fsec-label">Contact for Queries</span></div>
@@ -1962,7 +1979,7 @@ document.addEventListener('click', function(e){
 
 function renderDash(){
   renderNotices();
-  // KPIs
+  // Vendor metrics
   const total=vendors.length;
   const ret=vendors.filter(v=>v.type==='Retainership').length;
   const btc=vendors.filter(v=>v.type==='BTC').length;
@@ -1970,13 +1987,40 @@ function renderDash(){
   const cities=new Set(vendors.map(v=>v.city)).size;
   const cats=catsWithVendors().length;
   const atRisk=vendors.filter(v=>complianceLevel(v)==='risk').length;
-  document.getElementById('kpiRow').innerHTML=`
-    <div class="kpi"><div class="kpi-num">${total}</div><div class="kpi-lbl">Total Vendors</div></div>
-    <div class="kpi"><div class="kpi-num">${ret}</div><div class="kpi-lbl">Retainerships</div></div>
-    <div class="kpi"><div class="kpi-num">${btc}</div><div class="kpi-lbl">BTC Contracts</div></div>
-    <div class="kpi"><div class="kpi-num">${cities}</div><div class="kpi-lbl">Cities</div></div>
-    <div class="kpi"><div class="kpi-num">${elig100}</div><div class="kpi-lbl">Fully Eligible</div></div>
-    <div class="kpi${atRisk?' kpi-warn':''}" style="--kpi-warn-color:var(--rose)"><div class="kpi-num">${atRisk}</div><div class="kpi-lbl">Needs Attention</div></div>
+
+  // Procurement activity metrics
+  const openPRs = purchaseRequests.filter(p=>!['Approved','Rejected'].includes(p.status)).length;
+  const activeRFQs = rfqs.filter(r=>r.status!=='Awarded').length;
+  const openPOs = purchaseOrders.filter(p=>p.status!=='Delivered').length;
+  const pendingGRN = purchaseOrders.filter(p=>['Issued','PartiallyDelivered'].includes(p.status)).length;
+  const pendingPRQ = paymentRequests.filter(p=>['PendingSignature','PendingFinance','ApprovedForPayment'].includes(p.status)).length;
+
+  function metricCard(num, lbl, icon, onclick){
+    return `<div class="metric-card${onclick?' clickable':''}"${onclick?` onclick="${onclick}"`:''}>
+      <div class="metric-num">${num}</div>
+      <div class="metric-lbl">${lbl}</div>
+      <div class="metric-card-icon">${icon}</div>
+    </div>`;
+  }
+
+  document.getElementById('metricsPanel').innerHTML = `
+    <div class="metrics-section-label">Vendor Directory</div>
+    <div class="metrics-grid">
+      ${metricCard(total,'Total Vendors','🗂️')}
+      ${metricCard(ret,'Retainerships','🤝')}
+      ${metricCard(btc,'BTC Contracts','📃')}
+      ${metricCard(cities,'Cities','🏙️')}
+      ${metricCard(elig100,'Fully Eligible','✅')}
+      ${metricCard(atRisk,'Needs Attention','⚠️')}
+    </div>
+    <div class="metrics-section-label mt">Procurement Activity</div>
+    <div class="metrics-grid">
+      ${metricCard(openPRs,'Purchase Requests In Progress','📝','showPRList()')}
+      ${metricCard(activeRFQs,'Active RFQs','📨','showRFQList()')}
+      ${metricCard(openPOs,'Open Purchase Orders','📦','showPOList()')}
+      ${metricCard(pendingGRN,'Awaiting Goods Receiving','🚚','showDCList()')}
+      ${metricCard(pendingPRQ,'Payment Requests In Progress','💳','showPRQList()')}
+    </div>
   `;
   // Category mosaic
   document.getElementById('catMosaic').innerHTML=Object.keys(CAT).map(c=>{
@@ -2896,9 +2940,6 @@ function downloadPRPdf(id){
     doc.setTextColor(0,0,0);
   }
 
-  checkPageBreak(70);
-  y = drawSignatureBox(doc, y, marginL, contentW, ['Prepared By (Requestor)','Approved By','Date']);
-
   drawFooter();
   doc.save(pr.prNumber+'.pdf');
 }
@@ -2958,6 +2999,13 @@ function downloadRFQPdf(id){
   drawHeader();
   y = 84;
 
+  // Legal disclaimer — this is a request for quotes only, not a purchase order
+  doc.setFont('helvetica','italic'); doc.setFontSize(8.5); doc.setTextColor(120,120,120);
+  const disclaimerLines = doc.splitTextToSize('This is a Request for Quotation only and does not constitute a Purchase Order or any commitment on the part of '+theme.name+'.', contentW);
+  doc.text(disclaimerLines, marginL, y+10);
+  doc.setTextColor(0,0,0);
+  y += 12*disclaimerLines.length + 14;
+
   // Info grid
   const gridData = [
     ['RFQ title', rfq.title||'—', 'Entity', rfq.entity],
@@ -3008,6 +3056,48 @@ function downloadRFQPdf(id){
     y += 14;
   }
 
+  // Minimum information required from the supplier — standing checklist, always shown
+  checkPageBreak(30);
+  doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
+  doc.text('Minimum Information Required From Supplier', marginL, y); y += 14;
+  const minInfoItems = [
+    'Details of the company representative (name, address, phone, date, stamp, and signature)',
+    'Company registration documents (GST, NTN, etc.)',
+    'Characteristics of the items offered (attach relevant documentation if required)',
+    'Quantity available in stock',
+    'Delivery lead time',
+    'Unit price',
+    'Validity of the quotation (minimum 30 days recommended)'
+  ];
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(40,40,40);
+  minInfoItems.forEach((t,i)=>{
+    const wrapped = doc.splitTextToSize((i+1)+'.  '+t, contentW-8);
+    checkPageBreak(13*wrapped.length);
+    doc.text(wrapped, marginL, y+10);
+    y += 13*wrapped.length + 2;
+  });
+  doc.setFont('helvetica','italic'); doc.setFontSize(8); doc.setTextColor(150,150,150);
+  const disqualifyNote = doc.splitTextToSize('Failure to provide the above will automatically disqualify the supplier.', contentW);
+  checkPageBreak(12*disqualifyNote.length);
+  doc.text(disqualifyNote, marginL, y+8);
+  doc.setTextColor(0,0,0);
+  y += 12*disqualifyNote.length + 16;
+
+  // How to submit the quotation
+  if(rfq.submissionInstructions){
+    checkPageBreak(30);
+    doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
+    doc.text('How To Submit The Quotation', marginL, y); y += 14;
+    const subLines = doc.splitTextToSize(rfq.submissionInstructions, contentW-24);
+    const subBoxH = 14*subLines.length + 16;
+    checkPageBreak(subBoxH);
+    doc.setDrawColor(215,215,215);
+    doc.rect(marginL, y, contentW, subBoxH);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(40,40,40);
+    doc.text(subLines, marginL+12, y+16);
+    y += subBoxH + 18;
+  }
+
   // Contact for queries
   if(rfq.contactName || rfq.contactEmail || rfq.contactPhone){
     checkPageBreak(30);
@@ -3017,6 +3107,20 @@ function downloadRFQPdf(id){
     doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(40,40,40);
     doc.text(contactLine, marginL, y+10);
     y += 26;
+  }
+
+  // Ethics / caution notice
+  if(rfq.ethicsContact){
+    checkPageBreak(34);
+    doc.setDrawColor(230,180,120);
+    doc.setFillColor(255,251,240);
+    const cautionLines = doc.splitTextToSize(theme.name+' conducts business with honesty and in an ethical manner, and expects the same from suppliers. Any breach of these principles should be reported to: '+rfq.ethicsContact, contentW-24);
+    const cautionBoxH = 14*cautionLines.length + 16;
+    doc.rect(marginL, y, contentW, cautionBoxH, 'FD');
+    doc.setFont('helvetica','italic'); doc.setFontSize(8.5); doc.setTextColor(146,100,20);
+    doc.text(cautionLines, marginL+12, y+16);
+    doc.setTextColor(0,0,0);
+    y += cautionBoxH + 18;
   }
 
   // Additional information (free-text, manually entered)
@@ -3040,29 +3144,32 @@ function downloadRFQPdf(id){
     doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
     doc.text('Items Requested', marginL, y); y += 14;
     const prLines = safeParse(linkedPr.lineItemsJson, []);
-    const cw = [contentW*0.6, contentW*0.2, contentW*0.2];
-    const cx = [marginL, marginL+cw[0], marginL+cw[0]+cw[1]];
+    const cw = [contentW*0.08, contentW*0.52, contentW*0.13, contentW*0.12, contentW*0.15];
+    const cx = [marginL, marginL+cw[0], marginL+cw[0]+cw[1], marginL+cw[0]+cw[1]+cw[2], marginL+cw[0]+cw[1]+cw[2]+cw[3]];
     doc.setFillColor(theme.tint[0],theme.tint[1],theme.tint[2]);
     doc.rect(marginL, y, contentW, 20, 'F');
     drawGridRow(doc, marginL, y, cx, cw, 20);
     doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(br,bg,bb);
-    doc.text('Description', cx[0]+8, y+13);
-    doc.text('Qty', cx[1]+cw[1]-8, y+13, {align:'right'});
-    doc.text('Unit', cx[2]+8, y+13);
+    doc.text('S#', cx[0]+6, y+13);
+    doc.text('Description', cx[1]+8, y+13);
+    doc.text('Qty', cx[2]+cw[2]-8, y+13, {align:'right'});
+    doc.text('Unit', cx[3]+8, y+13);
+    doc.text('Remarks', cx[4]+8, y+13);
     y += 20;
     doc.setFont('helvetica','normal'); doc.setTextColor(30,30,30);
     let zebra = false;
-    prLines.forEach(li=>{
-      const descLines = doc.splitTextToSize(li.description||'', cw[0]-16);
+    prLines.forEach((li,idx)=>{
+      const descLines = doc.splitTextToSize(li.description||'', cw[1]-16);
       const rowH = Math.max(18, 12*descLines.length+6);
       checkPageBreak(rowH);
       if(zebra){ doc.setFillColor(249,249,249); doc.rect(marginL, y, contentW, rowH, 'F'); }
       zebra = !zebra;
       drawGridRow(doc, marginL, y, cx, cw, rowH);
       doc.setFontSize(9);
-      doc.text(descLines, cx[0]+8, y+13);
-      doc.text(String(li.qty||0), cx[1]+cw[1]-8, y+13, {align:'right'});
-      doc.text(li.unit||'—', cx[2]+8, y+13);
+      doc.text(String(idx+1), cx[0]+6, y+13);
+      doc.text(descLines, cx[1]+8, y+13);
+      doc.text(String(li.qty||0), cx[2]+cw[2]-8, y+13, {align:'right'});
+      doc.text(li.unit||'—', cx[3]+8, y+13);
       y += rowH;
     });
     y += 22;
@@ -3117,9 +3224,6 @@ function downloadRFQPdf(id){
   });
 
   y += 20;
-  checkPageBreak(70);
-  y = drawSignatureBox(doc, y, marginL, contentW, ['Issued By','Authorized By','Date']);
-
   drawFooter();
   doc.save(rfq.rfqNumber+'.pdf');
 }
@@ -3175,7 +3279,13 @@ function downloadRFQVendorPdf(rfqId, vendorId){
   y = 84;
 
   doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(30,30,30);
-  doc.text('To: '+vendor.name+(vendor.email?' ('+vendor.email+')':''), marginL, y); y += 22;
+  doc.text('To: '+vendor.name+(vendor.email?' ('+vendor.email+')':''), marginL, y); y += 20;
+
+  doc.setFont('helvetica','italic'); doc.setFontSize(8.5); doc.setTextColor(120,120,120);
+  const disclaimerLines2 = doc.splitTextToSize('This is a Request for Quotation only and does not constitute a Purchase Order or any commitment on the part of '+theme.name+'.', contentW);
+  doc.text(disclaimerLines2, marginL, y+10);
+  doc.setTextColor(0,0,0);
+  y += 12*disclaimerLines2.length + 14;
 
   const gridData = [
     ['RFQ title', rfq.title||'—', 'Entity', rfq.entity],
@@ -3224,6 +3334,48 @@ function downloadRFQVendorPdf(rfqId, vendorId){
     y += 14;
   }
 
+  // Minimum information required from the supplier — standing checklist, always shown
+  checkPageBreak(30);
+  doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
+  doc.text('Minimum Information Required From Supplier', marginL, y); y += 14;
+  const minInfoItems2 = [
+    'Details of the company representative (name, address, phone, date, stamp, and signature)',
+    'Company registration documents (GST, NTN, etc.)',
+    'Characteristics of the items offered (attach relevant documentation if required)',
+    'Quantity available in stock',
+    'Delivery lead time',
+    'Unit price',
+    'Validity of the quotation (minimum 30 days recommended)'
+  ];
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(40,40,40);
+  minInfoItems2.forEach((t,i)=>{
+    const wrapped = doc.splitTextToSize((i+1)+'.  '+t, contentW-8);
+    checkPageBreak(13*wrapped.length);
+    doc.text(wrapped, marginL, y+10);
+    y += 13*wrapped.length + 2;
+  });
+  doc.setFont('helvetica','italic'); doc.setFontSize(8); doc.setTextColor(150,150,150);
+  const disqualifyNote2 = doc.splitTextToSize('Failure to provide the above will automatically disqualify the supplier.', contentW);
+  checkPageBreak(12*disqualifyNote2.length);
+  doc.text(disqualifyNote2, marginL, y+8);
+  doc.setTextColor(0,0,0);
+  y += 12*disqualifyNote2.length + 16;
+
+  // How to submit the quotation
+  if(rfq.submissionInstructions){
+    checkPageBreak(30);
+    doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
+    doc.text('How To Submit The Quotation', marginL, y); y += 14;
+    const subLines2 = doc.splitTextToSize(rfq.submissionInstructions, contentW-24);
+    const subBoxH2 = 14*subLines2.length + 16;
+    checkPageBreak(subBoxH2);
+    doc.setDrawColor(215,215,215);
+    doc.rect(marginL, y, contentW, subBoxH2);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(40,40,40);
+    doc.text(subLines2, marginL+12, y+16);
+    y += subBoxH2 + 18;
+  }
+
   if(rfq.contactName || rfq.contactEmail || rfq.contactPhone){
     checkPageBreak(30);
     doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
@@ -3232,6 +3384,20 @@ function downloadRFQVendorPdf(rfqId, vendorId){
     doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(40,40,40);
     doc.text(contactLine, marginL, y+10);
     y += 26;
+  }
+
+  // Ethics / caution notice
+  if(rfq.ethicsContact){
+    checkPageBreak(34);
+    doc.setDrawColor(230,180,120);
+    doc.setFillColor(255,251,240);
+    const cautionLines2 = doc.splitTextToSize(theme.name+' conducts business with honesty and in an ethical manner, and expects the same from suppliers. Any breach of these principles should be reported to: '+rfq.ethicsContact, contentW-24);
+    const cautionBoxH2 = 14*cautionLines2.length + 16;
+    doc.rect(marginL, y, contentW, cautionBoxH2, 'FD');
+    doc.setFont('helvetica','italic'); doc.setFontSize(8.5); doc.setTextColor(146,100,20);
+    doc.text(cautionLines2, marginL+12, y+16);
+    doc.setTextColor(0,0,0);
+    y += cautionBoxH2 + 18;
   }
 
   if(rfq.additionalInfo){
@@ -3253,29 +3419,32 @@ function downloadRFQVendorPdf(rfqId, vendorId){
     doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
     doc.text('Items Requested', marginL, y); y += 14;
     const prLines = safeParse(linkedPr.lineItemsJson, []);
-    const cw = [contentW*0.6, contentW*0.2, contentW*0.2];
-    const cx = [marginL, marginL+cw[0], marginL+cw[0]+cw[1]];
+    const cw = [contentW*0.08, contentW*0.52, contentW*0.13, contentW*0.12, contentW*0.15];
+    const cx = [marginL, marginL+cw[0], marginL+cw[0]+cw[1], marginL+cw[0]+cw[1]+cw[2], marginL+cw[0]+cw[1]+cw[2]+cw[3]];
     doc.setFillColor(theme.tint[0],theme.tint[1],theme.tint[2]);
     doc.rect(marginL, y, contentW, 20, 'F');
     drawGridRow(doc, marginL, y, cx, cw, 20);
     doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(br,bg,bb);
-    doc.text('Description', cx[0]+8, y+13);
-    doc.text('Qty', cx[1]+cw[1]-8, y+13, {align:'right'});
-    doc.text('Unit', cx[2]+8, y+13);
+    doc.text('S#', cx[0]+6, y+13);
+    doc.text('Description', cx[1]+8, y+13);
+    doc.text('Qty', cx[2]+cw[2]-8, y+13, {align:'right'});
+    doc.text('Unit', cx[3]+8, y+13);
+    doc.text('Remarks', cx[4]+8, y+13);
     y += 20;
     doc.setFont('helvetica','normal'); doc.setTextColor(30,30,30);
     let zebra = false;
-    prLines.forEach(li=>{
-      const descLines = doc.splitTextToSize(li.description||'', cw[0]-16);
+    prLines.forEach((li,idx)=>{
+      const descLines = doc.splitTextToSize(li.description||'', cw[1]-16);
       const rowH = Math.max(18, 12*descLines.length+6);
       checkPageBreak(rowH);
       if(zebra){ doc.setFillColor(249,249,249); doc.rect(marginL, y, contentW, rowH, 'F'); }
       zebra = !zebra;
       drawGridRow(doc, marginL, y, cx, cw, rowH);
       doc.setFontSize(9);
-      doc.text(descLines, cx[0]+8, y+13);
-      doc.text(String(li.qty||0), cx[1]+cw[1]-8, y+13, {align:'right'});
-      doc.text(li.unit||'—', cx[2]+8, y+13);
+      doc.text(String(idx+1), cx[0]+6, y+13);
+      doc.text(descLines, cx[1]+8, y+13);
+      doc.text(String(li.qty||0), cx[2]+cw[2]-8, y+13, {align:'right'});
+      doc.text(li.unit||'—', cx[3]+8, y+13);
       y += rowH;
     });
     y += 20;
@@ -3317,7 +3486,7 @@ function downloadPOPdf(id){
     doc.setFont('helvetica','bold'); doc.setFontSize(12);
     doc.text(po.poNumber, pageW-marginR, 26, {align:'right'});
     doc.setFont('helvetica','normal'); doc.setFontSize(9);
-    const statusTxt = statusPdfLabel(po.status);
+    const statusTxt = 'Issued'; // PO document reflects order status only — delivery tracked separately on the GRN/DN
     const pillW = doc.getTextWidth(statusTxt)+18;
     doc.setFillColor(255,255,255);
     doc.roundedRect(pageW-marginR-pillW, 32, pillW, 15, 7.5, 7.5, 'F');
@@ -3415,9 +3584,6 @@ function downloadPOPdf(id){
   doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(br,bg,bb);
   doc.text('Total:  '+fmtMoney(po.totalAmount), marginL+contentW-8, y, {align:'right'});
   doc.setTextColor(0,0,0);
-  y += 14;
-  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(140,140,140);
-  doc.text('Ordered quantity was set by the procurement officer and may differ from the quoted quantity.', marginL, y);
 
   checkPageBreak(90);
   y += 34;
@@ -3550,9 +3716,6 @@ function downloadDCPdf(id){
     doc.text(remLines, cx[2]+8, y+13);
     y += rowH;
   });
-
-  checkPageBreak(90);
-  y = drawSignatureBox(doc, y+34, marginL, contentW, ['Delivered By','Received / Approved By','Date']);
 
   drawFooter();
   doc.save(dc.dcNumber+'.pdf');
@@ -3838,6 +4001,8 @@ function openRFQForm(prId){
   document.querySelectorAll('.rf-term-cb').forEach(cb=>cb.checked=false);
   document.getElementById('rf_customTerms').value='';
   document.getElementById('rf_additionalInfo').value='';
+  document.getElementById('rf_submissionInstructions').value='';
+  document.getElementById('rf_ethicsContact').value='';
   document.getElementById('rf_contactName').value = currentUser.name;
   document.getElementById('rf_contactEmail').value = currentUser.email;
   document.getElementById('rf_contactPhone').value='';
@@ -3886,6 +4051,8 @@ async function submitRFQ(){
       standardTerms,
       customTerms:document.getElementById('rf_customTerms').value.trim(),
       additionalInfo:document.getElementById('rf_additionalInfo').value.trim(),
+      submissionInstructions:document.getElementById('rf_submissionInstructions').value.trim(),
+      ethicsContact:document.getElementById('rf_ethicsContact').value.trim(),
       contactName:document.getElementById('rf_contactName').value.trim(),
       contactEmail:document.getElementById('rf_contactEmail').value.trim(),
       contactPhone:document.getElementById('rf_contactPhone').value.trim(),
@@ -3962,6 +4129,8 @@ function openInviteMoreVendors(rfqId){
   document.getElementById('rf_contactEmail').value = rfq.contactEmail||currentUser.email;
   document.getElementById('rf_contactPhone').value = rfq.contactPhone||'';
   document.getElementById('rf_additionalInfo').value='';
+  document.getElementById('rf_submissionInstructions').value = rfq.submissionInstructions||'';
+  document.getElementById('rf_ethicsContact').value = rfq.ethicsContact||'';
   document.getElementById('rf_vendorSearch').value='';
   document.getElementById('rfqFormSub').textContent = 'Invite additional vendors to '+rfq.rfqNumber+' — already-invited vendors are hidden below';
   renderRfqVendorPicker(already);
