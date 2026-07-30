@@ -34,17 +34,26 @@
 .row-risk td:first-child{box-shadow:inset 3px 0 0 var(--rose)}
 .row-warn td:first-child{box-shadow:inset 3px 0 0 var(--amber)}
 
-/* ACTION NEEDED PANEL */
-.action-panel{background:linear-gradient(135deg,#FFF7ED,#FFF1F2);border:1.5px solid #FECACA;border-radius:var(--r16);padding:18px 20px;margin-bottom:24px}
-.action-panel-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.action-panel-title{font-size:13px;font-weight:800;color:#9F1239;display:flex;align-items:center;gap:8px}
-.action-panel-count{font-size:11px;font-weight:700;color:#9F1239;background:#FFE4E6;padding:2px 9px;border-radius:10px}
-.action-list{display:flex;flex-direction:column;gap:6px;max-height:180px;overflow-y:auto}
-.action-row{display:flex;align-items:center;justify-content:space-between;background:#fff;border-radius:var(--r8);padding:8px 12px;font-size:12px;cursor:pointer;transition:all .15s;border:1px solid #FECACA}
-.action-row:hover{border-color:#F87171;box-shadow:var(--shadow-xs)}
-.action-row-name{font-weight:700;color:var(--b900)}
-.action-row-reason{color:#9F1239;font-size:11px;font-weight:600}
-.action-panel-empty{font-size:12px;color:var(--green-d);font-weight:600;display:flex;align-items:center;gap:6px;padding:4px 0}
+/* NOTIFICATION BUTTON (replaces old colorful action-needed panel) */
+.notice-wrap{position:relative;margin-bottom:24px}
+.notice-btn{display:inline-flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--b200);border-radius:999px;padding:9px 16px;font-size:12.5px;font-weight:700;color:var(--b700);cursor:pointer;transition:all .15s;box-shadow:var(--shadow-xs)}
+.notice-btn:hover{border-color:var(--b300);box-shadow:var(--shadow-sm)}
+.notice-btn.has-items{color:var(--b900)}
+.notice-dot{width:7px;height:7px;border-radius:50%;background:var(--b300);flex-shrink:0}
+.notice-btn.has-items .notice-dot{background:var(--rose)}
+.notice-btn.all-clear .notice-dot{background:var(--green)}
+.notice-count{background:var(--b100);color:var(--b600);font-size:10.5px;font-weight:800;padding:1px 7px;border-radius:10px}
+.notice-btn.has-items .notice-count{background:var(--rose-l);color:var(--rose)}
+.notice-chevron{font-size:9px;color:var(--b400);transition:transform .15s}
+.notice-wrap.open .notice-chevron{transform:rotate(180deg)}
+.notice-dropdown{display:none;position:absolute;top:calc(100% + 8px);left:0;min-width:340px;max-width:420px;background:var(--surface);border:1px solid var(--b200);border-radius:var(--r12);box-shadow:var(--shadow-lg);z-index:50;overflow:hidden}
+.notice-wrap.open .notice-dropdown{display:block}
+.notice-group-label{font-size:10px;font-weight:800;color:var(--b400);text-transform:uppercase;letter-spacing:.06em;padding:10px 14px 4px}
+.notice-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 14px;font-size:12.5px;cursor:pointer;transition:background .1s;border-top:1px solid var(--b100)}
+.notice-row:hover{background:var(--b50)}
+.notice-row-name{font-weight:700;color:var(--b800)}
+.notice-row-reason{color:var(--b400);font-size:11px}
+.notice-empty{padding:16px 14px;font-size:12.5px;color:var(--b400);text-align:center}
 
 /* COMPARE BAR + SELECT */
 .row-select{width:32px;text-align:center}
@@ -144,28 +153,28 @@ html,body{height:100%;font-family:var(--f);background:var(--canvas);color:var(--
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 
 /* ── HERO SEARCH ── */
-.hero{margin-bottom:28px}
+.hero{margin-bottom:24px}
 .hero-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--b400);margin-bottom:8px}
 .hero-search-wrap{position:relative}
-.hero-search{width:100%;padding:16px 20px 16px 52px;font-size:16px;font-family:var(--f);font-weight:500;border:2px solid var(--b200);border-radius:var(--r16);background:var(--surface);color:var(--b900);outline:none;transition:all .2s;box-shadow:var(--shadow-sm)}
-.hero-search:focus{border-color:var(--rads);box-shadow:0 0 0 4px rgba(123,31,46,.08),var(--shadow-sm)}
+.hero-search{width:100%;padding:13px 18px 13px 46px;font-size:14px;font-family:var(--f);font-weight:500;border:1.5px solid var(--b200);border-radius:var(--r12);background:var(--surface);color:var(--b900);outline:none;transition:all .15s;box-shadow:var(--shadow-xs)}
+.hero-search:focus{border-color:var(--rads);box-shadow:0 0 0 3px rgba(123,31,46,.06)}
 .hero-search::placeholder{color:var(--b400);font-weight:400}
-.hero-search-icon{position:absolute;left:18px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--b400);pointer-events:none}
-.hero-search-clear{position:absolute;right:16px;top:50%;transform:translateY(-50%);background:var(--b200);border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:12px;color:var(--b500);display:none;align-items:center;justify-content:center;transition:all .15s}
+.hero-search-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--b400);pointer-events:none;opacity:.7}
+.hero-search-clear{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:var(--b200);border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:11px;color:var(--b500);display:none;align-items:center;justify-content:center;transition:all .15s}
 .hero-search-clear:hover{background:var(--b300);color:var(--b700)}
 .hero-search-clear.visible{display:flex}
 
 /* FILTER CHIPS ROW */
-.filter-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
+.filter-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;background:var(--surface);border:1px solid var(--b150,var(--b200));border-radius:var(--r12);padding:10px 14px}
 .filter-group{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.filter-label{font-size:11px;font-weight:700;color:var(--b400);text-transform:uppercase;letter-spacing:.07em;white-space:nowrap}
+.filter-label{font-size:10.5px;font-weight:600;color:var(--b400);white-space:nowrap}
 .chip{padding:5px 12px;border-radius:20px;border:1.5px solid var(--b200);background:var(--surface);font-size:12px;font-weight:600;color:var(--b600);cursor:pointer;transition:all .15s;white-space:nowrap;font-family:var(--f);user-select:none}
 .chip:hover{border-color:var(--b400);color:var(--b800);background:var(--b50)}
 .chip.active{border-color:var(--rads);background:var(--rads-l);color:var(--rads);font-weight:700}
 .chip.active.ahkf{border-color:var(--ahkf);background:var(--ahkf-l);color:var(--ahkf)}
-.filter-divider{width:1px;height:20px;background:var(--b200);flex-shrink:0}
+.filter-divider{width:1px;height:16px;background:var(--b150,var(--b200));flex-shrink:0}
 .chip-x{margin-left:4px;opacity:.6;font-size:11px}
-.filter-clear{font-size:11px;color:var(--b400);cursor:pointer;font-weight:600;text-decoration:underline;text-underline-offset:2px;background:none;border:none;padding:0;font-family:var(--f);transition:color .15s}
+.filter-clear{font-size:11px;color:var(--b400);cursor:pointer;font-weight:600;background:none;border:none;padding:0;font-family:var(--f);transition:color .15s}
 .filter-clear:hover{color:var(--rose)}
 
 /* RESULTS SUMMARY */
@@ -174,11 +183,12 @@ html,body{height:100%;font-family:var(--f);background:var(--canvas);color:var(--
 .results-count span{color:var(--b400);font-weight:500}
 
 /* ── KPI ROW ── */
-.kpi-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:28px}
-.kpi{background:var(--surface);border-radius:var(--r12);padding:16px 18px;border:1px solid var(--b200);box-shadow:var(--shadow-xs);position:relative;overflow:hidden;cursor:default}
-.kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--kpi-accent,var(--b200))}
-.kpi-num{font-size:30px;font-weight:900;line-height:1;color:var(--kpi-color,var(--b800));letter-spacing:-1px;margin-bottom:4px}
-.kpi-lbl{font-size:11px;font-weight:600;color:var(--b400);text-transform:uppercase;letter-spacing:.06em}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:28px}
+.kpi{background:var(--surface);border-radius:var(--r12);padding:16px 18px;border:1px solid var(--b150,var(--b200));position:relative;cursor:default;transition:border-color .15s}
+.kpi:hover{border-color:var(--b300)}
+.kpi-num{font-size:28px;font-weight:800;line-height:1;color:var(--b900);letter-spacing:-.5px;margin-bottom:5px}
+.kpi.kpi-warn .kpi-num{color:var(--kpi-warn-color,var(--b900))}
+.kpi-lbl{font-size:10.5px;font-weight:600;color:var(--b400);text-transform:uppercase;letter-spacing:.06em}
 
 /* ── CATEGORY MOSAIC ── */
 .mosaic-title{font-size:14px;font-weight:800;color:var(--b700);letter-spacing:.01em;margin-bottom:14px;display:flex;align-items:center;gap:8px}
@@ -526,7 +536,7 @@ textarea.finput{min-height:72px;resize:vertical}
       <span class="sb-item-count" id="sb-po-count">—</span>
     </div>
     <div class="sb-item" id="sb-dc" onclick="showDCList()">
-      <span class="sb-item-icon">🚚</span><span class="sb-item-label">Delivery Challans</span>
+      <span class="sb-item-icon">🚚</span><span class="sb-item-label">Goods Receiving / Delivery Notes</span>
       <span class="sb-item-count" id="sb-dc-count">—</span>
     </div>
     <div class="sb-item" id="sb-prq" onclick="showPRQList()">
@@ -576,23 +586,19 @@ textarea.finput{min-height:72px;resize:vertical}
 
       <!-- HERO SEARCH -->
       <div class="hero">
-        <div class="hero-label">Find a vendor</div>
+        <div class="hero-label">Find a Vendor</div>
         <div class="hero-search-wrap">
           <span class="hero-search-icon">🔍</span>
           <input class="hero-search" id="heroSearch" type="text" placeholder="Search by name, city, contact, email…" oninput="onHeroSearch()" autocomplete="off">
           <button class="hero-search-clear" id="heroClr" onclick="clearHeroSearch()">✕</button>
         </div>
         <div class="filter-row" id="filterRow">
-          <span class="filter-label">Category</span>
           <div class="filter-group" id="fcCat"></div>
           <div class="filter-divider"></div>
-          <span class="filter-label">Sub-category</span>
-          <div class="filter-group" id="fcSub" style="color:var(--b300);font-size:12px;font-style:italic">Select a category first</div>
+          <div class="filter-group" id="fcSub" style="color:var(--b300);font-size:12px">All categories</div>
           <div class="filter-divider"></div>
-          <span class="filter-label">City</span>
           <div class="filter-group" id="fcCity"></div>
           <div class="filter-divider"></div>
-          <span class="filter-label">Class</span>
           <div class="filter-group" id="fcType"></div>
           <button class="filter-clear" id="clearAllFilters" onclick="clearAllFilters()" style="display:none">Clear all</button>
         </div>
@@ -616,8 +622,14 @@ textarea.finput{min-height:72px;resize:vertical}
 
       <!-- DASHBOARD CONTENT (hidden during search) -->
       <div id="dashContent">
-        <div id="procTaskBanner"></div>
-        <div id="actionPanelWrap"></div>
+        <div class="notice-wrap" id="noticeWrap">
+          <button class="notice-btn" id="noticeBtn" onclick="toggleNoticeDropdown()">
+            <span class="notice-dot"></span>
+            <span id="noticeBtnLabel">All clear</span>
+            <span class="notice-chevron">▾</span>
+          </button>
+          <div class="notice-dropdown" id="noticeDropdown"></div>
+        </div>
         <div class="kpi-row" id="kpiRow"></div>
         <div class="mosaic-title">📂 Browse by Category</div>
         <div class="cat-mosaic" id="catMosaic"></div>
@@ -1164,12 +1176,58 @@ Example Vendor,SUPPLIES,Printing,John Doe,0300-1234567,Islamabad,Blue Area,john@
 </div>
 </div>
 
+<!-- ════════════════ MODAL: BYPASS RFQ — CREATE PO DIRECTLY ════════════════ -->
+<div class="overlay" id="bypassPOFormOverlay">
+<div class="modal" style="max-width:800px">
+  <div class="modal-hdr">
+    <div class="modal-hdr-left">
+      <div class="modal-title">Bypass RFQ — Create Purchase Order Directly</div>
+      <div class="modal-sub">For purchases within the company's no-RFQ-required threshold</div>
+    </div>
+    <button class="modal-close" onclick="closeBypassPOForm()">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="fgrid">
+      <div class="fg s2">
+        <label class="flabel">Vendor <span class="req">*</span></label>
+        <input class="finput" id="bp_vendorSearch" type="text" placeholder="🔍 Search vendors by name or category…" oninput="renderBypassVendorPicker()">
+        <div id="bp_vendorPicker" style="max-height:160px;overflow-y:auto;margin-top:8px;display:flex;flex-direction:column;gap:6px"></div>
+        <div id="bp_selectedVendor" style="margin-top:8px;font-size:12px;color:var(--b600)"></div>
+      </div>
+      <div class="fg">
+        <label class="flabel">Delivery Terms</label>
+        <input class="finput" id="bp_deliveryTerms" type="text" placeholder="e.g. DDP — delivered duty paid to site">
+      </div>
+      <div class="fg">
+        <label class="flabel">Payment Terms</label>
+        <input class="finput" id="bp_paymentTerms" type="text" placeholder="e.g. Net 30 days after delivery">
+      </div>
+      <div class="s2" style="grid-column:1/-1;overflow-x:auto">
+        <table class="li-table">
+          <thead><tr>
+            <th>Description</th><th>Qty</th><th>Unit</th><th>Rate</th>
+            <th>GST %</th><th>GST Incl.</th><th>Inc. Tax %</th><th>Tax Incl.</th><th>Amount</th>
+          </tr></thead>
+          <tbody id="bp_lineItems"></tbody>
+        </table>
+        <button class="li-add" onclick="bpAddLine()">＋ Add line item</button>
+        <div class="li-total-row">PO Total: <span id="bp_total">Rs. 0</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-foot">
+    <button class="tb-btn" onclick="closeBypassPOForm()">Cancel</button>
+    <button class="tb-btn primary" onclick="submitBypassPO()">⚡ Create Purchase Order</button>
+  </div>
+</div>
+</div>
+
 <!-- ════════════════ MODAL: DELIVERY CHALLAN ════════════════ -->
 <div class="overlay" id="dcFormOverlay">
 <div class="modal" style="max-width:680px">
   <div class="modal-hdr">
     <div class="modal-hdr-left">
-      <div class="modal-title">Record Delivery Challan</div>
+      <div class="modal-title">Record Goods Receiving / Delivery Note</div>
       <div class="modal-sub" id="dcFormSub">Confirm quantities received against the PO</div>
     </div>
     <button class="modal-close" onclick="closeDCForm()">✕</button>
@@ -1202,7 +1260,7 @@ Example Vendor,SUPPLIES,Printing,John Doe,0300-1234567,Islamabad,Blue Area,john@
   </div>
   <div class="modal-foot">
     <button class="tb-btn" onclick="closeDCForm()">Cancel</button>
-    <button class="tb-btn primary" onclick="saveDC()">🚚 Save Delivery Challan</button>
+    <button class="tb-btn primary" onclick="saveDC()">🚚 Save Goods Receiving / Delivery Note</button>
   </div>
 </div>
 </div>
@@ -1240,7 +1298,7 @@ Example Vendor,SUPPLIES,Printing,John Doe,0300-1234567,Islamabad,Blue Area,john@
         <span style="font-size:16px;font-weight:900;color:var(--b900)" id="pq_net">Rs. 0</span>
       </div>
       <div class="fg s2">
-        <label class="flabel">Link Delivery Challan</label>
+        <label class="flabel">Link Goods Receiving / Delivery Note</label>
         <select class="finput" id="pq_dcId"><option value="">— None / not applicable —</option></select>
       </div>
     </div>
@@ -1451,7 +1509,7 @@ function pubAddLine(vals){
   tr.innerHTML=`<td><input type="text" value="${escAttr(vals.desc)}" placeholder="Item description"></td>
     <td><input type="text" value="${escAttr(vals.justification||'')}" placeholder="Why is this item needed?"></td>
     <td><input type="number" min="0" step="1" value="${vals.qty}" oninput="pubRecalc()"></td>
-    <td><input type="text" value="${escAttr(vals.unit)}" placeholder="Pcs/Box"></td>
+    <td><input type="text" value="${escAttr(vals.unit)}" placeholder="pcs/box"></td>
     <td><input type="number" min="0" step="0.01" value="${vals.rate}" oninput="pubRecalc()"></td>
     <td class="pub-amt" style="font-weight:700;white-space:nowrap">Rs. 0</td>
     <td><button class="li-rm" onclick="document.getElementById('${id}').remove();pubRecalc()">✕</button></td>`;
@@ -1848,39 +1906,62 @@ function setSbActive(id){
 // ═══════════════════════════════
 // DASHBOARD
 // ═══════════════════════════════
-function renderActionPanel(){
+function renderNotices(){
   const flagged=vendors.filter(v=>complianceLevel(v)!=='ok')
     .map(v=>({v, issues:complianceIssues(v)}))
     .sort((a,b)=>{
       const rank=x=>x.issues.some(i=>i.level==='risk')?0:1;
       return rank(a)-rank(b);
     });
-  const wrap=document.getElementById('actionPanelWrap');
-  if(!flagged.length){
-    wrap.innerHTML=`<div class="action-panel" style="background:var(--green-l);border-color:#A7F3D0">
-      <div class="action-panel-empty">✅ All vendors are compliant — no documents expiring soon and all reviews are current.</div>
-    </div>`;
+  const myPending = pendingApprovalsForMe();
+  const myPendingPRQ = (currentUser.role==='Finance'||currentUser.role==='Admin') ? paymentRequests.filter(p=>p.status==='PendingFinance') : [];
+
+  const btn = document.getElementById('noticeBtn');
+  const lbl = document.getElementById('noticeBtnLabel');
+  const dd = document.getElementById('noticeDropdown');
+  const total = flagged.length + myPending.length + myPendingPRQ.length;
+
+  if(!total){
+    btn.className='notice-btn all-clear';
+    lbl.textContent='All clear — nothing needs attention';
+    dd.innerHTML=`<div class="notice-empty">✅ No compliance issues or pending items right now.</div>`;
     return;
   }
-  const shown=flagged.slice(0,8);
-  wrap.innerHTML=`<div class="action-panel">
-    <div class="action-panel-hdr">
-      <div class="action-panel-title">⚠ Action Needed</div>
-      <div class="action-panel-count">${flagged.length} vendor${flagged.length!==1?'s':''} flagged</div>
-    </div>
-    <div class="action-list">
-      ${shown.map(({v,issues})=>`<div class="action-row" onclick="openEdit('${v.id}')">
-        <span class="action-row-name">${v.name} <span style="color:var(--b400);font-weight:500">· ${CAT[v.cat]?.l||v.cat}</span></span>
-        <span class="action-row-reason">${issues.map(i=>i.text).join(' · ')}</span>
-      </div>`).join('')}
-      ${flagged.length>8?`<div style="font-size:11px;color:#9F1239;font-weight:600;text-align:center;padding-top:4px">+ ${flagged.length-8} more</div>`:''}
-    </div>
-  </div>`;
+  btn.className='notice-btn has-items';
+  lbl.innerHTML=`${total} item${total!==1?'s':''} need attention <span class="notice-count">${total}</span>`;
+
+  let html='';
+  if(myPending.length){
+    html+=`<div class="notice-group-label">Approvals</div>`;
+    html+=myPending.slice(0,5).map(pr=>`<div class="notice-row" onclick="showApprovalsList()">
+      <span class="notice-row-name">${pr.prNumber}</span><span class="notice-row-reason">Awaiting your approval</span>
+    </div>`).join('');
+  }
+  if(myPendingPRQ.length){
+    html+=`<div class="notice-group-label">Payment Requests</div>`;
+    html+=myPendingPRQ.slice(0,5).map(pq=>`<div class="notice-row" onclick="showPRQList()">
+      <span class="notice-row-name">${pq.prqNumber}</span><span class="notice-row-reason">Pending Finance review</span>
+    </div>`).join('');
+  }
+  if(flagged.length){
+    html+=`<div class="notice-group-label">Vendor Compliance</div>`;
+    html+=flagged.slice(0,6).map(({v,issues})=>`<div class="notice-row" onclick="openEdit('${v.id}')">
+      <span class="notice-row-name">${escHtml(v.name)}</span><span class="notice-row-reason">${issues.map(i=>i.text).join(' · ')}</span>
+    </div>`).join('');
+    if(flagged.length>6) html+=`<div class="notice-row" style="justify-content:center;color:var(--b400)" onclick="openCat('${flagged[0].v.cat}')">+ ${flagged.length-6} more</div>`;
+  }
+  dd.innerHTML=html;
 }
+function toggleNoticeDropdown(){
+  document.getElementById('noticeWrap').classList.toggle('open');
+}
+document.addEventListener('click', function(e){
+  const wrap = document.getElementById('noticeWrap');
+  if(wrap && wrap.classList.contains('open') && !wrap.contains(e.target)) wrap.classList.remove('open');
+});
 
 function renderDash(){
-  renderProcTaskBanner();
-  renderActionPanel();
+  renderNotices();
   // KPIs
   const total=vendors.length;
   const ret=vendors.filter(v=>v.type==='Retainership').length;
@@ -1890,12 +1971,12 @@ function renderDash(){
   const cats=catsWithVendors().length;
   const atRisk=vendors.filter(v=>complianceLevel(v)==='risk').length;
   document.getElementById('kpiRow').innerHTML=`
-    <div class="kpi" style="--kpi-accent:linear-gradient(90deg,var(--rads),var(--ahkf));--kpi-color:var(--b900)"><div class="kpi-num">${total}</div><div class="kpi-lbl">Total Vendors</div></div>
-    <div class="kpi" style="--kpi-accent:var(--green);--kpi-color:var(--green-d)"><div class="kpi-num">${ret}</div><div class="kpi-lbl">Retainerships</div></div>
-    <div class="kpi" style="--kpi-accent:var(--violet);--kpi-color:var(--violet)"><div class="kpi-num">${btc}</div><div class="kpi-lbl">BTC Contracts</div></div>
-    <div class="kpi" style="--kpi-accent:var(--amber);--kpi-color:var(--amber)"><div class="kpi-num">${cities}</div><div class="kpi-lbl">Cities</div></div>
-    <div class="kpi" style="--kpi-accent:var(--green-d);--kpi-color:var(--green-d)"><div class="kpi-num">${elig100}</div><div class="kpi-lbl">Fully Eligible</div></div>
-    <div class="kpi" style="--kpi-accent:var(--rose);--kpi-color:var(--rose)"><div class="kpi-num">${atRisk}</div><div class="kpi-lbl">Needs Attention</div></div>
+    <div class="kpi"><div class="kpi-num">${total}</div><div class="kpi-lbl">Total Vendors</div></div>
+    <div class="kpi"><div class="kpi-num">${ret}</div><div class="kpi-lbl">Retainerships</div></div>
+    <div class="kpi"><div class="kpi-num">${btc}</div><div class="kpi-lbl">BTC Contracts</div></div>
+    <div class="kpi"><div class="kpi-num">${cities}</div><div class="kpi-lbl">Cities</div></div>
+    <div class="kpi"><div class="kpi-num">${elig100}</div><div class="kpi-lbl">Fully Eligible</div></div>
+    <div class="kpi${atRisk?' kpi-warn':''}" style="--kpi-warn-color:var(--rose)"><div class="kpi-num">${atRisk}</div><div class="kpi-lbl">Needs Attention</div></div>
   `;
   // Category mosaic
   document.getElementById('catMosaic').innerHTML=Object.keys(CAT).map(c=>{
@@ -1934,7 +2015,7 @@ function renderFilterChips(){
       `<div class="chip ${fSub===s?'active':''}" onclick="toggleFSub('${s}')">${s}${fSub===s?' <span class="chip-x">✕</span>':''}</div>`
     ).join('');
   } else {
-    document.getElementById('fcSub').innerHTML=`<span style="color:var(--b300);font-size:12px;font-style:italic">Select a category first</span>`;
+    document.getElementById('fcSub').innerHTML=`<span style="color:var(--b300);font-size:12px">All categories</span>`;
   }
   // City chips
   const cities=[...new Set(vendors.filter(v=>!fCat||v.cat===fCat).map(v=>v.city))].sort();
@@ -2161,21 +2242,6 @@ function updateSidebarCounts(){
   document.getElementById('sb-po-count').textContent = purchaseOrders.length;
   document.getElementById('sb-dc-count').textContent = deliveryChallans.length;
   document.getElementById('sb-prq-count').textContent = paymentRequests.length;
-}
-function renderProcTaskBanner(){
-  const wrap=document.getElementById('procTaskBanner');
-  if(!wrap) return;
-  const myPending = pendingApprovalsForMe();
-  const myPendingPRQ = (currentUser.role==='Finance'||currentUser.role==='Admin') ? paymentRequests.filter(p=>p.status==='PendingFinance') : [];
-  const cards=[];
-  if(myPending.length) cards.push({icon:'✅',label:myPending.length+' purchase request'+(myPending.length!==1?'s':'')+' awaiting your approval',fn:'showApprovalsList()',color:'var(--amber)'});
-  if(myPendingPRQ.length) cards.push({icon:'💳',label:myPendingPRQ.length+' payment request'+(myPendingPRQ.length!==1?'s':'')+' pending Finance review',fn:'showPRQList()',color:'var(--rose)'});
-  if(!cards.length){ wrap.innerHTML=''; return; }
-  wrap.innerHTML = `<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-    ${cards.map(c=>`<div onclick="${c.fn}" style="cursor:pointer;flex:1;min-width:220px;background:var(--surface);border:1px solid var(--b200);border-left:4px solid ${c.color};border-radius:var(--r12);padding:14px 16px;box-shadow:var(--shadow-xs);font-size:13px;font-weight:700;color:var(--b800);display:flex;align-items:center;gap:10px">
-      <span style="font-size:18px">${c.icon}</span><span>${c.label}</span>
-    </div>`).join('')}
-  </div>`;
 }
 
 // ═══════════════════════════════
@@ -2450,6 +2516,7 @@ const STATUS_MAP = {
   PendingLineManager:['st-pending','Pending Line Manager'],
   PendingProcurement:['st-pending','Pending Procurement'],
   PendingFinance:['st-pending','Pending Finance'],
+  PendingSignature:['st-pending','Pending Signature'],
   PendingOperationsManager:['st-pending','Pending Operations Manager'],
   PendingDelegate:['st-pending','Pending Delegated Approval'],
   Approved:['st-approved','Approved'], Rejected:['st-rejected','Rejected'],
@@ -2457,7 +2524,7 @@ const STATUS_MAP = {
   Issued:['st-active','Issued'], PartiallyDelivered:['st-active','Partially Delivered'],
   Delivered:['st-approved','Delivered'], PartiallyReceived:['st-active','Partially Received'],
   FullyReceived:['st-approved','Fully Received'], QuotesReceived:['st-active','Quotes Received'],
-  Awarded:['st-done','Awarded'], ApprovedForPayment:['st-approved','Approved for Payment'],
+  Awarded:['st-done','Vendor Selected'], ApprovedForPayment:['st-approved','Approved For Payment'],
   Paid:['st-done','Paid'], Cancelled:['st-rejected','Cancelled']
 };
 function statusBadge(status){
@@ -2527,7 +2594,7 @@ function pfAddLine(vals){
   tr.innerHTML=`<td><input type="text" value="${escAttr(vals.desc)}" placeholder="Item description"></td>
     <td><input type="text" value="${escAttr(vals.justification||'')}" placeholder="Why is this item needed?"></td>
     <td><input type="number" min="0" step="1" value="${vals.qty}" oninput="pfRecalc()"></td>
-    <td><input type="text" value="${escAttr(vals.unit)}" placeholder="Pcs/Box"></td>
+    <td><input type="text" value="${escAttr(vals.unit)}" placeholder="pcs/box"></td>
     <td><input type="number" min="0" step="0.01" value="${vals.rate}" oninput="pfRecalc()"></td>
     <td class="pf-amt" style="font-weight:700;white-space:nowrap">Rs. 0</td>
     <td><button class="li-rm" onclick="document.getElementById('${id}').remove();pfRecalc()">✕</button></td>`;
@@ -2584,6 +2651,14 @@ function pdfTheme(entity){
 }
 // Draws a bottom signature block with N labeled columns (e.g. "Prepared by","Approved by","Date").
 // Caller must checkPageBreak(70) before calling this. Returns the new y position.
+// Draws a bordered cellular grid row (outer border + vertical column dividers) for line-item
+// and comparison tables, so every table reads as a proper table, not just zebra shading.
+function drawGridRow(doc, marginL, y, cx, cw, rowH){
+  doc.setDrawColor(222,222,222);
+  const totalW = cw.reduce((s,w)=>s+w,0);
+  doc.rect(marginL, y, totalW, rowH);
+  for(let i=1;i<cx.length;i++){ doc.line(cx[i], y, cx[i], y+rowH); }
+}
 function drawSignatureBox(doc, y, marginL, contentW, labels){
   y += 8;
   doc.setDrawColor(210,210,210);
@@ -2710,6 +2785,7 @@ function downloadPRPdf(id){
   function lineHeaderRow(){
     doc.setFillColor(theme.tint[0],theme.tint[1],theme.tint[2]);
     doc.rect(marginL, y, contentW, 20, 'F');
+    drawGridRow(doc, marginL, y, cx, cw, 20);
     doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(br,bg,bb);
     doc.text('Description', cx[0]+8, y+13);
     doc.text('Justification', cx[1]+8, y+13);
@@ -2730,6 +2806,7 @@ function downloadPRPdf(id){
     checkPageBreak(rowH);
     if(zebra){ doc.setFillColor(249,249,249); doc.rect(marginL, y, contentW, rowH, 'F'); }
     zebra = !zebra;
+    drawGridRow(doc, marginL, y, cx, cw, rowH);
     doc.setFontSize(9);
     doc.text(descLines, cx[0]+8, y+13);
     doc.setFontSize(8); doc.setTextColor(80,80,80);
@@ -2756,7 +2833,7 @@ function downloadPRPdf(id){
   // Approval history table
   checkPageBreak(50);
   doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
-  doc.text('Approval history', marginL, y); y += 16;
+  doc.text('Approval History', marginL, y); y += 16;
   const hist = approvals.filter(a=>a.prId===pr.id).sort((a,b)=> new Date(a.timestamp)-new Date(b.timestamp));
   const hw = [contentW*0.20, contentW*0.24, contentW*0.14, contentW*0.28, contentW*0.14];
   const hx = [marginL, marginL+hw[0], marginL+hw[0]+hw[1], marginL+hw[0]+hw[1]+hw[2], marginL+hw[0]+hw[1]+hw[2]+hw[3]];
@@ -2820,7 +2897,7 @@ function downloadPRPdf(id){
   }
 
   checkPageBreak(70);
-  y = drawSignatureBox(doc, y, marginL, contentW, ['Prepared by (requestor)','Approved by','Date']);
+  y = drawSignatureBox(doc, y, marginL, contentW, ['Prepared By (Requestor)','Approved By','Date']);
 
   drawFooter();
   doc.save(pr.prNumber+'.pdf');
@@ -2849,7 +2926,7 @@ function downloadRFQPdf(id){
     doc.setFont('helvetica','bold'); doc.setFontSize(13);
     doc.text(theme.name, marginL, 26);
     doc.setFont('helvetica','normal'); doc.setFontSize(8.5);
-    doc.text('Procurement portal — Request for Quotation (RFQ)', marginL, 40);
+    doc.text('Procurement Portal — Request For Quotation', marginL, 40);
     doc.setFont('helvetica','bold'); doc.setFontSize(12);
     doc.text(rfq.rfqNumber, pageW-marginR, 26, {align:'right'});
     doc.setFont('helvetica','normal'); doc.setFontSize(9);
@@ -2914,7 +2991,7 @@ function downloadRFQPdf(id){
   if(hasTerms){
     checkPageBreak(30);
     doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
-    doc.text('Terms and conditions', marginL, y); y += 14;
+    doc.text('Terms & Conditions', marginL, y); y += 14;
     const termLines = [];
     if(rfq.quoteValidityDays) termLines.push('Quote validity: '+rfq.quoteValidityDays+' days');
     if(rfq.paymentTerms) termLines.push('Payment terms: '+rfq.paymentTerms);
@@ -2935,7 +3012,7 @@ function downloadRFQPdf(id){
   if(rfq.contactName || rfq.contactEmail || rfq.contactPhone){
     checkPageBreak(30);
     doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
-    doc.text('Contact for queries', marginL, y); y += 14;
+    doc.text('Contact For Queries', marginL, y); y += 14;
     const contactLine = [rfq.contactName, rfq.contactEmail, rfq.contactPhone].filter(Boolean).join('  ·  ');
     doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(40,40,40);
     doc.text(contactLine, marginL, y+10);
@@ -2946,7 +3023,7 @@ function downloadRFQPdf(id){
   if(rfq.additionalInfo){
     checkPageBreak(30);
     doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
-    doc.text('Additional information', marginL, y); y += 14;
+    doc.text('Additional Information', marginL, y); y += 14;
     const infoLines = doc.splitTextToSize(rfq.additionalInfo, contentW-24);
     const infoBoxH = 14*infoLines.length + 16;
     checkPageBreak(infoBoxH);
@@ -2967,6 +3044,7 @@ function downloadRFQPdf(id){
     const cx = [marginL, marginL+cw[0], marginL+cw[0]+cw[1]];
     doc.setFillColor(theme.tint[0],theme.tint[1],theme.tint[2]);
     doc.rect(marginL, y, contentW, 20, 'F');
+    drawGridRow(doc, marginL, y, cx, cw, 20);
     doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(br,bg,bb);
     doc.text('Description', cx[0]+8, y+13);
     doc.text('Qty', cx[1]+cw[1]-8, y+13, {align:'right'});
@@ -2980,6 +3058,7 @@ function downloadRFQPdf(id){
       checkPageBreak(rowH);
       if(zebra){ doc.setFillColor(249,249,249); doc.rect(marginL, y, contentW, rowH, 'F'); }
       zebra = !zebra;
+      drawGridRow(doc, marginL, y, cx, cw, rowH);
       doc.setFontSize(9);
       doc.text(descLines, cx[0]+8, y+13);
       doc.text(String(li.qty||0), cx[1]+cw[1]-8, y+13, {align:'right'});
@@ -2992,13 +3071,14 @@ function downloadRFQPdf(id){
   // Vendor quote comparison
   checkPageBreak(50);
   doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
-  doc.text('Vendor Quotes', marginL, y); y += 14;
+  doc.text('Vendor Comparison', marginL, y); y += 14;
   const vendorIds = safeParse(rfq.vendorIdsJson, []);
   const quotes = safeParse(rfq.quotesJson, []);
   const qw = [contentW*0.32, contentW*0.18, contentW*0.18, contentW*0.16, contentW*0.16];
   const qx = [marginL, marginL+qw[0], marginL+qw[0]+qw[1], marginL+qw[0]+qw[1]+qw[2], marginL+qw[0]+qw[1]+qw[2]+qw[3]];
   doc.setFillColor(theme.tint[0],theme.tint[1],theme.tint[2]);
   doc.rect(marginL, y, contentW, 20, 'F');
+  drawGridRow(doc, marginL, y, qx, qw, 20);
   doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(br,bg,bb);
   doc.text('Vendor', qx[0]+8, y+13);
   doc.text('Quoted Amount', qx[1]+qw[1]-8, y+13, {align:'right'});
@@ -3015,14 +3095,17 @@ function downloadRFQPdf(id){
     checkPageBreak(rowH);
     if(vZebra){ doc.setFillColor(249,249,249); doc.rect(marginL, y, contentW, rowH, 'F'); }
     vZebra = !vZebra;
+    drawGridRow(doc, marginL, y, qx, qw, rowH);
     doc.setFontSize(9);
     doc.text(v?v.name:'Unknown vendor', qx[0]+8, y+13);
     doc.text(q?fmtMoney(q.amount):'—', qx[1]+qw[1]-8, y+13, {align:'right'});
     doc.text(q?(q.deliveryDays||'—'):'—', qx[2]+8, y+13);
     doc.text(q?(q.validity||'—'):'—', qx[3]+8, y+13);
-    if(rfq.status==='Awarded' && q){
+    if(vid===rfq.awardedVendorId){
+      doc.setFont('helvetica','bold');
       doc.setTextColor(15,110,86);
-      doc.text('Reviewed', qx[4]+8, y+13);
+      doc.text('Selected', qx[4]+8, y+13);
+      doc.setFont('helvetica','normal');
       doc.setTextColor(30,30,30);
     } else {
       const c = q?[30,30,30]:[150,150,150];
@@ -3035,7 +3118,7 @@ function downloadRFQPdf(id){
 
   y += 20;
   checkPageBreak(70);
-  y = drawSignatureBox(doc, y, marginL, contentW, ['Issued by','Authorized by','Date']);
+  y = drawSignatureBox(doc, y, marginL, contentW, ['Issued By','Authorized By','Date']);
 
   drawFooter();
   doc.save(rfq.rfqNumber+'.pdf');
@@ -3067,7 +3150,7 @@ function downloadRFQVendorPdf(rfqId, vendorId){
     doc.setFont('helvetica','bold'); doc.setFontSize(13);
     doc.text(theme.name, marginL, 26);
     doc.setFont('helvetica','normal'); doc.setFontSize(8.5);
-    doc.text('Request for quotation — addressed to '+vendor.name, marginL, 40);
+    doc.text('Request For Quotation — Addressed To '+vendor.name, marginL, 40);
     doc.setFont('helvetica','bold'); doc.setFontSize(12);
     doc.text(rfq.rfqNumber, pageW-marginR, 26, {align:'right'});
   }
@@ -3124,7 +3207,7 @@ function downloadRFQVendorPdf(rfqId, vendorId){
   if(hasTerms){
     checkPageBreak(30);
     doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
-    doc.text('Terms and conditions', marginL, y); y += 14;
+    doc.text('Terms & Conditions', marginL, y); y += 14;
     const termLines = [];
     if(rfq.quoteValidityDays) termLines.push('Quote validity: '+rfq.quoteValidityDays+' days');
     if(rfq.paymentTerms) termLines.push('Payment terms: '+rfq.paymentTerms);
@@ -3144,7 +3227,7 @@ function downloadRFQVendorPdf(rfqId, vendorId){
   if(rfq.contactName || rfq.contactEmail || rfq.contactPhone){
     checkPageBreak(30);
     doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
-    doc.text('Contact for queries', marginL, y); y += 14;
+    doc.text('Contact For Queries', marginL, y); y += 14;
     const contactLine = [rfq.contactName, rfq.contactEmail, rfq.contactPhone].filter(Boolean).join('  ·  ');
     doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(40,40,40);
     doc.text(contactLine, marginL, y+10);
@@ -3154,7 +3237,7 @@ function downloadRFQVendorPdf(rfqId, vendorId){
   if(rfq.additionalInfo){
     checkPageBreak(30);
     doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
-    doc.text('Additional information', marginL, y); y += 14;
+    doc.text('Additional Information', marginL, y); y += 14;
     const infoLines = doc.splitTextToSize(rfq.additionalInfo, contentW-24);
     const infoBoxH = 14*infoLines.length + 16;
     checkPageBreak(infoBoxH);
@@ -3174,6 +3257,7 @@ function downloadRFQVendorPdf(rfqId, vendorId){
     const cx = [marginL, marginL+cw[0], marginL+cw[0]+cw[1]];
     doc.setFillColor(theme.tint[0],theme.tint[1],theme.tint[2]);
     doc.rect(marginL, y, contentW, 20, 'F');
+    drawGridRow(doc, marginL, y, cx, cw, 20);
     doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(br,bg,bb);
     doc.text('Description', cx[0]+8, y+13);
     doc.text('Qty', cx[1]+cw[1]-8, y+13, {align:'right'});
@@ -3187,6 +3271,7 @@ function downloadRFQVendorPdf(rfqId, vendorId){
       checkPageBreak(rowH);
       if(zebra){ doc.setFillColor(249,249,249); doc.rect(marginL, y, contentW, rowH, 'F'); }
       zebra = !zebra;
+      drawGridRow(doc, marginL, y, cx, cw, rowH);
       doc.setFontSize(9);
       doc.text(descLines, cx[0]+8, y+13);
       doc.text(String(li.qty||0), cx[1]+cw[1]-8, y+13, {align:'right'});
@@ -3287,15 +3372,16 @@ function downloadPOPdf(id){
 
   checkPageBreak(50);
   doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
-  doc.text('Line items', marginL, y); y += 14;
+  doc.text('Line Items', marginL, y); y += 14;
   const lines = safeParse(po.lineItemsJson, []);
   const cw = [contentW*0.36, contentW*0.14, contentW*0.14, contentW*0.14, contentW*0.11, contentW*0.11];
   const cx = [marginL, marginL+cw[0], marginL+cw[0]+cw[1], marginL+cw[0]+cw[1]+cw[2], marginL+cw[0]+cw[1]+cw[2]+cw[3], marginL+cw[0]+cw[1]+cw[2]+cw[3]+cw[4]];
   doc.setFillColor(theme.tint[0],theme.tint[1],theme.tint[2]);
   doc.rect(marginL, y, contentW, 20, 'F');
+  drawGridRow(doc, marginL, y, cx, cw, 20);
   doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(br,bg,bb);
   doc.text('Description', cx[0]+8, y+13);
-  doc.text('Qty ordered', cx[1]+cw[1]-8, y+13, {align:'right'});
+  doc.text('Qty Ordered', cx[1]+cw[1]-8, y+13, {align:'right'});
   doc.text('Unit', cx[2]+8, y+13);
   doc.text('Rate', cx[3]+cw[3]-8, y+13, {align:'right'});
   doc.text('Tax', cx[4]+8, y+13);
@@ -3309,6 +3395,7 @@ function downloadPOPdf(id){
     checkPageBreak(rowH);
     if(zebra){ doc.setFillColor(249,249,249); doc.rect(marginL, y, contentW, rowH, 'F'); }
     zebra = !zebra;
+    drawGridRow(doc, marginL, y, cx, cw, rowH);
     doc.setFontSize(9);
     doc.text(descLines, cx[0]+8, y+13);
     doc.text(String(li.qty||0), cx[1]+cw[1]-8, y+13, {align:'right'});
@@ -3332,8 +3419,9 @@ function downloadPOPdf(id){
   doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(140,140,140);
   doc.text('Ordered quantity was set by the procurement officer and may differ from the quoted quantity.', marginL, y);
 
-  checkPageBreak(70);
-  y = drawSignatureBox(doc, y, marginL, contentW, ['Prepared by','Approved by','Date']);
+  checkPageBreak(90);
+  y += 34;
+  y = drawSignatureBox(doc, y, marginL, contentW, ['Prepared By','Approved By','Date']);
 
   drawFooter();
   doc.save(po.poNumber+'.pdf');
@@ -3341,7 +3429,7 @@ function downloadPOPdf(id){
 
 function downloadDCPdf(id){
   const dc = deliveryChallans.find(d=>d.id===id);
-  if(!dc){ toast('Delivery challan not found','error'); return; }
+  if(!dc){ toast('Goods Receiving / Delivery Note not found','error'); return; }
   if(!window.jspdf){ toast('PDF library still loading — try again in a second','error'); return; }
   const po = purchaseOrders.find(p=>p.id===dc.poId);
   const { jsPDF } = window.jspdf;
@@ -3362,7 +3450,7 @@ function downloadDCPdf(id){
     doc.setFont('helvetica','bold'); doc.setFontSize(13);
     doc.text(theme.name, marginL, 26);
     doc.setFont('helvetica','normal'); doc.setFontSize(8.5);
-    doc.text('Procurement Portal — Goods Receiving Note / Delivery Challan', marginL, 40);
+    doc.text('Procurement Portal — Goods Receiving / Service Delivery Note', marginL, 40);
     doc.setFont('helvetica','bold'); doc.setFontSize(12);
     doc.text(dc.dcNumber, pageW-marginR, 26, {align:'right'});
     doc.setFont('helvetica','normal'); doc.setFontSize(9);
@@ -3434,15 +3522,16 @@ function downloadDCPdf(id){
 
   checkPageBreak(50);
   doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
-  doc.text('Items delivered', marginL, y); y += 14;
+  doc.text('Items Delivered', marginL, y); y += 14;
   const lines = safeParse(dc.lineItemsJson, []);
   const cw = [contentW*0.5, contentW*0.2, contentW*0.3];
   const cx = [marginL, marginL+cw[0], marginL+cw[0]+cw[1]];
   doc.setFillColor(theme.tint[0],theme.tint[1],theme.tint[2]);
   doc.rect(marginL, y, contentW, 20, 'F');
+  drawGridRow(doc, marginL, y, cx, cw, 20);
   doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(br,bg,bb);
   doc.text('Description', cx[0]+8, y+13);
-  doc.text('Qty delivered', cx[1]+cw[1]-8, y+13, {align:'right'});
+  doc.text('Qty Delivered', cx[1]+cw[1]-8, y+13, {align:'right'});
   doc.text('Remarks', cx[2]+8, y+13);
   y += 20;
   doc.setFont('helvetica','normal'); doc.setTextColor(30,30,30);
@@ -3454,6 +3543,7 @@ function downloadDCPdf(id){
     checkPageBreak(rowH);
     if(zebra){ doc.setFillColor(249,249,249); doc.rect(marginL, y, contentW, rowH, 'F'); }
     zebra = !zebra;
+    drawGridRow(doc, marginL, y, cx, cw, rowH);
     doc.setFontSize(9);
     doc.text(descLines, cx[0]+8, y+13);
     doc.text(String(li.qtyDelivered||0), cx[1]+cw[1]-8, y+13, {align:'right'});
@@ -3461,8 +3551,8 @@ function downloadDCPdf(id){
     y += rowH;
   });
 
-  checkPageBreak(70);
-  y = drawSignatureBox(doc, y+14, marginL, contentW, ['Delivered by','Received / approved by','Date']);
+  checkPageBreak(90);
+  y = drawSignatureBox(doc, y+34, marginL, contentW, ['Delivered By','Received / Approved By','Date']);
 
   drawFooter();
   doc.save(dc.dcNumber+'.pdf');
@@ -3551,18 +3641,20 @@ function downloadPRQPdf(id){
 
   checkPageBreak(70);
   doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
-  doc.text('Amount breakdown', marginL, y); y += 14;
+  doc.text('Amount Breakdown', marginL, y); y += 14;
   const rows = [
-    ['Invoice amount', fmtMoney(pq.invoiceAmount)],
-    ['Tax deducted', fmtMoney(pq.taxDeducted)],
-    ['Net payable', fmtMoney(pq.netPayable)]
+    ['Invoice Amount', fmtMoney(pq.invoiceAmount)],
+    ['Tax Deducted', fmtMoney(pq.taxDeducted)],
+    ['Net Payable', fmtMoney(pq.netPayable)]
   ];
+  const divX = marginL + contentW*0.65;
   rows.forEach((r,i)=>{
     checkPageBreak(20);
     const isLast = i===rows.length-1;
     if(isLast){ doc.setFillColor(theme.tint[0],theme.tint[1],theme.tint[2]); doc.rect(marginL, y, contentW, 20, 'F'); }
     doc.setDrawColor(215,215,215);
     doc.rect(marginL, y, contentW, 20);
+    doc.line(divX, y, divX, y+20);
     doc.setFont('helvetica', isLast?'bold':'normal'); doc.setFontSize(9.5); doc.setTextColor(isLast?br:40, isLast?bg:40, isLast?bb:40);
     doc.text(r[0], marginL+10, y+13);
     doc.text(r[1], marginL+contentW-10, y+13, {align:'right'});
@@ -3574,7 +3666,7 @@ function downloadPRQPdf(id){
   if(pq.financeComments){
     checkPageBreak(30);
     doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
-    doc.text('Finance comments', marginL, y); y += 14;
+    doc.text('Finance Comments', marginL, y); y += 14;
     const cLines = doc.splitTextToSize(pq.financeComments, contentW-24);
     const boxH = 14*cLines.length+16;
     checkPageBreak(boxH);
@@ -3585,8 +3677,9 @@ function downloadPRQPdf(id){
     y += boxH+18;
   }
 
-  checkPageBreak(70);
-  y = drawSignatureBox(doc, y, marginL, contentW, ['Requested by','Approved by (finance)','Date']);
+  checkPageBreak(90);
+  y += 34;
+  y = drawSignatureBox(doc, y, marginL, contentW, ['Requested By','Approved By (Finance)','Date']);
 
   drawFooter();
   doc.save(pq.prqNumber+'.pdf');
@@ -3625,7 +3718,8 @@ function renderPRDetail(){
   } else if(pr.status==='Approved' && (currentUser.role==='OpsProcurement'||currentUser.role==='Admin')){
     const hasRfq = rfqs.some(r=>r.prId===pr.id);
     actionsHtml = hasRfq ? `<span style="font-size:12px;color:var(--b400);align-self:center">RFQ already issued for this PR</span>` :
-      `<button class="tb-btn primary" onclick="openRFQForm('${pr.id}')">📨 Issue RFQ</button>`;
+      `<button class="tb-btn primary" onclick="openRFQForm('${pr.id}')">📨 Issue RFQ</button>
+       <button class="tb-btn" onclick="openBypassPOForm('${pr.id}')">⚡ Bypass RFQ — Create PO Directly</button>`;
   }
 
   document.getElementById('prDetailBody').innerHTML = `
@@ -3820,15 +3914,16 @@ function renderRFQDetail(){
   const rows = vendorIds.map(vid=>{
     const v=vendors.find(x=>x.id===vid);
     const q=quotes.find(x=>x.vendorId===vid);
-    return `<tr>
-      <td class="vname">${v?escHtml(v.name):'Unknown vendor'}</td>
+    const isSelected = rfq.awardedVendorId===vid;
+    return `<tr${isSelected?' style="background:var(--green-l)"':''}>
+      <td class="vname">${v?escHtml(v.name):'Unknown vendor'}${isSelected?' <span class="stbadge st-approved">✅ Selected</span>':''}</td>
       <td>${q? fmtMoney(q.amount) : '<span style="color:var(--b400)">Pending</span>'}</td>
       <td>${q?escHtml(q.deliveryDays||'—'):'—'}</td>
       <td>${q?escHtml(q.validity||'—'):'—'}</td>
       <td><div class="act-btns">
           <button class="act-btn" onclick="downloadRFQVendorPdf('${rfq.id}','${vid}')">📄 PDF</button>
           ${canAct?`<button class="act-btn act-edit" onclick="openQuoteForm('${rfq.id}','${vid}')">${q?'✏️ Edit Quote':'📝 Log Quote'}</button>`:''}
-          ${canAct&&q&&rfq.status!=='Awarded'?`<button class="act-btn" style="background:var(--green-l);color:var(--green-d);border-color:#A7F3D0" onclick="openAwardForm('${rfq.id}','${vid}')">🏆 Award</button>`:''}
+          ${canAct&&q&&!isSelected?`<button class="act-btn" style="background:var(--green-l);color:var(--green-d);border-color:#A7F3D0" onclick="openAwardForm('${rfq.id}','${vid}')">🏆 Select &amp; Award</button>`:''}
         </div></td>
     </tr>`;
   }).join('');
@@ -3841,10 +3936,11 @@ function renderRFQDetail(){
         ${statusBadge(rfq.status)}
         <div style="display:flex;gap:6px">
           <button class="tb-btn" style="font-size:11px;padding:5px 10px" onclick="downloadRFQPdf('${rfq.id}')">📄 Download PDF</button>
-          ${canAct&&rfq.status!=='Awarded'?`<button class="tb-btn primary" style="font-size:11px;padding:5px 10px" onclick="openInviteMoreVendors('${rfq.id}')">🔁 Invite More Vendors</button>`:''}
+          ${canAct?`<button class="tb-btn primary" style="font-size:11px;padding:5px 10px" onclick="openInviteMoreVendors('${rfq.id}')">🔁 Invite More Vendors</button>`:''}
         </div>
       </div>
     </div>
+    <div style="font-size:11px;font-weight:800;color:var(--b400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Vendor Comparison</div>
     <div class="table-shell"><table class="vtbl"><thead><tr><th>Vendor</th><th>Quoted Amount</th><th>Delivery</th><th>Validity</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
   `;
 }
@@ -4012,10 +4108,105 @@ async function submitAward(){
       paymentTerms: document.getElementById('aw_paymentTerms').value.trim()
     });
     mergeInto(purchaseOrders, po);
-    const r=rfqs.find(x=>x.id===currentAwardRfqId); if(r) r.status='Awarded';
+    const r=rfqs.find(x=>x.id===currentAwardRfqId); if(r){ r.status='Awarded'; r.awardedVendorId=currentAwardVendorId; }
     const pr=purchaseRequests.find(p=>p.id===po.prId); if(pr) pr.status='POIssued';
     closeAwardForm();
     toast('🏆 PO '+po.poNumber+' issued');
+    updateSidebarCounts(); openPODetail(po.id);
+  }catch(e){ toast(e.message,'error'); }
+}
+
+// ═══════════════════════════════
+// BYPASS RFQ — CREATE PO DIRECTLY
+// ═══════════════════════════════
+let bpLineSeq = 0, bypassPrId = null, bypassSelectedVendorId = null;
+function openBypassPOForm(prId){
+  bypassPrId = prId; bypassSelectedVendorId = null;
+  const pr = purchaseRequests.find(p=>p.id===prId);
+  document.getElementById('bp_vendorSearch').value='';
+  document.getElementById('bp_selectedVendor').innerHTML='';
+  document.getElementById('bp_deliveryTerms').value='';
+  document.getElementById('bp_paymentTerms').value='';
+  document.getElementById('bp_lineItems').innerHTML=''; bpLineSeq=0;
+  const prLines = pr?safeParse(pr.lineItemsJson,[]):[];
+  if(prLines.length) prLines.forEach(l=>bpAddLine({description:l.description,qty:l.qty,unit:l.unit,rate:0})); else bpAddLine();
+  renderBypassVendorPicker();
+  document.getElementById('bypassPOFormOverlay').classList.add('open');
+}
+function closeBypassPOForm(){ document.getElementById('bypassPOFormOverlay').classList.remove('open'); }
+function renderBypassVendorPicker(){
+  const q=(document.getElementById('bp_vendorSearch').value||'').toLowerCase();
+  if(!q){ document.getElementById('bp_vendorPicker').innerHTML=''; return; }
+  const list=vendors.filter(v=> v.name.toLowerCase().includes(q) || (CAT[v.cat]?.l||'').toLowerCase().includes(q));
+  document.getElementById('bp_vendorPicker').innerHTML = list.slice(0,30).map(v=>`
+    <div onclick="selectBypassVendor('${v.id}')" style="padding:8px 10px;border:1.5px solid var(--b200);border-radius:var(--r8);cursor:pointer;font-size:12px">
+      <span style="font-weight:700">${escHtml(v.name)}</span>
+      <span style="color:var(--b400)"> — ${CAT[v.cat]?.l||v.cat} · ${escHtml(v.city)}</span>
+    </div>`).join('') || '<div style="font-size:12px;color:var(--b400)">No vendors match</div>';
+}
+function selectBypassVendor(vendorId){
+  bypassSelectedVendorId = vendorId;
+  const v = vendors.find(x=>x.id===vendorId);
+  document.getElementById('bp_selectedVendor').innerHTML = v ? `Selected: <b>${escHtml(v.name)}</b> <a href="#" onclick="event.preventDefault();bypassSelectedVendorId=null;document.getElementById('bp_selectedVendor').innerHTML='';document.getElementById('bp_vendorSearch').value='';renderBypassVendorPicker();" style="color:var(--rose);margin-left:8px">change</a>` : '';
+  document.getElementById('bp_vendorPicker').innerHTML='';
+  document.getElementById('bp_vendorSearch').value='';
+}
+function bpAddLine(vals){
+  vals = vals||{description:'',qty:1,unit:'',rate:0,gstPct:0,incomeTaxPct:0,gstInclusive:false,incomeTaxInclusive:false};
+  const id='bpl'+(bpLineSeq++);
+  const tr=document.createElement('tr'); tr.id=id;
+  tr.innerHTML=`<td><input type="text" value="${escAttr(vals.description)}" style="width:120px"></td>
+    <td><input type="number" value="${vals.qty}" oninput="bpRecalc()" style="width:50px"></td>
+    <td><input type="text" value="${escAttr(vals.unit||'')}" style="width:55px"></td>
+    <td><input type="number" step="0.01" value="${vals.rate}" oninput="bpRecalc()" style="width:70px"></td>
+    <td><input type="number" step="0.1" value="${vals.gstPct||0}" oninput="bpRecalc()" style="width:50px"></td>
+    <td style="text-align:center"><input type="checkbox" ${vals.gstInclusive?'checked':''} onchange="bpRecalc()"></td>
+    <td><input type="number" step="0.1" value="${vals.incomeTaxPct||0}" oninput="bpRecalc()" style="width:50px"></td>
+    <td style="text-align:center"><input type="checkbox" ${vals.incomeTaxInclusive?'checked':''} onchange="bpRecalc()"></td>
+    <td class="bp-amt" style="font-weight:700;white-space:nowrap">Rs. 0</td>
+    <td><button class="li-rm" onclick="document.getElementById('${id}').remove();bpRecalc()">✕</button></td>`;
+  document.getElementById('bp_lineItems').appendChild(tr); bpRecalc();
+}
+function bpRecalc(){
+  let total=0;
+  document.querySelectorAll('#bp_lineItems tr').forEach(tr=>{
+    const inp=tr.querySelectorAll('input[type=number],input[type=text]');
+    const cbs=tr.querySelectorAll('input[type=checkbox]');
+    const qty=Number(inp[1].value)||0, rate=Number(inp[3].value)||0;
+    const gstPct=Number(inp[4].value)||0, itPct=Number(inp[5].value)||0;
+    const base=qty*rate;
+    const gstAmt=cbs[0].checked?0:base*(gstPct/100);
+    const itAmt=cbs[1].checked?0:base*(itPct/100);
+    const amt=base+gstAmt+itAmt; total+=amt;
+    tr.querySelector('.bp-amt').textContent=fmtMoney(amt);
+  });
+  document.getElementById('bp_total').textContent=fmtMoney(total);
+}
+function bpGetLines(){
+  return [...document.querySelectorAll('#bp_lineItems tr')].map(tr=>{
+    const inp=tr.querySelectorAll('input[type=number],input[type=text]');
+    const cbs=tr.querySelectorAll('input[type=checkbox]');
+    return {
+      description:inp[0].value.trim(), qty:Number(inp[1].value)||0, unit:inp[2].value.trim(), rate:Number(inp[3].value)||0,
+      gstPct:Number(inp[4].value)||0, incomeTaxPct:Number(inp[5].value)||0,
+      gstInclusive:cbs[0].checked, incomeTaxInclusive:cbs[1].checked
+    };
+  }).filter(l=>l.description);
+}
+async function submitBypassPO(){
+  if(!bypassSelectedVendorId){ toast('Select a vendor','error'); return; }
+  const lineItems = bpGetLines();
+  if(!lineItems.length){ toast('Add at least one line item','error'); return; }
+  try{
+    const po = await api('createPODirect', {
+      prId: bypassPrId, vendorId: bypassSelectedVendorId, lineItems,
+      deliveryTerms: document.getElementById('bp_deliveryTerms').value.trim(),
+      paymentTerms: document.getElementById('bp_paymentTerms').value.trim()
+    });
+    mergeInto(purchaseOrders, po);
+    const pr=purchaseRequests.find(p=>p.id===bypassPrId); if(pr) pr.status='POIssued';
+    closeBypassPOForm();
+    toast('⚡ PO '+po.poNumber+' issued (RFQ bypassed)');
     updateSidebarCounts(); openPODetail(po.id);
   }catch(e){ toast(e.message,'error'); }
 }
@@ -4051,20 +4242,27 @@ function renderPODetail(){
   const dcs=deliveryChallans.filter(d=>d.poId===po.id).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
   const prqs=paymentRequests.filter(p=>p.poId===po.id).sort((a,b)=>new Date(b.requestedAt)-new Date(a.requestedAt));
   const canOps = currentUser.role==='OpsProcurement'||currentUser.role==='Admin';
+  const isSigned = po.signedStatus==='Signed';
   let actions='';
   if(canOps){
-    if(['Issued','PartiallyDelivered'].includes(po.status)) actions += `<button class="tb-btn" onclick="openDCForm('${po.id}')">🚚 Record Delivery Challan</button>`;
-    actions += `<button class="tb-btn primary" onclick="openPRQForm('${po.id}')">💳 Raise Payment Request</button>`;
+    if(!isSigned){
+      actions += `<button class="tb-btn primary" onclick="markPOSigned('${po.id}')">✍️ Mark as Signed</button>`;
+    } else {
+      if(['Issued','PartiallyDelivered'].includes(po.status)) actions += `<button class="tb-btn" onclick="openDCForm('${po.id}')">🚚 Record Goods Receiving / Delivery Note</button>`;
+      actions += `<button class="tb-btn primary" onclick="openPRQForm('${po.id}')">💳 Raise Payment Request</button>`;
+    }
   }
   document.getElementById('poDetailBody').innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
       <div><div style="font-size:20px;font-weight:900;color:var(--b900)">${po.poNumber}</div>
-      <div style="font-size:12px;color:var(--b400);margin-top:2px">Vendor: ${escHtml(po.vendorName)} · ${po.entity} · Issued ${fmtDate(po.issueDate)}</div></div>
+      <div style="font-size:12px;color:var(--b400);margin-top:2px">Vendor: ${escHtml(po.vendorName)} · ${po.entity} · Issued ${fmtDate(po.issueDate)}${po.bypassedRFQ?' · <span style="color:var(--amber)">RFQ Bypassed</span>':''}</div></div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
         ${statusBadge(po.status)}
+        <span class="stbadge ${isSigned?'st-approved':'st-pending'}">${isSigned?'✍️ Signed by '+escHtml(po.signedBy):'Unsigned'}</span>
         <button class="tb-btn" style="font-size:11px;padding:5px 10px" onclick="downloadPOPdf('${po.id}')">📄 Download PDF</button>
       </div>
     </div>
+    ${!isSigned?`<div style="background:var(--amber-l);border:1px solid #FDE68A;border-radius:var(--r8);padding:10px 14px;margin-bottom:14px;font-size:12px;color:#92400E">This PO must be marked as signed before a Goods Receiving / Delivery Note or Payment Request can be raised against it.</div>`:''}
     <div class="table-shell" style="padding:18px;margin-bottom:16px">
       <div style="font-size:11px;font-weight:800;color:var(--b400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Line Items</div>
       <table class="vtbl"><thead><tr><th>Description</th><th>Qty</th><th>Rate</th><th>GST %</th><th>Inc. Tax %</th><th>Amount</th></tr></thead>
@@ -4072,7 +4270,7 @@ function renderPODetail(){
       <div class="li-total-row">Total: ${fmtMoney(po.totalAmount)}</div>
     </div>
     ${dcs.length?`<div class="table-shell" style="padding:18px;margin-bottom:16px">
-      <div style="font-size:11px;font-weight:800;color:var(--b400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Delivery Challans</div>
+      <div style="font-size:11px;font-weight:800;color:var(--b400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Goods Receiving / Delivery Notes</div>
       ${dcs.map(d=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--b100);font-size:12px">
         <span><b>${d.dcNumber}</b> — received by ${escHtml(d.receivedBy)||'—'}</span>
         <span style="display:flex;align-items:center;gap:8px">${statusBadge(d.status)} <span style="color:var(--b400)">${fmtDate(d.deliveryDate)}</span> <button class="act-btn" onclick="downloadDCPdf('${d.id}')">📄 PDF</button></span>
@@ -4088,14 +4286,22 @@ function renderPODetail(){
     <div style="display:flex;gap:10px;flex-wrap:wrap">${actions}</div>
   `;
 }
+async function markPOSigned(id){
+  try{
+    const po = await api('markPOSigned', {id});
+    mergeInto(purchaseOrders, po);
+    toast('✍️ PO marked as signed');
+    renderPODetail();
+  }catch(e){ toast(e.message,'error'); }
+}
 
 // ═══════════════════════════════
 // DELIVERY CHALLANS
 // ═══════════════════════════════
 function showDCList(){
-  setBc([{l:'Dashboard',fn:'goHome()'},{l:'Delivery Challans'}]);
+  setBc([{l:'Dashboard',fn:'goHome()'},{l:'Goods Receiving / Delivery Notes'}]);
   setSbActive('sb-dc'); clearTopbar();
-  document.getElementById('dcCount').textContent = deliveryChallans.length+' delivery challan'+(deliveryChallans.length!==1?'s':'');
+  document.getElementById('dcCount').textContent = deliveryChallans.length+' Goods Receiving / Delivery Note'+(deliveryChallans.length!==1?'s':'');
   const sorted=[...deliveryChallans].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
   document.getElementById('dcList').innerHTML = sorted.length? sorted.map(d=>{
     const po=purchaseOrders.find(p=>p.id===d.poId);
@@ -4104,7 +4310,7 @@ function showDCList(){
         <div style="display:flex;align-items:center;gap:8px">${statusBadge(d.status)}<button class="tb-btn" style="font-size:10px;padding:4px 8px" onclick="event.stopPropagation();downloadDCPdf('${d.id}')">📄 PDF</button></div></div>
       <div class="rec-meta"><span>👤 ${escHtml(d.receivedBy)||'—'}</span><span>📅 ${fmtDate(d.deliveryDate)}</span><span>🏭 ${po?escHtml(po.vendorName):'—'}</span></div>
     </div>`;
-  }).join('') : emptyState('🚚','No delivery challans yet','Record deliveries against an issued PO');
+  }).join('') : emptyState('🚚','No Goods Receiving / Delivery Notes yet','Record deliveries against an issued PO');
   showView('dc');
 }
 function openDCForm(poId){
@@ -4136,7 +4342,7 @@ async function saveDC(){
       notes:document.getElementById('dc_notes').value.trim(), lineItems, fullyDelivered:fully});
     mergeInto(deliveryChallans,dc);
     const po=purchaseOrders.find(p=>p.id===currentPOId); if(po) po.status = fully?'Delivered':'PartiallyDelivered';
-    closeDCForm(); toast('🚚 Delivery challan '+dc.dcNumber+' recorded'); updateSidebarCounts();
+    closeDCForm(); toast('🚚 Goods Receiving / Delivery Note '+dc.dcNumber+' recorded'); updateSidebarCounts();
     renderPODetail();
   }catch(e){ toast(e.message,'error'); }
 }
@@ -4186,9 +4392,12 @@ function renderPRQList(){
   document.getElementById('prqCount').textContent = paymentRequests.length+' payment request'+(paymentRequests.length!==1?'s':'');
   const sorted=[...paymentRequests].sort((a,b)=>new Date(b.requestedAt)-new Date(a.requestedAt));
   const canAct = currentUser.role==='Finance'||currentUser.role==='Admin';
+  const canSign = currentUser.role==='OpsProcurement'||currentUser.role==='Admin';
   document.getElementById('prqList').innerHTML = sorted.length? sorted.map(pq=>{
     let actions='';
-    if(canAct && pq.status==='PendingFinance'){
+    if(canSign && pq.status==='PendingSignature'){
+      actions=`<div class="act-btns" style="margin-top:10px" onclick="event.stopPropagation()"><button class="act-btn act-edit" onclick="markPRQSigned('${pq.id}')">✍️ Mark as Signed</button></div>`;
+    } else if(canAct && pq.status==='PendingFinance'){
       actions=`<div class="act-btns" style="margin-top:10px" onclick="event.stopPropagation()">
         <button class="act-btn act-del" onclick="actOnPRQ('${pq.id}','Reject')">Reject</button>
         <button class="act-btn act-edit" onclick="actOnPRQ('${pq.id}','Approve')">Approve</button>
@@ -4203,6 +4412,14 @@ function renderPRQList(){
       ${actions}
     </div>`;
   }).join('') : emptyState('💳','No payment requests yet','Raise one from a Purchase Order once goods are delivered');
+}
+async function markPRQSigned(id){
+  try{
+    const r = await api('markPRQSigned', {id});
+    mergeInto(paymentRequests, r);
+    toast('✍️ Marked as signed — now visible to Finance');
+    renderPRQList();
+  }catch(e){ toast(e.message,'error'); }
 }
 async function actOnPRQ(id,action){
   let comments='';
