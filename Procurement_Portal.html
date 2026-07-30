@@ -987,24 +987,88 @@ Example Vendor,SUPPLIES,Printing,John Doe,0300-1234567,Islamabad,Blue Area,john@
 
 <!-- ════════════════ MODAL: ISSUE RFQ ════════════════ -->
 <div class="overlay" id="rfqFormOverlay">
-<div class="modal" style="max-width:640px">
+<div class="modal" style="max-width:720px">
   <div class="modal-hdr">
     <div class="modal-hdr-left">
       <div class="modal-title">Issue RFQ</div>
-      <div class="modal-sub" id="rfqFormSub">Select vendors to invite for quotes</div>
+      <div class="modal-sub" id="rfqFormSub">Set the terms, then select vendors to invite for quotes</div>
     </div>
     <button class="modal-close" onclick="closeRFQForm()">✕</button>
   </div>
   <div class="modal-body">
+    <div class="fsec s2"><span class="fsec-label">RFQ Details</span></div>
     <div class="fgrid">
       <div class="fg s2">
         <label class="flabel">RFQ Title</label>
         <input class="finput" id="rf_title" type="text" placeholder="e.g. RFQ for office supplies">
       </div>
       <div class="fg">
+        <label class="flabel">Currency</label>
+        <select class="finput" id="rf_currency"><option value="PKR">PKR</option><option value="USD">USD</option></select>
+      </div>
+      <div class="fg">
         <label class="flabel">Quote Due Date</label>
         <input class="finput" id="rf_dueDate" type="date">
       </div>
+      <div class="fg">
+        <label class="flabel">Delivery Required By</label>
+        <input class="finput" id="rf_deliveryBy" type="date">
+      </div>
+      <div class="fg">
+        <label class="flabel">Delivery Location</label>
+        <input class="finput" id="rf_deliveryLoc" type="text" placeholder="e.g. Islamabad head office">
+      </div>
+
+      <div class="fsec s2"><span class="fsec-label">Terms &amp; Conditions</span></div>
+      <div class="fg">
+        <label class="flabel">Quote Validity (days)</label>
+        <input class="finput" id="rf_validityDays" type="text" placeholder="e.g. 30">
+      </div>
+      <div class="fg">
+        <label class="flabel">Payment Terms</label>
+        <input class="finput" id="rf_paymentTerms" type="text" placeholder="e.g. Net 30 days after delivery">
+      </div>
+      <div class="fg s2">
+        <label class="flabel">Delivery Terms</label>
+        <input class="finput" id="rf_deliveryTerms" type="text" placeholder="e.g. DDP — delivered duty paid to site">
+      </div>
+      <div class="fg s2">
+        <label class="flabel" style="margin-bottom:6px">Standard Clauses to Include</label>
+        <div id="rf_standardTerms" style="display:flex;flex-direction:column;gap:7px;font-size:12px;color:var(--b600)">
+          <label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" class="rf-term-cb" value="Quoted prices must be inclusive of all applicable taxes." style="margin-top:2px">Quoted prices must be inclusive of all applicable taxes</label>
+          <label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" class="rf-term-cb" value="The quotation must remain valid for the stated validity period." style="margin-top:2px">The quotation must remain valid for the stated validity period</label>
+          <label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" class="rf-term-cb" value="The delivery timeline must be clearly stated in the quotation." style="margin-top:2px">The delivery timeline must be clearly stated in the quotation</label>
+          <label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" class="rf-term-cb" value="Payment will be released after satisfactory delivery and inspection." style="margin-top:2px">Payment released after satisfactory delivery and inspection</label>
+          <label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" class="rf-term-cb" value="The organization reserves the right to accept or reject any or all quotations without assigning reasons." style="margin-top:2px">The organization reserves the right to accept or reject any or all quotations without assigning reasons</label>
+          <label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" class="rf-term-cb" value="Vendor must provide NTN and STRN details on the quotation." style="margin-top:2px">Vendor must provide NTN and STRN details on the quotation</label>
+          <label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" class="rf-term-cb" value="Vendor must provide warranty or after-sales support details, if applicable." style="margin-top:2px">Vendor must provide warranty or after-sales support details, if applicable</label>
+        </div>
+      </div>
+      <div class="fg s2">
+        <label class="flabel">Additional Terms (optional)</label>
+        <textarea class="finput" id="rf_customTerms" placeholder="Anything specific to this RFQ"></textarea>
+      </div>
+
+      <div class="fsec s2"><span class="fsec-label">Contact for Queries</span></div>
+      <div class="fg">
+        <label class="flabel">Name</label>
+        <input class="finput" id="rf_contactName" type="text">
+      </div>
+      <div class="fg">
+        <label class="flabel">Email</label>
+        <input class="finput" id="rf_contactEmail" type="email">
+      </div>
+      <div class="fg">
+        <label class="flabel">Phone</label>
+        <input class="finput" id="rf_contactPhone" type="text" placeholder="+92 300 0000000">
+      </div>
+
+      <div class="fsec s2"><span class="fsec-label">Additional Information</span></div>
+      <div class="fg s2">
+        <label class="flabel">Notes (optional)</label>
+        <textarea class="finput" id="rf_additionalInfo" placeholder="Any other information worth including on the RFQ — scope details, special instructions, references, etc."></textarea>
+      </div>
+
       <div class="fsec s2"><span class="fsec-label">Invite Vendors</span></div>
       <div class="fg s2">
         <input class="finput" id="rf_vendorSearch" type="text" placeholder="🔍 Filter vendors by category or name…" oninput="renderRfqVendorPicker()">
@@ -2701,6 +2765,218 @@ function downloadPRPdf(id){
   drawFooter();
   doc.save(pr.prNumber+'.pdf');
 }
+
+function downloadRFQPdf(id){
+  const rfq = rfqs.find(r=>r.id===id);
+  if(!rfq){ toast('RFQ not found','error'); return; }
+  if(!window.jspdf){ toast('PDF library still loading — try again in a second','error'); return; }
+  const linkedPr = purchaseRequests.find(p=>p.id===rfq.prId);
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:'pt', format:'a4'});
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const marginL = 40, marginR = 40;
+  const contentW = pageW - marginL - marginR;
+  const theme = pdfTheme(rfq.entity);
+  const [br,bg,bb] = theme.brand;
+  let y = 0;
+  let pageNum = 1;
+
+  function drawHeader(){
+    doc.setFillColor(br,bg,bb);
+    doc.rect(0, 0, pageW, 60, 'F');
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica','bold'); doc.setFontSize(13);
+    doc.text(theme.name, marginL, 26);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.5);
+    doc.text('Procurement portal — request for quotation', marginL, 40);
+    doc.setFont('helvetica','bold'); doc.setFontSize(12);
+    doc.text(rfq.rfqNumber, pageW-marginR, 26, {align:'right'});
+    doc.setFont('helvetica','normal'); doc.setFontSize(9);
+    const statusTxt = statusPdfLabel(rfq.status);
+    const pillW = doc.getTextWidth(statusTxt)+18;
+    doc.setFillColor(255,255,255);
+    doc.roundedRect(pageW-marginR-pillW, 32, pillW, 15, 7.5, 7.5, 'F');
+    doc.setTextColor(br,bg,bb);
+    doc.text(statusTxt, pageW-marginR-pillW/2, 42.5, {align:'center'});
+    doc.setTextColor(0,0,0);
+  }
+  function drawFooter(){
+    doc.setDrawColor(225,225,225);
+    doc.line(marginL, pageH-38, pageW-marginR, pageH-38);
+    doc.setFontSize(7.5); doc.setTextColor(150,150,150); doc.setFont('helvetica','normal');
+    doc.text('Generated from the Procurement Portal on '+fmtDate(new Date().toISOString())+' — reflects the RFQ\'s status at time of download.', marginL, pageH-26);
+    doc.text(theme.abbr+' · Page '+pageNum, pageW-marginR, pageH-26, {align:'right'});
+  }
+  function checkPageBreak(need){
+    if(y + need > pageH - 50){
+      drawFooter();
+      doc.addPage();
+      pageNum++;
+      drawHeader();
+      y = 84;
+    }
+  }
+
+  drawHeader();
+  y = 84;
+
+  // Info grid
+  const gridData = [
+    ['RFQ title', rfq.title||'—', 'Entity', rfq.entity],
+    ['Linked purchase request', linkedPr?linkedPr.prNumber:'—', 'Currency', rfq.currency||'PKR'],
+    ['Quote due date', rfq.dueDate?fmtDate(rfq.dueDate):'—', 'Delivery required by', rfq.deliveryRequiredBy?fmtDate(rfq.deliveryRequiredBy):'—'],
+    ['Delivery location', rfq.deliveryLocation||'—', 'Issued by', (rfq.createdByName||rfq.createdBy||'—')+' on '+fmtDate(rfq.createdAt)]
+  ];
+  const colW = contentW/2;
+  const cellH = 24;
+  doc.setDrawColor(215,215,215);
+  gridData.forEach(row=>{
+    checkPageBreak(cellH);
+    const rowY = y;
+    doc.rect(marginL, rowY, colW, cellH);
+    doc.rect(marginL+colW, rowY, colW, cellH);
+    doc.setFont('helvetica','normal'); doc.setFontSize(6.5); doc.setTextColor(140,140,140);
+    doc.text(row[0].toUpperCase(), marginL+8, rowY+9);
+    doc.text(row[2].toUpperCase(), marginL+colW+8, rowY+9);
+    doc.setFontSize(9); doc.setTextColor(25,25,25);
+    const v1 = doc.splitTextToSize(String(row[1]), colW-16)[0]||'';
+    const v2 = doc.splitTextToSize(String(row[3]), colW-16)[0]||'';
+    doc.text(v1, marginL+8, rowY+19);
+    doc.text(v2, marginL+colW+8, rowY+19);
+    y += cellH;
+  });
+  y += 18;
+
+  // Terms and conditions
+  const standardTerms = safeParse(rfq.standardTermsJson, []);
+  const hasTerms = rfq.quoteValidityDays || rfq.paymentTerms || rfq.deliveryTerms || standardTerms.length || rfq.customTerms;
+  if(hasTerms){
+    checkPageBreak(30);
+    doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
+    doc.text('Terms and conditions', marginL, y); y += 14;
+    const termLines = [];
+    if(rfq.quoteValidityDays) termLines.push('Quote validity: '+rfq.quoteValidityDays+' days');
+    if(rfq.paymentTerms) termLines.push('Payment terms: '+rfq.paymentTerms);
+    if(rfq.deliveryTerms) termLines.push('Delivery terms: '+rfq.deliveryTerms);
+    termLines.push(...standardTerms);
+    if(rfq.customTerms) termLines.push(rfq.customTerms);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(40,40,40);
+    termLines.forEach((t,i)=>{
+      const wrapped = doc.splitTextToSize((i+1)+'.  '+t, contentW-8);
+      checkPageBreak(13*wrapped.length);
+      doc.text(wrapped, marginL, y+10);
+      y += 13*wrapped.length + 2;
+    });
+    y += 14;
+  }
+
+  // Contact for queries
+  if(rfq.contactName || rfq.contactEmail || rfq.contactPhone){
+    checkPageBreak(30);
+    doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
+    doc.text('Contact for queries', marginL, y); y += 14;
+    const contactLine = [rfq.contactName, rfq.contactEmail, rfq.contactPhone].filter(Boolean).join('  ·  ');
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(40,40,40);
+    doc.text(contactLine, marginL, y+10);
+    y += 26;
+  }
+
+  // Additional information (free-text, manually entered)
+  if(rfq.additionalInfo){
+    checkPageBreak(30);
+    doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
+    doc.text('Additional information', marginL, y); y += 14;
+    const infoLines = doc.splitTextToSize(rfq.additionalInfo, contentW-24);
+    const infoBoxH = 14*infoLines.length + 16;
+    checkPageBreak(infoBoxH);
+    doc.setDrawColor(215,215,215);
+    doc.rect(marginL, y, contentW, infoBoxH);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(40,40,40);
+    doc.text(infoLines, marginL+12, y+16);
+    y += infoBoxH + 18;
+  }
+
+  // Requested line items (from the linked PR, if available)
+  if(linkedPr){
+    checkPageBreak(50);
+    doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
+    doc.text('Items requested', marginL, y); y += 14;
+    const prLines = safeParse(linkedPr.lineItemsJson, []);
+    const cw = [contentW*0.6, contentW*0.2, contentW*0.2];
+    const cx = [marginL, marginL+cw[0], marginL+cw[0]+cw[1]];
+    doc.setFillColor(theme.tint[0],theme.tint[1],theme.tint[2]);
+    doc.rect(marginL, y, contentW, 20, 'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(br,bg,bb);
+    doc.text('Description', cx[0]+8, y+13);
+    doc.text('Qty', cx[1]+cw[1]-8, y+13, {align:'right'});
+    doc.text('Unit', cx[2]+8, y+13);
+    y += 20;
+    doc.setFont('helvetica','normal'); doc.setTextColor(30,30,30);
+    let zebra = false;
+    prLines.forEach(li=>{
+      const descLines = doc.splitTextToSize(li.description||'', cw[0]-16);
+      const rowH = Math.max(18, 12*descLines.length+6);
+      checkPageBreak(rowH);
+      if(zebra){ doc.setFillColor(249,249,249); doc.rect(marginL, y, contentW, rowH, 'F'); }
+      zebra = !zebra;
+      doc.setFontSize(9);
+      doc.text(descLines, cx[0]+8, y+13);
+      doc.text(String(li.qty||0), cx[1]+cw[1]-8, y+13, {align:'right'});
+      doc.text(li.unit||'—', cx[2]+8, y+13);
+      y += rowH;
+    });
+    y += 22;
+  }
+
+  // Vendor quote comparison
+  checkPageBreak(50);
+  doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
+  doc.text('Vendor quotes', marginL, y); y += 14;
+  const vendorIds = safeParse(rfq.vendorIdsJson, []);
+  const quotes = safeParse(rfq.quotesJson, []);
+  const qw = [contentW*0.32, contentW*0.18, contentW*0.18, contentW*0.16, contentW*0.16];
+  const qx = [marginL, marginL+qw[0], marginL+qw[0]+qw[1], marginL+qw[0]+qw[1]+qw[2], marginL+qw[0]+qw[1]+qw[2]+qw[3]];
+  doc.setFillColor(theme.tint[0],theme.tint[1],theme.tint[2]);
+  doc.rect(marginL, y, contentW, 20, 'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(br,bg,bb);
+  doc.text('Vendor', qx[0]+8, y+13);
+  doc.text('Quoted amount', qx[1]+qw[1]-8, y+13, {align:'right'});
+  doc.text('Delivery', qx[2]+8, y+13);
+  doc.text('Validity', qx[3]+8, y+13);
+  doc.text('Status', qx[4]+8, y+13);
+  y += 20;
+  doc.setFont('helvetica','normal'); doc.setTextColor(30,30,30);
+  let vZebra = false;
+  vendorIds.forEach(vid=>{
+    const v = vendors.find(x=>x.id===vid);
+    const q = quotes.find(x=>x.vendorId===vid);
+    const rowH = 18;
+    checkPageBreak(rowH);
+    if(vZebra){ doc.setFillColor(249,249,249); doc.rect(marginL, y, contentW, rowH, 'F'); }
+    vZebra = !vZebra;
+    doc.setFontSize(9);
+    doc.text(v?v.name:'Unknown vendor', qx[0]+8, y+13);
+    doc.text(q?fmtMoney(q.amount):'—', qx[1]+qw[1]-8, y+13, {align:'right'});
+    doc.text(q?(q.deliveryDays||'—'):'—', qx[2]+8, y+13);
+    doc.text(q?(q.validity||'—'):'—', qx[3]+8, y+13);
+    if(rfq.status==='Awarded' && q){
+      doc.setTextColor(15,110,86);
+      doc.text('Reviewed', qx[4]+8, y+13);
+      doc.setTextColor(30,30,30);
+    } else {
+      const c = q?[30,30,30]:[150,150,150];
+      doc.setTextColor(c[0],c[1],c[2]);
+      doc.text(q?'Quoted':'Pending', qx[4]+8, y+13);
+      doc.setTextColor(30,30,30);
+    }
+    y += rowH;
+  });
+
+  y += 20;
+  drawFooter();
+  doc.save(rfq.rfqNumber+'.pdf');
+}
 function renderPRDetail(){
   const pr=purchaseRequests.find(p=>p.id===currentPRId);
   if(!pr){ document.getElementById('prDetailBody').innerHTML=emptyState('❓','Not found',''); return; }
@@ -2835,15 +3111,29 @@ function renderRFQList(){
     const pr=purchaseRequests.find(p=>p.id===r.prId);
     const nQuotes=safeParse(r.quotesJson,[]).length, nInvited=safeParse(r.vendorIdsJson,[]).length;
     return `<div class="rec-card" onclick="openRFQDetail('${r.id}')">
-      <div class="rec-top"><div class="rec-id">${r.rfqNumber} <span style="font-weight:500;color:var(--b400)">— ${escHtml(r.title)}</span></div>${statusBadge(r.status)}</div>
+      <div class="rec-top"><div class="rec-id">${r.rfqNumber} <span style="font-weight:500;color:var(--b400)">— ${escHtml(r.title)}</span></div>
+        <div style="display:flex;align-items:center;gap:8px">${statusBadge(r.status)}<button class="tb-btn" style="font-size:10px;padding:4px 8px" onclick="event.stopPropagation();downloadRFQPdf('${r.id}')">📄 PDF</button></div></div>
       <div class="rec-meta"><span>🔗 ${pr?pr.prNumber:'—'}</span><span>🏢 ${r.entity}</span><span>📨 ${nInvited} invited</span><span>💬 ${nQuotes} quote(s)</span><span>📅 Due ${r.dueDate?fmtDate(r.dueDate):'—'}</span></div>
     </div>`;
   }).join('') : emptyState('📨','No RFQs yet','Issue an RFQ from an approved Purchase Request');
 }
 function openRFQForm(prId){
   currentPRId=prId;
+  const pr=purchaseRequests.find(p=>p.id===prId);
   document.getElementById('rf_title').value='';
+  document.getElementById('rf_currency').value='PKR';
   document.getElementById('rf_dueDate').value='';
+  document.getElementById('rf_deliveryBy').value='';
+  document.getElementById('rf_deliveryLoc').value = pr?pr.station||'':'';
+  document.getElementById('rf_validityDays').value='30';
+  document.getElementById('rf_paymentTerms').value='';
+  document.getElementById('rf_deliveryTerms').value='';
+  document.querySelectorAll('.rf-term-cb').forEach(cb=>cb.checked=false);
+  document.getElementById('rf_customTerms').value='';
+  document.getElementById('rf_additionalInfo').value='';
+  document.getElementById('rf_contactName').value = currentUser.name;
+  document.getElementById('rf_contactEmail').value = currentUser.email;
+  document.getElementById('rf_contactPhone').value='';
   document.getElementById('rf_vendorSearch').value='';
   renderRfqVendorPicker();
   document.getElementById('rfqFormOverlay').classList.add('open');
@@ -2862,8 +3152,26 @@ function renderRfqVendorPicker(){
 async function submitRFQ(){
   const vendorIds=[...document.querySelectorAll('.rf-vendor-cb:checked')].map(cb=>cb.value);
   if(!vendorIds.length){ toast('Select at least one vendor to invite','error'); return; }
+  const standardTerms=[...document.querySelectorAll('.rf-term-cb:checked')].map(cb=>cb.value);
   try{
-    const r = await api('createRFQ',{prId:currentPRId, title:document.getElementById('rf_title').value.trim(), dueDate:document.getElementById('rf_dueDate').value, vendorIds});
+    const r = await api('createRFQ',{
+      prId:currentPRId,
+      title:document.getElementById('rf_title').value.trim(),
+      currency:document.getElementById('rf_currency').value,
+      dueDate:document.getElementById('rf_dueDate').value,
+      deliveryRequiredBy:document.getElementById('rf_deliveryBy').value,
+      deliveryLocation:document.getElementById('rf_deliveryLoc').value.trim(),
+      quoteValidityDays:document.getElementById('rf_validityDays').value.trim(),
+      paymentTerms:document.getElementById('rf_paymentTerms').value.trim(),
+      deliveryTerms:document.getElementById('rf_deliveryTerms').value.trim(),
+      standardTerms,
+      customTerms:document.getElementById('rf_customTerms').value.trim(),
+      additionalInfo:document.getElementById('rf_additionalInfo').value.trim(),
+      contactName:document.getElementById('rf_contactName').value.trim(),
+      contactEmail:document.getElementById('rf_contactEmail').value.trim(),
+      contactPhone:document.getElementById('rf_contactPhone').value.trim(),
+      vendorIds
+    });
     mergeInto(rfqs,r);
     const pr=purchaseRequests.find(p=>p.id===currentPRId); if(pr) pr.status='RFQIssued';
     closeRFQForm(); toast('📨 RFQ issued to '+vendorIds.length+' vendor(s)');
@@ -2880,6 +3188,7 @@ function openRFQDetail(id){
 function renderRFQDetail(){
   const rfq=rfqs.find(r=>r.id===currentRFQId);
   if(!rfq){ document.getElementById('rfqDetailBody').innerHTML=emptyState('❓','Not found',''); return; }
+  const linkedPr = purchaseRequests.find(p=>p.id===rfq.prId);
   const vendorIds=safeParse(rfq.vendorIdsJson,[]);
   const quotes=safeParse(rfq.quotesJson,[]);
   const canAct = currentUser.role==='OpsProcurement'||currentUser.role==='Admin';
@@ -2900,8 +3209,12 @@ function renderRFQDetail(){
   document.getElementById('rfqDetailBody').innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
       <div><div style="font-size:20px;font-weight:900;color:var(--b900)">${rfq.rfqNumber}</div>
-      <div style="font-size:12px;color:var(--b400);margin-top:2px">${escHtml(rfq.title)} · ${rfq.entity} · Due ${rfq.dueDate?fmtDate(rfq.dueDate):'—'}</div></div>
-      ${statusBadge(rfq.status)}
+      <div style="font-size:12px;color:var(--b400);margin-top:2px">${escHtml(rfq.title)} · ${rfq.entity} · Due ${rfq.dueDate?fmtDate(rfq.dueDate):'—'}</div>
+      <div style="font-size:11px;color:var(--b400);margin-top:2px">Linked to Purchase Request: ${linkedPr?`<a href="#" onclick="event.preventDefault();openPRDetail('${linkedPr.id}')" style="color:var(--rads);font-weight:700">${linkedPr.prNumber}</a>`:'—'}</div></div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        ${statusBadge(rfq.status)}
+        <button class="tb-btn" style="font-size:11px;padding:5px 10px" onclick="downloadRFQPdf('${rfq.id}')">📄 Download PDF</button>
+      </div>
     </div>
     <div class="table-shell"><table class="vtbl"><thead><tr><th>Vendor</th><th>Quoted Amount</th><th>Delivery</th><th>Validity</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
   `;
