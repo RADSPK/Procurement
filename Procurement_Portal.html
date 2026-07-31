@@ -2685,7 +2685,8 @@ function openPRDetail(id){
   showView('pr-detail');
 }
 function pdfStatusBlock(pr){
-  return `<button class="tb-btn" style="font-size:11px;padding:5px 10px" onclick="downloadPRPdf('${pr.id}')">📄 Download PDF</button>`;
+  return `<button class="tb-btn" style="font-size:11px;padding:5px 10px" onclick="downloadPRPdf('${pr.id}')">📄 Download PDF</button>
+    <button class="tb-btn" style="font-size:11px;padding:5px 10px" onclick="downloadProcurementLogPdf('${pr.id}')">📋 Procurement Log</button>`;
 }
 function statusPdfLabel(status){ const m = STATUS_MAP[status]; return m?m[1]:(status||'—'); }
 function pdfTheme(entity){
@@ -2718,6 +2719,182 @@ function drawSignatureBox(doc, y, marginL, contentW, labels){
   });
   return y + 24;
 }
+// Once a document has already been manually signed, replace the blank signature box
+// with a confirmation line instead — there's nothing left to sign on a reprinted copy.
+function drawSignedConfirmation(doc, y, marginL, contentW, signedBy, signedAt){
+  y += 8;
+  doc.setDrawColor(210,210,210);
+  doc.line(marginL, y, marginL+contentW, y);
+  y += 20;
+  doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(15,110,86);
+  doc.text('✍️  Manually signed by '+(signedBy||'—')+' on '+fmtDate(signedAt), marginL, y);
+  doc.setTextColor(0,0,0);
+  return y + 16;
+}
+// Comprehensive chronological audit trail for a PR's entire procurement journey —
+// initiation, every approval, RFQ activity, PO issuance/signing, delivery, and payment.
+function downloadProcurementLogPdf(prId){
+  const pr = purchaseRequests.find(p=>p.id===prId);
+  if(!pr){ toast('PR not found','error'); return; }
+  if(!window.jspdf){ toast('PDF library still loading — try again in a second','error'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:'pt', format:'a4'});
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const marginL = 40, marginR = 40;
+  const contentW = pageW - marginL - marginR;
+  const theme = pdfTheme(pr.entity);
+  const [br,bg,bb] = theme.brand;
+  let y = 0;
+  let pageNum = 1;
+
+  function drawHeader(){
+    doc.setFillColor(br,bg,bb);
+    doc.rect(0, 0, pageW, 60, 'F');
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica','bold'); doc.setFontSize(13);
+    doc.text(theme.name, marginL, 26);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.5);
+    doc.text('Procurement Portal — Procurement Log', marginL, 40);
+    doc.setFont('helvetica','bold'); doc.setFontSize(12);
+    doc.text(pr.prNumber, pageW-marginR, 26, {align:'right'});
+    doc.setTextColor(0,0,0);
+  }
+  function drawFooter(){
+    doc.setDrawColor(225,225,225);
+    doc.line(marginL, pageH-38, pageW-marginR, pageH-38);
+    doc.setFontSize(7.5); doc.setTextColor(150,150,150); doc.setFont('helvetica','normal');
+    doc.text('Generated from the Procurement Portal on '+fmtDate(new Date().toISOString())+' — a complete record as of this date.', marginL, pageH-26);
+    doc.text(theme.abbr+' · Page '+pageNum, pageW-marginR, pageH-26, {align:'right'});
+  }
+  function checkPageBreak(need){
+    if(y + need > pageH - 50){
+      drawFooter();
+      doc.addPage();
+      pageNum++;
+      drawHeader();
+      y = 84;
+    }
+  }
+
+  const emailName = e => { const u = allUsers.find(x=>x.email && String(x.email).toLowerCase()===String(e||'').toLowerCase()); return u?u.name:(e||'—'); };
+
+  // ── Gather every event across the whole chain, chronologically ──
+  const events = [];
+  events.push({t: pr.dateRaised, stage:'Purchase Request', actor: pr.requestorName, action:'Initiated', details: pr.prNumber+' submitted, addressed to '+emailName(pr.lineManagerEmail)});
+  approvals.filter(a=>a.prId===pr.id).forEach(a=>{
+    const lbl = a.stage==='Delegate' ? 'Delegated Approval' : stageLabel(a.stage);
+    const act = {Approve:'Approved', Reject:'Rejected', Query:'Sent Back', Delegate:'Approved'}[a.action] || a.action;
+    events.push({t: a.timestamp, stage: lbl, actor: a.actorName, action: act, details: a.comments||''});
+  });
+
+  const relatedRfqs = rfqs.filter(r=>r.prId===pr.id);
+  const poIds = [];
+  relatedRfqs.forEach(rfq=>{
+    events.push({t: rfq.createdAt, stage:'RFQ', actor: rfq.createdByName||emailName(rfq.createdBy), action:'Issued', details: rfq.rfqNumber+' — '+safeParse(rfq.vendorIdsJson,[]).length+' vendor(s) invited'});
+    safeParse(rfq.quotesJson,[]).forEach(q=>{
+      events.push({t: q.submittedDate, stage:'RFQ', actor:'Procurement', action:'Quote Logged', details: (q.vendorName||'Vendor')+' — '+fmtMoney(q.amount)});
+    });
+    if(rfq.awardedVendorId){
+      const v = vendors.find(x=>x.id===rfq.awardedVendorId);
+      events.push({t: rfq.updatedAt, stage:'RFQ', actor:'Procurement', action:'Vendor Selected', details: rfq.rfqNumber+' awarded to '+(v?v.name:'—')});
+    }
+  });
+  const relatedPOs = purchaseOrders.filter(p=>p.prId===pr.id);
+  relatedPOs.forEach(po=>{
+    poIds.push(po.id);
+    events.push({t: po.issueDate, stage:'Purchase Order', actor: emailName(po.createdBy), action: po.bypassedRFQ?'Issued (RFQ Bypassed)':'Issued', details: po.poNumber+' — '+po.vendorName+' — '+fmtMoney(po.totalAmount)});
+    if(po.signedStatus==='Signed'){
+      events.push({t: po.signedAt, stage:'Purchase Order', actor: po.signedBy, action:'Signed', details: po.poNumber});
+    }
+  });
+  deliveryChallans.filter(d=>poIds.indexOf(d.poId)>-1).forEach(dc=>{
+    events.push({t: dc.createdAt, stage:'Goods Receiving / Delivery Note', actor: dc.receivedBy, action: dc.status==='FullyReceived'?'Fully Received':'Partially Received', details: dc.dcNumber});
+  });
+  paymentRequests.filter(p=>poIds.indexOf(p.poId)>-1).forEach(pq=>{
+    events.push({t: pq.requestedAt, stage:'Payment Request', actor: emailName(pq.requestedBy), action:'Raised', details: pq.prqNumber+' — Inv# '+pq.invoiceNumber+' — '+fmtMoney(pq.netPayable)});
+    if(pq.signedStatus==='Signed'){
+      events.push({t: pq.signedAt, stage:'Payment Request', actor: pq.signedBy, action:'Signed', details: pq.prqNumber});
+    }
+    if(pq.financeActionAt){
+      const act = pq.status==='Rejected' ? 'Rejected' : 'Approved For Payment';
+      events.push({t: pq.financeActionAt, stage:'Payment Request', actor: pq.financeActionBy||'Finance', action: act, details: pq.financeComments||''});
+    }
+    if(pq.paidDate){
+      events.push({t: pq.paidDate, stage:'Payment Request', actor:'Finance', action:'Marked Paid', details: pq.prqNumber});
+    }
+  });
+  events.sort((a,b)=> new Date(a.t) - new Date(b.t));
+
+  drawHeader();
+  y = 84;
+
+  // Summary grid
+  const gridData = [
+    ['Requestor', pr.requestorName+'  ('+pr.requestorEmail+')', 'Department', pr.department||'—'],
+    ['Project', pr.project||'—', 'Station', pr.station||'—'],
+    ['Entity', pr.entity, 'Current Stage', stageLabel(pr.currentStage)||pr.status]
+  ];
+  const colW = contentW/2;
+  const cellH = 24;
+  doc.setDrawColor(215,215,215);
+  gridData.forEach(row=>{
+    checkPageBreak(cellH);
+    const rowY = y;
+    doc.rect(marginL, rowY, colW, cellH);
+    doc.rect(marginL+colW, rowY, colW, cellH);
+    doc.setFont('helvetica','normal'); doc.setFontSize(6.5); doc.setTextColor(140,140,140);
+    doc.text(row[0].toUpperCase(), marginL+8, rowY+9);
+    doc.text(row[2].toUpperCase(), marginL+colW+8, rowY+9);
+    doc.setFontSize(9); doc.setTextColor(25,25,25);
+    const v1 = doc.splitTextToSize(String(row[1]), colW-16)[0]||'';
+    const v2 = doc.splitTextToSize(String(row[3]), colW-16)[0]||'';
+    doc.text(v1, marginL+8, rowY+19);
+    doc.text(v2, marginL+colW+8, rowY+19);
+    y += cellH;
+  });
+  y += 22;
+
+  // Chronological log table
+  doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
+  doc.text('Procurement Timeline', marginL, y); y += 14;
+  const cw = [contentW*0.14, contentW*0.19, contentW*0.16, contentW*0.15, contentW*0.36];
+  const cx = [marginL, marginL+cw[0], marginL+cw[0]+cw[1], marginL+cw[0]+cw[1]+cw[2], marginL+cw[0]+cw[1]+cw[2]+cw[3]];
+  doc.setFillColor(theme.tint[0],theme.tint[1],theme.tint[2]);
+  doc.rect(marginL, y, contentW, 20, 'F');
+  drawGridRow(doc, marginL, y, cx, cw, 20);
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(br,bg,bb);
+  doc.text('Date', cx[0]+6, y+13);
+  doc.text('Stage', cx[1]+6, y+13);
+  doc.text('Actor', cx[2]+6, y+13);
+  doc.text('Action', cx[3]+6, y+13);
+  doc.text('Details', cx[4]+6, y+13);
+  y += 20;
+  doc.setFont('helvetica','normal'); doc.setTextColor(30,30,30);
+  let zebra = false;
+  events.forEach(ev=>{
+    const detailLines = doc.splitTextToSize(ev.details||'—', cw[4]-12);
+    const actorLines = doc.splitTextToSize(ev.actor||'—', cw[2]-10);
+    const rowH = Math.max(18, 11*Math.max(detailLines.length, actorLines.length)+7);
+    checkPageBreak(rowH);
+    if(zebra){ doc.setFillColor(249,249,249); doc.rect(marginL, y, contentW, rowH, 'F'); }
+    zebra = !zebra;
+    drawGridRow(doc, marginL, y, cx, cw, rowH);
+    doc.setFontSize(7.8);
+    doc.text(ev.t?fmtDate(ev.t):'—', cx[0]+6, y+12);
+    doc.setFontSize(8.3);
+    doc.text(ev.stage, cx[1]+6, y+12);
+    doc.text(actorLines, cx[2]+6, y+12);
+    doc.setFont('helvetica','bold');
+    doc.text(ev.action, cx[3]+6, y+12);
+    doc.setFont('helvetica','normal');
+    doc.text(detailLines, cx[4]+6, y+12);
+    y += rowH;
+  });
+
+  drawFooter();
+  doc.save(pr.prNumber+'_Procurement_Log.pdf');
+}
 function downloadPRPdf(id){
   const pr = purchaseRequests.find(p=>p.id===id);
   if(!pr){ toast('PR not found','error'); return; }
@@ -2743,14 +2920,6 @@ function downloadPRPdf(id){
     doc.text('Procurement Portal — Purchase Request Document', marginL, 40);
     doc.setFont('helvetica','bold'); doc.setFontSize(12);
     doc.text(pr.prNumber, pageW-marginR, 26, {align:'right'});
-    doc.setFont('helvetica','normal'); doc.setFontSize(9);
-    const statusTxt = statusPdfLabel(pr.status);
-    const pillW = doc.getTextWidth(statusTxt)+18;
-    doc.setFillColor(255,255,255);
-    doc.roundedRect(pageW-marginR-pillW, 32, pillW, 15, 7.5, 7.5, 'F');
-    doc.setTextColor(br,bg,bb);
-    doc.text(statusTxt, pageW-marginR-pillW/2, 42.5, {align:'center'});
-    doc.setTextColor(0,0,0);
   }
   function drawFooter(){
     doc.setDrawColor(225,225,225);
@@ -2936,7 +3105,7 @@ function downloadPRPdf(id){
     y += 14;
     checkPageBreak(18);
     doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(15,110,86);
-    doc.text('All required approvals have been obtained for this purchase request.', marginL, y);
+    doc.text('All required approvals for this purchase request have been obtained electronically.', marginL, y);
     doc.setTextColor(0,0,0);
   }
 
@@ -2970,14 +3139,6 @@ function downloadRFQPdf(id){
     doc.text('Procurement Portal — Request For Quotation', marginL, 40);
     doc.setFont('helvetica','bold'); doc.setFontSize(12);
     doc.text(rfq.rfqNumber, pageW-marginR, 26, {align:'right'});
-    doc.setFont('helvetica','normal'); doc.setFontSize(9);
-    const statusTxt = statusPdfLabel(rfq.status);
-    const pillW = doc.getTextWidth(statusTxt)+18;
-    doc.setFillColor(255,255,255);
-    doc.roundedRect(pageW-marginR-pillW, 32, pillW, 15, 7.5, 7.5, 'F');
-    doc.setTextColor(br,bg,bb);
-    doc.text(statusTxt, pageW-marginR-pillW/2, 42.5, {align:'center'});
-    doc.setTextColor(0,0,0);
   }
   function drawFooter(){
     doc.setDrawColor(225,225,225);
@@ -3485,14 +3646,6 @@ function downloadPOPdf(id){
     doc.text('Procurement Portal — Purchase Order', marginL, 40);
     doc.setFont('helvetica','bold'); doc.setFontSize(12);
     doc.text(po.poNumber, pageW-marginR, 26, {align:'right'});
-    doc.setFont('helvetica','normal'); doc.setFontSize(9);
-    const statusTxt = 'Issued'; // PO document reflects order status only — delivery tracked separately on the GRN/DN
-    const pillW = doc.getTextWidth(statusTxt)+18;
-    doc.setFillColor(255,255,255);
-    doc.roundedRect(pageW-marginR-pillW, 32, pillW, 15, 7.5, 7.5, 'F');
-    doc.setTextColor(br,bg,bb);
-    doc.text(statusTxt, pageW-marginR-pillW/2, 42.5, {align:'center'});
-    doc.setTextColor(0,0,0);
   }
   function drawFooter(){
     doc.setDrawColor(225,225,225);
@@ -3587,7 +3740,11 @@ function downloadPOPdf(id){
 
   checkPageBreak(90);
   y += 34;
-  y = drawSignatureBox(doc, y, marginL, contentW, ['Prepared By','Approved By','Date']);
+  if(po.signedStatus==='Signed'){
+    y = drawSignedConfirmation(doc, y, marginL, contentW, po.signedBy, po.signedAt);
+  } else {
+    y = drawSignatureBox(doc, y, marginL, contentW, ['Prepared By','Approved By','Date']);
+  }
 
   drawFooter();
   doc.save(po.poNumber+'.pdf');
@@ -3619,14 +3776,6 @@ function downloadDCPdf(id){
     doc.text('Procurement Portal — Goods Receiving / Service Delivery Note', marginL, 40);
     doc.setFont('helvetica','bold'); doc.setFontSize(12);
     doc.text(dc.dcNumber, pageW-marginR, 26, {align:'right'});
-    doc.setFont('helvetica','normal'); doc.setFontSize(9);
-    const statusTxt = statusPdfLabel(dc.status);
-    const pillW = doc.getTextWidth(statusTxt)+18;
-    doc.setFillColor(255,255,255);
-    doc.roundedRect(pageW-marginR-pillW, 32, pillW, 15, 7.5, 7.5, 'F');
-    doc.setTextColor(br,bg,bb);
-    doc.text(statusTxt, pageW-marginR-pillW/2, 42.5, {align:'center'});
-    doc.setTextColor(0,0,0);
   }
   function drawFooter(){
     doc.setDrawColor(225,225,225);
@@ -3748,14 +3897,6 @@ function downloadPRQPdf(id){
     doc.text('Procurement Portal — Payment Request', marginL, 40);
     doc.setFont('helvetica','bold'); doc.setFontSize(12);
     doc.text(pq.prqNumber, pageW-marginR, 26, {align:'right'});
-    doc.setFont('helvetica','normal'); doc.setFontSize(9);
-    const statusTxt = statusPdfLabel(pq.status);
-    const pillW = doc.getTextWidth(statusTxt)+18;
-    doc.setFillColor(255,255,255);
-    doc.roundedRect(pageW-marginR-pillW, 32, pillW, 15, 7.5, 7.5, 'F');
-    doc.setTextColor(br,bg,bb);
-    doc.text(statusTxt, pageW-marginR-pillW/2, 42.5, {align:'center'});
-    doc.setTextColor(0,0,0);
   }
   function drawFooter(){
     doc.setDrawColor(225,225,225);
@@ -3842,7 +3983,11 @@ function downloadPRQPdf(id){
 
   checkPageBreak(90);
   y += 34;
-  y = drawSignatureBox(doc, y, marginL, contentW, ['Requested By','Approved By (Finance)','Date']);
+  if(pq.signedStatus==='Signed'){
+    y = drawSignedConfirmation(doc, y, marginL, contentW, pq.signedBy, pq.signedAt);
+  } else {
+    y = drawSignatureBox(doc, y, marginL, contentW, ['Requested By','Approved By (Finance)','Date']);
+  }
 
   drawFooter();
   doc.save(pq.prqNumber+'.pdf');
