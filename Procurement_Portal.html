@@ -417,11 +417,16 @@ textarea.finput{min-height:72px;resize:vertical}
   </div>
 
   <!-- ── CHOICE SCREEN (shown first — no form visible) ── -->
-  <div class="landing-panel" id="panel-choice" style="max-width:520px;text-align:center">
+  <div class="landing-panel" id="panel-choice" style="max-width:760px;text-align:center">
     <div class="choice-btn" onclick="chooseLanding('request')">
       <div class="choice-btn-icon">📝</div>
       <div class="choice-btn-title">Make a Request</div>
       <div class="choice-btn-sub">Submit a purchase request — no account needed</div>
+    </div>
+    <div class="choice-btn" onclick="chooseLanding('track')">
+      <div class="choice-btn-icon">🔎</div>
+      <div class="choice-btn-title">Track My Request</div>
+      <div class="choice-btn-sub">Check the status of a request you've already submitted</div>
     </div>
     <div class="choice-btn" onclick="chooseLanding('login')">
       <div class="choice-btn-icon">🔐</div>
@@ -432,8 +437,24 @@ textarea.finput{min-height:72px;resize:vertical}
 
   <div class="landing-tabs" id="landingTabs" style="display:none">
     <button class="landing-tab" id="tab-request" onclick="switchLandingTab('request')">📝 Make a Request</button>
+    <button class="landing-tab" id="tab-track" onclick="switchLandingTab('track')">🔎 Track My Request</button>
     <button class="landing-tab" id="tab-login" onclick="switchLandingTab('login')">🔐 Staff Login</button>
     <button class="landing-tab" onclick="showLandingChoice()" style="color:rgba(255,255,255,.85)">← Back</button>
+  </div>
+
+  <!-- ── TRACK MY REQUEST PANEL ── -->
+  <div class="landing-panel" id="panel-track" style="display:none;max-width:640px">
+    <div class="request-card" id="trackSearchCard">
+      <div class="request-card-title">Track My Request</div>
+      <div class="request-card-sub">Enter the email you used when submitting your request to see its status.</div>
+      <div class="login-err" id="trackErr"></div>
+      <div class="fg s2" style="margin-bottom:12px">
+        <label class="flabel">Email</label>
+        <input class="finput" id="track_email" type="email" placeholder="you@rads.org.pk" onkeydown="if(event.key==='Enter')doTrackSearch()">
+      </div>
+      <button class="tb-btn primary" style="width:100%;padding:11px;font-size:13px" id="trackSearchBtn" onclick="doTrackSearch()">🔎 Find My Requests</button>
+    </div>
+    <div id="trackResultsCard" style="display:none"></div>
   </div>
 
   <!-- ── REQUEST PANEL ── -->
@@ -1675,6 +1696,7 @@ function showLandingChoice(){
   document.getElementById('panel-choice').style.display='block';
   document.getElementById('landingTabs').style.display='none';
   document.getElementById('panel-request').style.display='none';
+  document.getElementById('panel-track').style.display='none';
   document.getElementById('panel-login').style.display='none';
 }
 function chooseLanding(tab){
@@ -1684,8 +1706,10 @@ function chooseLanding(tab){
 }
 function switchLandingTab(tab){
   document.getElementById('tab-request').classList.toggle('active', tab==='request');
+  document.getElementById('tab-track').classList.toggle('active', tab==='track');
   document.getElementById('tab-login').classList.toggle('active', tab==='login');
   document.getElementById('panel-request').style.display = tab==='request' ? 'block' : 'none';
+  document.getElementById('panel-track').style.display = tab==='track' ? 'block' : 'none';
   document.getElementById('panel-login').style.display = tab==='login' ? 'block' : 'none';
   const rp = document.getElementById('panel-reset'); if(rp) rp.style.display='none';
 }
@@ -1845,6 +1869,65 @@ async function submitPublicPR(){
   } finally { btn.disabled=false; btn.textContent='➤ Submit Purchase Request'; }
 }
 
+// ═══════════════════════════════
+// TRACK MY REQUEST (public, no login)
+// ═══════════════════════════════
+async function doTrackSearch(){
+  const email = document.getElementById('track_email').value.trim();
+  const errEl = document.getElementById('trackErr');
+  errEl.style.display='none';
+  if(!email){ errEl.textContent='Enter your email address.'; errEl.style.display='block'; return; }
+  const btn = document.getElementById('trackSearchBtn'); btn.disabled=true; btn.textContent='Searching…';
+  try{
+    const result = await api('trackByEmail', {email});
+    renderTrackResults(result.prs||[], email);
+  }catch(e){
+    errEl.textContent = e.message||'Could not search'; errEl.style.display='block';
+    document.getElementById('trackResultsCard').style.display='none';
+  } finally { btn.disabled=false; btn.textContent='🔎 Find My Requests'; }
+}
+function renderTrackResults(prs, email){
+  const card = document.getElementById('trackResultsCard');
+  if(!prs.length){
+    card.innerHTML = `<div class="request-card" style="margin-top:16px;text-align:center;color:var(--b400);font-size:13px">No purchase requests found for ${escHtml(email)}. Double-check the email you used when submitting.</div>`;
+    card.style.display='block';
+    return;
+  }
+  card.innerHTML = prs.map(pr=>{
+    const lines = safeParse(pr.lineItemsJson, []);
+    const itemsSummary = lines.map(l=>l.description).filter(Boolean).join(', ') || '—';
+    let procLine;
+    const paid = pr.prqs.some(p=>p.status==='Paid');
+    if(paid) procLine = '✅ Procurement complete — payment made';
+    else if(pr.prqs.length) procLine = '💳 Payment request in progress';
+    else if(pr.dcs.length) procLine = '🚚 Goods received — awaiting payment request';
+    else if(pr.pos.length) procLine = '📦 Purchase Order issued';
+    else if(pr.rfqs.length) procLine = '📨 RFQ in progress';
+    else if(pr.status==='Approved') procLine = '⏳ Approved — procurement not yet started';
+    else if(pr.status==='Rejected') procLine = '❌ Rejected';
+    else procLine = '⏳ Awaiting approval — currently with '+stageLabel(pr.currentStage);
+    const approvalRows = pr.approvals.map(a=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--b100);font-size:12px">
+      <span><b>${stageLabel(a.stage)}</b> — ${escHtml(a.actorName)}: <span style="font-weight:700;color:${a.action==='Approve'?'#0F6E56':a.action==='Reject'?'#E11D48':'#B45309'}">${a.action}</span></span>
+      <span style="color:var(--b400)">${fmtDate(a.timestamp)}</span></div>`).join('');
+    const poRows = pr.pos.map(po=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--b100);font-size:12px">
+      <span>📦 ${escHtml(po.poNumber)} — ${escHtml(po.vendorName)}</span><span>${escHtml(po.status)}</span></div>`).join('');
+    const prqRows = pr.prqs.map(pq=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--b100);font-size:12px">
+      <span>💳 ${escHtml(pq.prqNumber)}</span><span>${escHtml(pq.status)}${pq.paidDate?' — Paid '+fmtDate(pq.paidDate):''}</span></div>`).join('');
+    return `<div class="request-card" style="margin-top:16px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px">
+        <div style="font-size:16px;font-weight:800;color:var(--b900)">${pr.prNumber}</div>
+        <div style="font-size:12px;font-weight:700;color:var(--b600)">${escHtml(pr.status)}</div>
+      </div>
+      <div style="font-size:12px;color:var(--b500);margin-bottom:2px">Raised ${fmtDate(pr.dateRaised)}${pr.department?' · '+escHtml(pr.department):''}${pr.project?' · '+escHtml(pr.project):''}</div>
+      <div style="font-size:12px;color:var(--b500);margin-bottom:10px">Items: ${escHtml(itemsSummary)}</div>
+      <div style="font-size:13px;font-weight:700;color:var(--b800);margin-bottom:10px">${procLine}</div>
+      ${approvalRows?`<div style="font-size:11px;font-weight:800;color:var(--b400);text-transform:uppercase;letter-spacing:.06em;margin:10px 0 4px">Approval History</div>${approvalRows}`:''}
+      ${poRows?`<div style="font-size:11px;font-weight:800;color:var(--b400);text-transform:uppercase;letter-spacing:.06em;margin:10px 0 4px">Purchase Orders</div>${poRows}`:''}
+      ${prqRows?`<div style="font-size:11px;font-weight:800;color:var(--b400);text-transform:uppercase;letter-spacing:.06em;margin:10px 0 4px">Payment Requests</div>${prqRows}`:''}
+    </div>`;
+  }).join('');
+  card.style.display='block';
+}
 // ═══════════════════════════════
 // AUTH
 // ═══════════════════════════════
@@ -3146,10 +3229,14 @@ function downloadProcurementLogPdf(prId){
   y = 84;
 
   // Summary grid
+  const prLinesForGrid = safeParse(pr.lineItemsJson, []);
+  const itemsSummary = prLinesForGrid.map(l=>l.description).filter(Boolean).join(', ') || '—';
+  const vendorSummary = relatedPOs.length ? relatedPOs.map(p=>p.vendorName).join(', ') : (relatedRfqs.some(r=>r.awardedVendorId) ? (vendors.find(v=>v.id===relatedRfqs.find(r=>r.awardedVendorId).awardedVendorId)||{}).name||'—' : 'Not yet selected');
   const gridData = [
     ['Requestor', pr.requestorName+'  ('+pr.requestorEmail+')', 'Department', pr.department||'—'],
     ['Project', pr.project||'—', 'Station', pr.station||'—'],
-    ['Entity', pr.entity, 'Current Stage', stageLabel(pr.currentStage)||pr.status]
+    ['Entity', pr.entity, 'Current Stage', stageLabel(pr.currentStage)||pr.status],
+    ['Items', itemsSummary, 'Vendor / Supplier', vendorSummary]
   ];
   const colW = contentW/2;
   const cellH = 24;
@@ -4455,6 +4542,50 @@ function renderPRDetail(){
     ${pr.poRequired?`<div><b>Purchase Order Required:</b> ${pr.poRequired}${pr.poRequired==='No'&&pr.poNotRequiredReason?' — '+escHtml(pr.poNotRequiredReason):''}</div>`:''}
   </div>` : '';
 
+  // Live "where does this procurement stand right now" panel — RFQ → PO → vendor → GRN → Payment,
+  // each linked, so opening any PR shows the full picture without hunting through other lists.
+  const linkedRfqs = rfqs.filter(r=>r.prId===pr.id);
+  const linkedPOs = purchaseOrders.filter(p=>p.prId===pr.id);
+  const linkedPOIds = linkedPOs.map(p=>p.id);
+  const linkedDCs = deliveryChallans.filter(d=>linkedPOIds.indexOf(d.poId)>-1);
+  const linkedPRQs = paymentRequests.filter(p=>p.prId===pr.id);
+  let procStatusLine;
+  if(linkedPRQs.some(p=>p.status==='Paid')) procStatusLine = '✅ Procurement complete — payment made';
+  else if(linkedPRQs.length) procStatusLine = '💳 Payment request in progress';
+  else if(linkedDCs.length) procStatusLine = '🚚 Goods received — awaiting payment request';
+  else if(linkedPOs.length) procStatusLine = linkedPOs.every(p=>p.signedStatus==='Signed') ? '📦 PO issued and signed — awaiting delivery' : '📦 PO issued — awaiting sign-off';
+  else if(linkedRfqs.length) procStatusLine = linkedRfqs.some(r=>r.awardedVendorId) ? '📨 Vendor selected — PO not yet issued' : '📨 RFQ in progress';
+  else if(pr.status==='Approved') procStatusLine = '⏳ Approved — procurement not yet started';
+  else if(pr.status==='Rejected') procStatusLine = '❌ Rejected';
+  else procStatusLine = '⏳ Awaiting approval — currently at '+stageLabel(pr.currentStage);
+
+  const procStatusRows = [];
+  linkedRfqs.forEach(r=>{
+    procStatusRows.push(`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--b100);font-size:12px">
+      <span>📨 <a href="#" onclick="event.preventDefault();openRFQDetail('${r.id}')" style="color:var(--rads);font-weight:700">${r.rfqNumber}</a> — ${escHtml(r.title)}</span>
+      <span>${statusBadge(r.status)}</span></div>`);
+  });
+  linkedPOs.forEach(po=>{
+    procStatusRows.push(`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--b100);font-size:12px">
+      <span>📦 <a href="#" onclick="event.preventDefault();openPODetail('${po.id}')" style="color:var(--rads);font-weight:700">${po.poNumber}</a> — Vendor/Supplier: ${escHtml(po.vendorName)} — ${fmtMoney(po.totalAmount)}</span>
+      <span>${statusBadge(po.status)}</span></div>`);
+  });
+  linkedDCs.forEach(dc=>{
+    procStatusRows.push(`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--b100);font-size:12px">
+      <span>🚚 ${escHtml(dc.dcNumber)} — received by ${escHtml(dc.receivedBy)||'—'}</span>
+      <span>${statusBadge(dc.status)}</span></div>`);
+  });
+  linkedPRQs.forEach(pq=>{
+    procStatusRows.push(`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--b100);font-size:12px">
+      <span>💳 <a href="#" onclick="event.preventDefault();openPRQDetail('${pq.id}')" style="color:var(--rads);font-weight:700">${pq.prqNumber}</a> — ${fmtMoney(pq.netPayable)}</span>
+      <span>${statusBadge(pq.status)}</span></div>`);
+  });
+  const procStatusHtml = `<div class="table-shell" style="padding:14px 18px;margin-bottom:16px">
+    <div style="font-size:11px;font-weight:800;color:var(--b400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Procurement Status</div>
+    <div style="font-size:13px;font-weight:700;color:var(--b800);margin-bottom:${procStatusRows.length?'10px':'0'}">${procStatusLine}</div>
+    ${procStatusRows.join('')}
+  </div>`;
+
   document.getElementById('prDetailBody').innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
       <div>
@@ -4468,6 +4599,7 @@ function renderPRDetail(){
       </div>
     </div>
     <div class="stepper">${stepsHtml}</div>
+    ${procStatusHtml}
     ${procDecisionHtml}
     <div class="table-shell" style="padding:18px;margin-bottom:16px">
       ${pr.notes?`<div style="font-size:11px;font-weight:800;color:var(--b400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Additional Notes</div>
@@ -4711,7 +4843,7 @@ function renderRFQDetail(){
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
       <div><div style="font-size:20px;font-weight:900;color:var(--b900)">${rfq.rfqNumber}</div>
       <div style="font-size:12px;color:var(--b400);margin-top:2px">${escHtml(rfq.title)} · ${rfq.entity} · Due ${rfq.dueDate?fmtDate(rfq.dueDate):'—'}</div>
-      <div style="font-size:11px;color:var(--b400);margin-top:2px">Linked to Purchase Request: ${linkedPr?`<a href="#" onclick="event.preventDefault();openPRDetail('${linkedPr.id}')" style="color:var(--rads);font-weight:700">${linkedPr.prNumber}</a>`:'—'}</div></div>
+      <div style="font-size:11px;color:var(--b400);margin-top:2px">Linked to Purchase Request: ${linkedPr?`<a href="#" onclick="event.preventDefault();openPRDetail('${linkedPr.id}')" style="color:var(--rads);font-weight:700">${linkedPr.prNumber}</a> — raised by ${escHtml(linkedPr.requestorName)}`:'—'}</div></div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
         ${statusBadge(rfq.status)}
         <div style="display:flex;gap:6px">
@@ -5039,7 +5171,7 @@ function renderPODetail(){
   const canSignAsCEO = currentUser.role==='CEO'||currentUser.role==='Admin';
   const opsSigned = po.opsManagerSignedStatus==='Signed';
   const ceoSigned = po.signedStatus==='Signed';
-  const bothSigned = opsSigned && ceoSigned;
+  const fullyAuthorized = ceoSigned; // CEO's signature alone is sufficient — supreme authority
   let actions='';
   if(!opsSigned && canSignAsOpsManager){
     actions += `<button class="tb-btn primary" onclick="markPOSigned('${po.id}','OperationsManager')">✍️ Sign as Operations Manager</button>`;
@@ -5047,7 +5179,7 @@ function renderPODetail(){
   if(!ceoSigned && canSignAsCEO){
     actions += `<button class="tb-btn primary" onclick="markPOSigned('${po.id}','CEO')">✍️ Sign as CEO</button>`;
   }
-  if(bothSigned && canOps){
+  if(fullyAuthorized && canOps){
     if(['Issued','PartiallyDelivered'].includes(po.status)) actions += `<button class="tb-btn" onclick="openDCForm('${po.id}')">🚚 Record Goods Receiving / Delivery Note</button>`;
     actions += `<button class="tb-btn primary" onclick="openPRQForm('${po.id}')">💳 Raise Payment Request</button>`;
   }
@@ -5066,7 +5198,7 @@ function renderPODetail(){
         <button class="tb-btn" style="font-size:11px;padding:5px 10px" onclick="downloadPOPdf('${po.id}')">📄 Download PDF</button>
       </div>
     </div>
-    ${!bothSigned?`<div style="background:var(--amber-l);border:1px solid #FDE68A;border-radius:var(--r8);padding:10px 14px;margin-bottom:14px;font-size:12px;color:#92400E">This PO must be signed by both the Operations Manager and the CEO before a Goods Receiving / Delivery Note or Payment Request can be raised against it.</div>`:''}
+    ${!fullyAuthorized?`<div style="background:var(--amber-l);border:1px solid #FDE68A;border-radius:var(--r8);padding:10px 14px;margin-bottom:14px;font-size:12px;color:#92400E">This PO needs the CEO's signature before a Goods Receiving / Delivery Note or Payment Request can be raised against it. The standard path is for the Operations Manager to sign first, but a CEO signature alone is sufficient to proceed.</div>`:''}
     <div class="table-shell" style="padding:18px;margin-bottom:16px">
       <div style="font-size:11px;font-weight:800;color:var(--b400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Line Items</div>
       <table class="vtbl"><thead><tr><th>Description</th><th>Qty</th><th>Rate</th><th>GST %</th><th>Inc. Tax %</th><th>Amount</th></tr></thead>
