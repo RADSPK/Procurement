@@ -35,8 +35,8 @@
 .row-warn td:first-child{box-shadow:inset 3px 0 0 var(--amber)}
 
 /* NOTIFICATION BUTTON (replaces old colorful action-needed panel) */
-.notice-wrap{position:relative;margin-bottom:24px}
-.notice-btn{display:inline-flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--b200);border-radius:999px;padding:9px 16px;font-size:12.5px;font-weight:700;color:var(--b700);cursor:pointer;transition:all .15s;box-shadow:var(--shadow-xs)}
+.notice-wrap{position:relative}
+.notice-btn{display:inline-flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--b200);border-radius:999px;padding:6px 13px;font-size:12px;font-weight:700;color:var(--b700);cursor:pointer;transition:all .15s;box-shadow:var(--shadow-xs)}
 .notice-btn:hover{border-color:var(--b300);box-shadow:var(--shadow-sm)}
 .notice-btn.has-items{color:var(--b900)}
 .notice-dot{width:7px;height:7px;border-radius:50%;background:var(--b300);flex-shrink:0}
@@ -618,6 +618,14 @@ textarea.finput{min-height:72px;resize:vertical}
   <div class="topbar">
     <div class="topbar-left">
       <div class="breadcrumb" id="bc"></div>
+      <div class="notice-wrap" id="noticeWrap">
+        <button class="notice-btn" id="noticeBtn" onclick="toggleNoticeDropdown()">
+          <span class="notice-dot"></span>
+          <span id="noticeBtnLabel">All clear</span>
+          <span class="notice-chevron">▾</span>
+        </button>
+        <div class="notice-dropdown" id="noticeDropdown"></div>
+      </div>
     </div>
     <div class="topbar-right" id="topbarRight">
       <button class="tb-btn" onclick="openImport()">⬆ Import</button>
@@ -670,14 +678,6 @@ textarea.finput{min-height:72px;resize:vertical}
 
       <!-- DASHBOARD CONTENT (hidden during search) -->
       <div id="dashContent">
-        <div class="notice-wrap" id="noticeWrap">
-          <button class="notice-btn" id="noticeBtn" onclick="toggleNoticeDropdown()">
-            <span class="notice-dot"></span>
-            <span id="noticeBtnLabel">All clear</span>
-            <span class="notice-chevron">▾</span>
-          </button>
-          <div class="notice-dropdown" id="noticeDropdown"></div>
-        </div>
         <div class="metrics-panel" id="metricsPanel"></div>
         <div class="mosaic-title">📂 Browse by Category</div>
         <div class="cat-mosaic" id="catMosaic"></div>
@@ -760,6 +760,7 @@ textarea.finput{min-height:72px;resize:vertical}
       <div class="results-bar"><div class="results-count" id="prqCount"></div></div>
       <div id="prqList"></div>
     </div>
+    <div class="view" id="view-prq-detail"><div id="prqDetailBody"></div></div>
 
     <!-- ══ VIEW: ADMIN — USERS ══ -->
     <div class="view" id="view-admin">
@@ -1638,7 +1639,7 @@ let rfqs = [];
 let purchaseOrders = [];
 let deliveryChallans = [];
 let paymentRequests = [];
-let currentPRId = null, currentRFQId = null, currentPOId = null;
+let currentPRId = null, currentRFQId = null, currentPOId = null, currentPRQId = null;
 let pfLineSeq = 0, qfLineSeq = 0;
 let editingPRId = null, editingUserId = null, currentQuoteVendorId = null;
 const PR_STAGES = ['LineManager','Procurement','Finance','OperationsManager'];
@@ -2172,48 +2173,79 @@ function setSbActive(id){
 // DASHBOARD
 // ═══════════════════════════════
 function renderNotices(){
-  const flagged=vendors.filter(v=>complianceLevel(v)!=='ok')
-    .map(v=>({v, issues:complianceIssues(v)}))
-    .sort((a,b)=>{
-      const rank=x=>x.issues.some(i=>i.level==='risk')?0:1;
-      return rank(a)-rank(b);
-    });
-  const myPending = pendingApprovalsForMe();
-  const myPendingPRQ = (currentUser.role==='Finance'||currentUser.role==='Admin') ? paymentRequests.filter(p=>p.status==='PendingFinance') : [];
-
+  if(!currentUser) return;
   const btn = document.getElementById('noticeBtn');
+  if(!btn) return; // topbar not yet rendered (e.g. still on login screen)
   const lbl = document.getElementById('noticeBtnLabel');
   const dd = document.getElementById('noticeDropdown');
-  const total = flagged.length + myPending.length + myPendingPRQ.length;
+  const role = currentUser.role;
+  const groups = {}; // groupLabel -> [{name, reason, fn}]
+  const addItem = (group, name, reason, fn) => { (groups[group]=groups[group]||[]).push({name,reason,fn}); };
+
+  // Purchase Requests awaiting my approval, at whatever stage that is for me
+  pendingApprovalsForMe().forEach(pr=>{
+    addItem('Purchase Requests', pr.prNumber, 'Awaiting your approval as '+stageLabel(pr.currentStage), `openPRDetail('${pr.id}')`);
+  });
+
+  // Purchase Orders awaiting signature — Operations Manager and CEO each sign independently
+  if(role==='OperationsManager'||role==='Admin'){
+    purchaseOrders.filter(po=>po.opsManagerSignedStatus!=='Signed').forEach(po=>{
+      addItem('Purchase Orders', po.poNumber, 'Awaiting your signature as Operations Manager', `openPODetail('${po.id}')`);
+    });
+  }
+  if(role==='CEO'||role==='Admin'){
+    purchaseOrders.filter(po=>po.signedStatus!=='Signed').forEach(po=>{
+      addItem('Purchase Orders', po.poNumber, 'Awaiting your signature as CEO', `openPODetail('${po.id}')`);
+    });
+  }
+
+  // Payment Requests awaiting Procurement's signature (before Finance can see them)
+  if(role==='OpsProcurement'||role==='Admin'){
+    paymentRequests.filter(pq=>pq.status==='PendingSignature').forEach(pq=>{
+      addItem('Payment Requests', pq.prqNumber, 'Needs your signature before Finance can review', `openPRQDetail('${pq.id}')`);
+    });
+  }
+
+  // Payment Requests awaiting Finance action
+  if(role==='Finance'||role==='Admin'){
+    paymentRequests.filter(pq=>pq.status==='PendingFinance').forEach(pq=>{
+      addItem('Payment Requests', pq.prqNumber, 'Awaiting your review', `openPRQDetail('${pq.id}')`);
+    });
+    paymentRequests.filter(pq=>pq.status==='ApprovedForPayment').forEach(pq=>{
+      addItem('Payment Requests', pq.prqNumber, 'Approved — ready to mark as paid', `openPRQDetail('${pq.id}')`);
+    });
+  }
+
+  // Vendor compliance flags — relevant only to those who manage the vendor directory
+  const flagged = (role==='OpsProcurement'||role==='OperationsManager'||role==='Admin')
+    ? vendors.filter(v=>complianceLevel(v)!=='ok').map(v=>({v, issues:complianceIssues(v)}))
+    : [];
+
+  const totalGroupItems = Object.values(groups).reduce((s,arr)=>s+arr.length,0);
+  const total = totalGroupItems + flagged.length;
 
   if(!total){
     btn.className='notice-btn all-clear';
-    lbl.textContent='All clear — nothing needs attention';
-    dd.innerHTML=`<div class="notice-empty">✅ No compliance issues or pending items right now.</div>`;
+    lbl.textContent='All clear';
+    dd.innerHTML=`<div class="notice-empty">✅ Nothing pending for you right now.</div>`;
     return;
   }
   btn.className='notice-btn has-items';
-  lbl.innerHTML=`${total} item${total!==1?'s':''} need attention <span class="notice-count">${total}</span>`;
+  lbl.innerHTML=`${total} pending for you <span class="notice-count">${total}</span>`;
 
   let html='';
-  if(myPending.length){
-    html+=`<div class="notice-group-label">Approvals</div>`;
-    html+=myPending.slice(0,5).map(pr=>`<div class="notice-row" onclick="showApprovalsList()">
-      <span class="notice-row-name">${pr.prNumber}</span><span class="notice-row-reason">Awaiting your approval</span>
+  Object.keys(groups).forEach(g=>{
+    html+=`<div class="notice-group-label">${g}</div>`;
+    html+=groups[g].slice(0,6).map(it=>`<div class="notice-row" onclick="document.getElementById('noticeWrap').classList.remove('open');${it.fn}">
+      <span class="notice-row-name">${escHtml(it.name)}</span><span class="notice-row-reason">${escHtml(it.reason)}</span>
     </div>`).join('');
-  }
-  if(myPendingPRQ.length){
-    html+=`<div class="notice-group-label">Payment Requests</div>`;
-    html+=myPendingPRQ.slice(0,5).map(pq=>`<div class="notice-row" onclick="showPRQList()">
-      <span class="notice-row-name">${pq.prqNumber}</span><span class="notice-row-reason">Pending Finance review</span>
-    </div>`).join('');
-  }
+  });
   if(flagged.length){
     html+=`<div class="notice-group-label">Vendor Compliance</div>`;
-    html+=flagged.slice(0,6).map(({v,issues})=>`<div class="notice-row" onclick="openEdit('${v.id}')">
+    html+=flagged.slice(0,6).map(({v,issues})=>`<div class="notice-row" onclick="document.getElementById('noticeWrap').classList.remove('open');openEdit('${v.id}')">
       <span class="notice-row-name">${escHtml(v.name)}</span><span class="notice-row-reason">${issues.map(i=>i.text).join(' · ')}</span>
     </div>`).join('');
-    if(flagged.length>6) html+=`<div class="notice-row" style="justify-content:center;color:var(--b400)" onclick="openCat('${flagged[0].v.cat}')">+ ${flagged.length-6} more</div>`;
+    if(flagged.length>6) html+=`<div class="notice-row" style="justify-content:center;color:var(--b400)" onclick="document.getElementById('noticeWrap').classList.remove('open');openCat('${flagged[0].v.cat}')">+ ${flagged.length-6} more</div>`;
   }
   dd.innerHTML=html;
 }
@@ -2534,6 +2566,7 @@ function updateSidebarCounts(){
   document.getElementById('sb-po-count').textContent = purchaseOrders.length;
   document.getElementById('sb-dc-count').textContent = deliveryChallans.length;
   document.getElementById('sb-prq-count').textContent = paymentRequests.length;
+  renderNotices();
 }
 
 // ═══════════════════════════════
@@ -2801,6 +2834,7 @@ async function confirmImport(){
 function escHtml(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 function escAttr(s){ return escHtml(s).replace(/'/g,'&#39;'); }
 function fmtDate(iso){ if(!iso) return '—'; try{ return new Date(iso).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }catch(e){ return String(iso).slice(0,10); } }
+function fmtDateTime(iso){ if(!iso) return '—'; try{ const d=new Date(iso); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}); }catch(e){ return String(iso).slice(0,16); } }
 function fmtMoney(n){ return 'Rs. '+Number(n||0).toLocaleString(undefined,{maximumFractionDigits:0}); }
 function emptyState(icon,head,sub){ return `<div class="empty-state"><div class="empty-icon">${icon}</div><div class="empty-head">${head}</div><div class="empty-sub">${sub}</div></div>`; }
 function stageLabel(s){ return {LineManager:'Line Manager',Procurement:'Procurement Dept',Finance:'Finance',OperationsManager:'Operations Manager',Delegate:'Delegated Approval','—':'—'}[s]||s; }
@@ -2974,12 +3008,25 @@ function drawSignedConfirmation(doc, y, marginL, contentW, signedBy, signedByRol
   y += 8;
   doc.setDrawColor(210,210,210);
   doc.line(marginL, y, marginL+contentW, y);
-  y += 18;
-  doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(15,110,86);
-  const roleTxt = signedByRole ? ' ('+roleLabel(signedByRole)+')' : '';
-  doc.text('e-Signed by '+(signedBy||'—')+roleTxt+', '+fmtDate(signedAt), marginL, y);
+  y += 14;
+  const cw = [contentW*0.4, contentW*0.3, contentW*0.3];
+  const cx = [marginL, marginL+cw[0], marginL+cw[0]+cw[1]];
+  const rowH = 24;
+  doc.setFillColor(249,249,249);
+  doc.rect(marginL, y, contentW, 16, 'F');
+  drawGridRow(doc, marginL, y, cx, cw, 16);
+  doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(140,140,140);
+  doc.text('SIGNED BY', cx[0]+8, y+11);
+  doc.text('ROLE', cx[1]+8, y+11);
+  doc.text('DATE & TIME', cx[2]+8, y+11);
+  y += 16;
+  drawGridRow(doc, marginL, y, cx, cw, rowH);
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(20,20,20);
+  doc.text(signedBy||'—', cx[0]+8, y+15);
+  doc.text(signedByRole?roleLabel(signedByRole):'—', cx[1]+8, y+15);
+  doc.text(fmtDateTime(signedAt), cx[2]+8, y+15);
   doc.setTextColor(0,0,0);
-  return y + 16;
+  return y + rowH + 8;
 }
 // Comprehensive chronological audit trail for a PR's entire procurement journey —
 // initiation, every approval, RFQ activity, PO issuance/signing, delivery, and payment.
@@ -3062,8 +3109,11 @@ function downloadProcurementLogPdf(prId){
   relatedPOs.forEach(po=>{
     poIds.push(po.id);
     events.push({t: po.issueDate, stage:'Purchase Order', actor: emailName(po.createdBy), action: po.bypassedRFQ?'Issued (RFQ Bypassed)':'Issued', details: po.poNumber+' — '+po.vendorName+' — '+fmtMoney(po.totalAmount)});
+    if(po.opsManagerSignedStatus==='Signed'){
+      events.push({t: po.opsManagerSignedAt, stage:'Purchase Order', actor: po.opsManagerSignedBy, action:'Signed (Operations Manager)', details: po.poNumber});
+    }
     if(po.signedStatus==='Signed'){
-      events.push({t: po.signedAt, stage:'Purchase Order', actor: po.signedBy, action:'Signed', details: po.poNumber});
+      events.push({t: po.signedAt, stage:'Purchase Order', actor: po.signedBy, action:'Signed (CEO)', details: po.poNumber});
     }
   });
   deliveryChallans.filter(d=>poIds.indexOf(d.poId)>-1).forEach(dc=>{
@@ -3160,6 +3210,46 @@ function downloadProcurementLogPdf(prId){
 
   drawFooter();
   doc.save(pr.prNumber+'_Procurement_Log.pdf');
+}
+// Purchase Orders require two independent sign-offs — Operations Manager and CEO.
+// Always renders as one small cellular table so both rows read consistently whether
+// signed or still pending.
+function drawPoAuthorizationTable(doc, y, marginL, contentW, po){
+  y += 8;
+  doc.setDrawColor(210,210,210);
+  doc.line(marginL, y, marginL+contentW, y);
+  y += 14;
+  const cw = [contentW*0.28, contentW*0.34, contentW*0.38];
+  const cx = [marginL, marginL+cw[0], marginL+cw[0]+cw[1]];
+  doc.setFillColor(249,249,249);
+  doc.rect(marginL, y, contentW, 16, 'F');
+  drawGridRow(doc, marginL, y, cx, cw, 16);
+  doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(140,140,140);
+  doc.text('ROLE', cx[0]+8, y+11);
+  doc.text('SIGNED BY', cx[1]+8, y+11);
+  doc.text('DATE & TIME', cx[2]+8, y+11);
+  y += 16;
+  const rows = [
+    ['Operations Manager', po.opsManagerSignedStatus==='Signed', po.opsManagerSignedBy, po.opsManagerSignedAt],
+    ['CEO', po.signedStatus==='Signed', po.signedBy, po.signedAt]
+  ];
+  const rowH = 22;
+  rows.forEach(([roleName, signed, by, at])=>{
+    drawGridRow(doc, marginL, y, cx, cw, rowH);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(20,20,20);
+    doc.text(roleName, cx[0]+8, y+14);
+    if(signed){
+      doc.text(by||'—', cx[1]+8, y+14);
+      doc.text(fmtDateTime(at), cx[2]+8, y+14);
+    } else {
+      doc.setFont('helvetica','italic'); doc.setTextColor(160,160,160);
+      doc.text('— Pending Signature —', cx[1]+8, y+14);
+      doc.setFont('helvetica','normal');
+    }
+    doc.setTextColor(0,0,0);
+    y += rowH;
+  });
+  return y + 8;
 }
 function downloadPRPdf(id){
   const pr = purchaseRequests.find(p=>p.id===id);
@@ -4024,11 +4114,10 @@ function downloadPOPdf(id){
 
   checkPageBreak(90);
   y += 34;
-  if(po.signedStatus==='Signed'){
-    y = drawSignedConfirmation(doc, y, marginL, contentW, po.signedBy, po.signedByRole, po.signedAt);
-  } else {
-    y = drawSignatureBox(doc, y, marginL, contentW, ['Prepared By (Procurement)','Approved By (CEO)','Date']);
-  }
+  doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
+  doc.text('Authorization', marginL, y); y += 6;
+  doc.setTextColor(0,0,0);
+  y = drawPoAuthorizationTable(doc, y, marginL, contentW, po);
 
   drawFooter();
   doc.save(po.poNumber+'.pdf');
@@ -4507,7 +4596,7 @@ function renderRFQList(){
     return `<div class="rec-card" onclick="openRFQDetail('${r.id}')">
       <div class="rec-top"><div class="rec-id">${r.rfqNumber} <span style="font-weight:500;color:var(--b400)">— ${escHtml(r.title)}</span></div>
         <div style="display:flex;align-items:center;gap:8px">${statusBadge(r.status)}<button class="tb-btn" style="font-size:10px;padding:4px 8px" onclick="event.stopPropagation();downloadRFQPdf('${r.id}')">📄 PDF</button></div></div>
-      <div class="rec-meta"><span>🔗 ${pr?pr.prNumber:'—'}</span><span>🏢 ${r.entity}</span><span>📨 ${nInvited} invited</span><span>💬 ${nQuotes} quote(s)</span><span>📅 Due ${r.dueDate?fmtDate(r.dueDate):'—'}</span></div>
+      <div class="rec-meta"><span>🔗 ${pr?pr.prNumber:'—'}</span>${pr?`<span>👤 ${escHtml(pr.requestorName)}</span>`:''}<span>🏢 ${r.entity}</span><span>📨 ${nInvited} invited</span><span>💬 ${nQuotes} quote(s)</span><span>📅 Due ${r.dueDate?fmtDate(r.dueDate):'—'}</span></div>
     </div>`;
   }).join('') : emptyState('📨','No RFQs yet','Issue an RFQ from an approved Purchase Request');
 }
@@ -4923,11 +5012,13 @@ function showPOList(){
 function renderPOList(){
   document.getElementById('poCount').textContent = purchaseOrders.length+' purchase order'+(purchaseOrders.length!==1?'s':'');
   const sorted=[...purchaseOrders].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-  document.getElementById('poList').innerHTML = sorted.length? sorted.map(po=>`
-    <div class="rec-card" onclick="openPODetail('${po.id}')">
+  document.getElementById('poList').innerHTML = sorted.length? sorted.map(po=>{
+    const pr=purchaseRequests.find(p=>p.id===po.prId);
+    return `<div class="rec-card" onclick="openPODetail('${po.id}')">
       <div class="rec-top"><div class="rec-id">${po.poNumber} <span style="font-weight:500;color:var(--b400)">— ${escHtml(po.vendorName)}</span></div>${statusBadge(po.status)}</div>
-      <div class="rec-meta"><span>🏢 ${po.entity}</span><span>📅 ${fmtDate(po.issueDate)}</span><span class="rec-amt">${fmtMoney(po.totalAmount)}</span></div>
-    </div>`).join('') : emptyState('📦','No purchase orders yet','Award an RFQ to issue a PO');
+      <div class="rec-meta"><span>🔗 ${pr?pr.prNumber:'—'}</span>${pr?`<span>👤 ${escHtml(pr.requestorName)}</span>`:''}<span>🏢 ${po.entity}</span><span>📅 ${fmtDate(po.issueDate)}</span><span class="rec-amt">${fmtMoney(po.totalAmount)}</span></div>
+    </div>`;
+  }).join('') : emptyState('📦','No purchase orders yet','Award an RFQ to issue a PO');
 }
 function openPODetail(id){
   currentPOId=id;
@@ -4944,17 +5035,24 @@ function renderPODetail(){
   const dcs=deliveryChallans.filter(d=>d.poId===po.id).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
   const prqs=paymentRequests.filter(p=>p.poId===po.id).sort((a,b)=>new Date(b.requestedAt)-new Date(a.requestedAt));
   const canOps = currentUser.role==='OpsProcurement'||currentUser.role==='Admin';
-  const canSignPO = currentUser.role==='CEO'||currentUser.role==='Admin';
-  const isSigned = po.signedStatus==='Signed';
+  const canSignAsOpsManager = currentUser.role==='OperationsManager'||currentUser.role==='Admin';
+  const canSignAsCEO = currentUser.role==='CEO'||currentUser.role==='Admin';
+  const opsSigned = po.opsManagerSignedStatus==='Signed';
+  const ceoSigned = po.signedStatus==='Signed';
+  const bothSigned = opsSigned && ceoSigned;
   let actions='';
-  if(!isSigned && canSignPO){
-    actions += `<button class="tb-btn primary" onclick="markPOSigned('${po.id}')">✍️ Mark as Signed</button>`;
+  if(!opsSigned && canSignAsOpsManager){
+    actions += `<button class="tb-btn primary" onclick="markPOSigned('${po.id}','OperationsManager')">✍️ Sign as Operations Manager</button>`;
   }
-  if(isSigned && canOps){
+  if(!ceoSigned && canSignAsCEO){
+    actions += `<button class="tb-btn primary" onclick="markPOSigned('${po.id}','CEO')">✍️ Sign as CEO</button>`;
+  }
+  if(bothSigned && canOps){
     if(['Issued','PartiallyDelivered'].includes(po.status)) actions += `<button class="tb-btn" onclick="openDCForm('${po.id}')">🚚 Record Goods Receiving / Delivery Note</button>`;
     actions += `<button class="tb-btn primary" onclick="openPRQForm('${po.id}')">💳 Raise Payment Request</button>`;
   }
   const contactLine = vendor ? [vendor.phone, vendor.email].filter(Boolean).join('  ·  ') : '';
+  const signRow = (label, signed, by) => `<span class="stbadge ${signed?'st-approved':'st-pending'}">${signed?'✍️ '+label+': Signed by '+escHtml(by):label+': Unsigned'}</span>`;
   document.getElementById('poDetailBody').innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
       <div><div style="font-size:20px;font-weight:900;color:var(--b900)">${po.poNumber}</div>
@@ -4963,11 +5061,12 @@ function renderPODetail(){
       ${po.dateRequiredBy?`<div style="font-size:11px;color:var(--b400);margin-top:2px">Date Required By: ${fmtDate(po.dateRequiredBy)}</div>`:''}</div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
         ${statusBadge(po.status)}
-        <span class="stbadge ${isSigned?'st-approved':'st-pending'}">${isSigned?'✍️ Signed by '+escHtml(po.signedBy):'Unsigned'}</span>
+        ${signRow('Ops Manager', opsSigned, po.opsManagerSignedBy)}
+        ${signRow('CEO', ceoSigned, po.signedBy)}
         <button class="tb-btn" style="font-size:11px;padding:5px 10px" onclick="downloadPOPdf('${po.id}')">📄 Download PDF</button>
       </div>
     </div>
-    ${!isSigned?`<div style="background:var(--amber-l);border:1px solid #FDE68A;border-radius:var(--r8);padding:10px 14px;margin-bottom:14px;font-size:12px;color:#92400E">This PO must be signed by the CEO before a Goods Receiving / Delivery Note or Payment Request can be raised against it.</div>`:''}
+    ${!bothSigned?`<div style="background:var(--amber-l);border:1px solid #FDE68A;border-radius:var(--r8);padding:10px 14px;margin-bottom:14px;font-size:12px;color:#92400E">This PO must be signed by both the Operations Manager and the CEO before a Goods Receiving / Delivery Note or Payment Request can be raised against it.</div>`:''}
     <div class="table-shell" style="padding:18px;margin-bottom:16px">
       <div style="font-size:11px;font-weight:800;color:var(--b400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Line Items</div>
       <table class="vtbl"><thead><tr><th>Description</th><th>Qty</th><th>Rate</th><th>GST %</th><th>Inc. Tax %</th><th>Amount</th></tr></thead>
@@ -4995,12 +5094,13 @@ function renderPODetail(){
     <div style="display:flex;gap:10px;flex-wrap:wrap">${actions}</div>
   `;
 }
-async function markPOSigned(id){
+async function markPOSigned(id, signerRole){
   try{
-    const po = await api('markPOSigned', {id});
+    const po = await api('markPOSigned', {id, signerRole});
     mergeInto(purchaseOrders, po);
-    toast('✍️ PO marked as signed');
+    toast('✍️ Signed as '+(signerRole==='OperationsManager'?'Operations Manager':'CEO'));
     renderPODetail();
+    updateSidebarCounts();
   }catch(e){ toast(e.message,'error'); }
 }
 
@@ -5161,34 +5261,77 @@ function showPRQList(){
 function renderPRQList(){
   document.getElementById('prqCount').textContent = paymentRequests.length+' payment request'+(paymentRequests.length!==1?'s':'');
   const sorted=[...paymentRequests].sort((a,b)=>new Date(b.requestedAt)-new Date(a.requestedAt));
-  const canAct = currentUser.role==='Finance'||currentUser.role==='Admin';
-  const canSign = currentUser.role==='OpsProcurement'||currentUser.role==='Admin';
   document.getElementById('prqList').innerHTML = sorted.length? sorted.map(pq=>{
-    let actions='';
-    if(canSign && pq.status==='PendingSignature'){
-      actions=`<div class="act-btns" style="margin-top:10px" onclick="event.stopPropagation()"><button class="act-btn act-edit" onclick="markPRQSigned('${pq.id}')">✍️ Mark as Signed</button></div>`;
-    } else if(canAct && pq.status==='PendingFinance'){
-      actions=`<div class="act-btns" style="margin-top:10px" onclick="event.stopPropagation()">
-        <button class="act-btn act-del" onclick="actOnPRQ('${pq.id}','Reject')">Reject</button>
-        <button class="act-btn act-edit" onclick="actOnPRQ('${pq.id}','Approve')">Approve</button>
-      </div>`;
-    } else if(canAct && pq.status==='ApprovedForPayment'){
-      actions=`<div class="act-btns" style="margin-top:10px" onclick="event.stopPropagation()"><button class="act-btn act-edit" onclick="actOnPRQ('${pq.id}','MarkPaid')">Mark Paid</button></div>`;
-    }
-    return `<div class="rec-card">
+    const pr = purchaseRequests.find(p=>p.id===pq.prId);
+    return `<div class="rec-card" onclick="openPRQDetail('${pq.id}')">
       <div class="rec-top"><div class="rec-id">${pq.prqNumber} — ${escHtml(pq.vendorName)}</div>
-        <div style="display:flex;align-items:center;gap:8px">${statusBadge(pq.status)}<button class="tb-btn" style="font-size:10px;padding:4px 8px" onclick="downloadPRQPdf('${pq.id}')">📄 PDF</button></div></div>
-      <div class="rec-meta"><span>🧾 Inv# ${escHtml(pq.invoiceNumber)}</span><span>📅 ${fmtDate(pq.invoiceDate)}</span><span class="rec-amt">Net: ${fmtMoney(pq.netPayable)}</span></div>
-      ${actions}
+        <div style="display:flex;align-items:center;gap:8px">${statusBadge(pq.status)}<button class="tb-btn" style="font-size:10px;padding:4px 8px" onclick="event.stopPropagation();downloadPRQPdf('${pq.id}')">📄 PDF</button></div></div>
+      <div class="rec-meta"><span>🔗 ${pr?pr.prNumber:'—'}</span>${pr?`<span>👤 ${escHtml(pr.requestorName)}</span>`:''}<span>🧾 Inv# ${escHtml(pq.invoiceNumber)}</span><span>📅 ${fmtDate(pq.invoiceDate)}</span><span class="rec-amt">Net: ${fmtMoney(pq.netPayable)}</span></div>
     </div>`;
   }).join('') : emptyState('💳','No payment requests yet','Raise one from a Purchase Order, or directly from an approved request when no PO is required');
+}
+function openPRQDetail(id){
+  currentPRQId=id;
+  const pq=paymentRequests.find(p=>p.id===id);
+  setBc([{l:'Dashboard',fn:'goHome()'},{l:'Payment Requests',fn:'showPRQList()'},{l:pq?pq.prqNumber:''}]);
+  setSbActive('sb-prq'); clearTopbar();
+  renderPRQDetailPage(); showView('prq-detail');
+}
+function renderPRQDetailPage(){
+  const pq=paymentRequests.find(p=>p.id===currentPRQId);
+  if(!pq){ document.getElementById('prqDetailBody').innerHTML=emptyState('❓','Not found',''); return; }
+  const pr = purchaseRequests.find(p=>p.id===pq.prId);
+  const po = purchaseOrders.find(p=>p.id===pq.poId);
+  const dc = deliveryChallans.find(d=>d.id===pq.dcId);
+  const checklist = safeParse(pq.documentChecklistJson, {});
+  const canSign = currentUser.role==='OpsProcurement'||currentUser.role==='Admin';
+  const canAct = currentUser.role==='Finance'||currentUser.role==='Admin';
+  let actions='';
+  if(canSign && pq.status==='PendingSignature'){
+    actions=`<button class="tb-btn primary" onclick="markPRQSigned('${pq.id}')">✍️ Mark as Signed</button>`;
+  } else if(canAct && pq.status==='PendingFinance'){
+    actions=`<button class="tb-btn" style="background:var(--rose-l);color:var(--rose);border-color:#FECDD3" onclick="actOnPRQ('${pq.id}','Reject')">✕ Reject</button>
+      <button class="tb-btn primary" onclick="actOnPRQ('${pq.id}','Approve')">✓ Approve</button>`;
+  } else if(canAct && pq.status==='ApprovedForPayment'){
+    actions=`<button class="tb-btn primary" onclick="actOnPRQ('${pq.id}','MarkPaid')">💰 Mark Paid</button>`;
+  }
+  document.getElementById('prqDetailBody').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-size:20px;font-weight:900;color:var(--b900)">${pq.prqNumber}</div>
+        <div style="font-size:12px;color:var(--b400);margin-top:2px">Vendor: ${escHtml(pq.vendorName)} · Requested by ${escHtml(pq.requestedBy)} on ${fmtDate(pq.requestedAt)}</div>
+        ${pr?`<div style="font-size:11px;color:var(--b400);margin-top:2px">From: <a href="#" onclick="event.preventDefault();openPRDetail('${pr.id}')" style="color:var(--rads);font-weight:700">${pr.prNumber}</a> — raised by ${escHtml(pr.requestorName)} (${escHtml(pr.department)||'—'})${po?` · PO: <a href="#" onclick="event.preventDefault();openPODetail('${po.id}')" style="color:var(--rads);font-weight:700">${po.poNumber}</a>`:' · No Purchase Order (not required)'}</div>`:''}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        ${statusBadge(pq.status)}
+        <span class="stbadge ${pq.signedStatus==='Signed'?'st-approved':'st-pending'}">${pq.signedStatus==='Signed'?'✍️ Signed by '+escHtml(pq.signedBy):'Unsigned'}</span>
+        <button class="tb-btn" style="font-size:11px;padding:5px 10px" onclick="downloadPRQPdf('${pq.id}')">📄 Download PDF</button>
+      </div>
+    </div>
+    <div class="table-shell" style="padding:18px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:800;color:var(--b400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Invoice Details</div>
+      <table class="vtbl"><thead><tr><th>Invoice #</th><th>Invoice Date</th><th>Invoice Amount</th><th>Tax Deducted</th><th>Net Payable</th></tr></thead>
+      <tbody><tr><td>${escHtml(pq.invoiceNumber)}</td><td>${fmtDate(pq.invoiceDate)}</td><td>${fmtMoney(pq.invoiceAmount)}</td><td>${fmtMoney(pq.taxDeducted)}</td><td style="font-weight:700">${fmtMoney(pq.netPayable)}</td></tr></tbody></table>
+    </div>
+    <div class="table-shell" style="padding:18px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:800;color:var(--b400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Supporting Documents Checklist</div>
+      ${PRQ_CHECKLIST_ITEMS.map(item=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--b100);font-size:12.5px">
+        <span>${item.label}</span><span style="font-weight:700;color:${checklist[item.key]==='Yes'?'var(--green-d)':checklist[item.key]==='No'?'var(--rose)':'var(--b400)'}">${checklist[item.key]||'N/A'}</span>
+      </div>`).join('')}
+    </div>
+    ${pq.financeComments?`<div class="table-shell" style="padding:18px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:800;color:var(--b400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Finance Comments</div>
+      <div style="font-size:13px;color:var(--b700)">${escHtml(pq.financeComments)}</div>
+    </div>`:''}
+    <div style="display:flex;gap:10px;flex-wrap:wrap">${actions}</div>
+  `;
 }
 async function markPRQSigned(id){
   try{
     const r = await api('markPRQSigned', {id});
     mergeInto(paymentRequests, r);
     toast('✍️ Marked as signed — now visible to Finance');
-    renderPRQList();
+    if(currentPRQId===id && document.getElementById('view-prq-detail').classList.contains('active')) renderPRQDetailPage(); else renderPRQList();
   }catch(e){ toast(e.message,'error'); }
 }
 async function actOnPRQ(id,action){
@@ -5198,7 +5341,7 @@ async function actOnPRQ(id,action){
     const r=await api('actOnPaymentRequest',{id,decision:action,comments});
     mergeInto(paymentRequests,r);
     toast(action==='Approve'?'✅ Approved for payment':action==='MarkPaid'?'💰 Marked as paid':'❌ Rejected');
-    renderPRQList();
+    if(currentPRQId===id && document.getElementById('view-prq-detail').classList.contains('active')) renderPRQDetailPage(); else renderPRQList();
   }catch(e){ toast(e.message,'error'); }
 }
 
