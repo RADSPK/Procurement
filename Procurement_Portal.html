@@ -495,7 +495,48 @@ textarea.finput{min-height:72px;resize:vertical}
         <input class="finput" id="li_pw" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
       </div>
       <button class="tb-btn primary" style="width:100%;padding:11px;font-size:13px" id="loginBtn" onclick="doLogin()">Sign in</button>
+      <div style="text-align:center;margin-top:10px">
+        <a href="#" onclick="event.preventDefault();toggleForgotPassword()" style="font-size:12px;color:var(--b400)">Forgot password?</a>
+      </div>
+      <div id="forgotPwBlock" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--b150,var(--b200))">
+        <div class="fg s2" style="margin-bottom:10px">
+          <label class="flabel">Enter your account email</label>
+          <input class="finput" id="fp_email" type="email" placeholder="you@rads.org.pk" onkeydown="if(event.key==='Enter')sendPasswordResetLink()">
+        </div>
+        <button class="tb-btn" style="width:100%;padding:9px;font-size:12.5px" id="fpSendBtn" onclick="sendPasswordResetLink()">Send Reset Link</button>
+        <div id="fpMsg" style="font-size:11.5px;color:var(--b500);margin-top:8px;text-align:center;display:none"></div>
+      </div>
       <div class="login-foot">Contact your Admin if you don't have an account yet.</div>
+    </div>
+  </div>
+
+  <!-- ── SET NEW PASSWORD PANEL (reached via emailed reset link) ── -->
+  <div class="landing-panel" id="panel-reset" style="display:none;max-width:380px">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="login-mark">🔑</div>
+        <div>
+          <div class="login-title">Set New Password</div>
+          <div class="login-sub" id="resetForEmail"></div>
+        </div>
+      </div>
+      <div class="login-err" id="resetErr"></div>
+      <div id="resetFormFields">
+        <div class="fg s2" style="margin-bottom:12px">
+          <label class="flabel">New Password</label>
+          <input class="finput" id="rp_password" type="password" placeholder="At least 6 characters">
+        </div>
+        <div class="fg s2" style="margin-bottom:18px">
+          <label class="flabel">Confirm New Password</label>
+          <input class="finput" id="rp_password2" type="password" placeholder="Re-enter your new password" onkeydown="if(event.key==='Enter')submitPasswordReset()">
+        </div>
+        <button class="tb-btn primary" style="width:100%;padding:11px;font-size:13px" id="resetSubmitBtn" onclick="submitPasswordReset()">Set New Password</button>
+      </div>
+      <div id="resetSuccessBlock" style="display:none;text-align:center;padding:10px 0">
+        <div style="font-size:36px;margin-bottom:8px">✅</div>
+        <div style="font-size:13px;color:var(--b700);margin-bottom:16px">Your password has been updated. You can sign in now.</div>
+        <button class="tb-btn primary" onclick="goToLoginAfterReset()">Go to Sign In</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1359,6 +1400,13 @@ Example Vendor,SUPPLIES,Printing,John Doe,0300-1234567,Islamabad,Blue Area,john@
         <label class="flabel" style="text-transform:none;font-size:12px" for="uf_isLineManager">Also acts as a Line Manager (can receive requests even if their main role above is something else)</label>
       </div>
       <div class="fg s2" id="uf_pwWrap"><label class="flabel">Temporary Password <span class="req">*</span></label><input class="finput" id="uf_password" type="text" placeholder="Given to the user to log in and change"></div>
+      <div class="fg s2" id="uf_resetPwToggleWrap" style="display:none">
+        <button class="tb-btn" type="button" id="uf_resetPwToggleBtn" onclick="toggleResetPwField()">🔑 Reset Password</button>
+      </div>
+      <div class="fg s2" id="uf_resetPwWrap" style="display:none">
+        <label class="flabel">New Password</label>
+        <input class="finput" id="uf_resetPassword" type="text" placeholder="Set a new password for this user">
+      </div>
       <div class="fg s2" id="uf_activeWrap" style="display:none;flex-direction:row;align-items:center;gap:8px">
         <input type="checkbox" id="uf_active" style="width:16px;height:16px" checked>
         <label class="flabel" style="text-transform:none;font-size:12px" for="uf_active">Account active</label>
@@ -1418,7 +1466,7 @@ const TYPE_CLS = {Retainership:'tb-ret','Need Basis':'tb-need','Pre-Qualified':'
 // ═══════════════════════════════
 // API CONFIG — set this to your deployed Apps Script Web App URL
 // ═══════════════════════════════
-const API_URL = 'https://script.google.com/macros/s/AKfycby9oVK53GI0-MdoJOwed9pSbWIZpaMMIwCV5N9lKX4uvCnwAShWYdAWFWlLbaIvR8YuJw/exec';
+const API_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
 
 // ═══════════════════════════════
 // STATE
@@ -1498,6 +1546,66 @@ function switchLandingTab(tab){
   document.getElementById('tab-login').classList.toggle('active', tab==='login');
   document.getElementById('panel-request').style.display = tab==='request' ? 'block' : 'none';
   document.getElementById('panel-login').style.display = tab==='login' ? 'block' : 'none';
+  const rp = document.getElementById('panel-reset'); if(rp) rp.style.display='none';
+}
+
+// ═══════════════════════════════
+// FORGOT / RESET PASSWORD
+// ═══════════════════════════════
+function toggleForgotPassword(){
+  const block = document.getElementById('forgotPwBlock');
+  const open = block.style.display!=='none';
+  block.style.display = open ? 'none' : 'block';
+  if(!open){ document.getElementById('fp_email').value=''; document.getElementById('fpMsg').style.display='none'; }
+}
+async function sendPasswordResetLink(){
+  const email = document.getElementById('fp_email').value.trim();
+  const msgEl = document.getElementById('fpMsg');
+  if(!email){ msgEl.textContent='Enter your email first.'; msgEl.style.display='block'; return; }
+  const btn = document.getElementById('fpSendBtn'); btn.disabled=true; btn.textContent='Sending…';
+  try{
+    const pageUrl = window.location.origin + window.location.pathname;
+    await api('requestPasswordReset', {email, pageUrl});
+    msgEl.textContent='If an account exists for that email, a reset link has been sent — check your inbox.';
+    msgEl.style.display='block';
+  }catch(e){
+    msgEl.textContent='If an account exists for that email, a reset link has been sent — check your inbox.';
+    msgEl.style.display='block';
+  } finally { btn.disabled=false; btn.textContent='Send Reset Link'; }
+}
+function showResetPasswordPanel(email, token){
+  document.getElementById('panel-choice').style.display='none';
+  document.getElementById('landingTabs').style.display='none';
+  document.getElementById('panel-request').style.display='none';
+  document.getElementById('panel-login').style.display='none';
+  document.getElementById('panel-reset').style.display='block';
+  document.getElementById('resetForEmail').textContent = email;
+  document.getElementById('resetFormFields').style.display='';
+  document.getElementById('resetSuccessBlock').style.display='none';
+  document.getElementById('rp_password').value=''; document.getElementById('rp_password2').value='';
+  document.getElementById('resetErr').style.display='none';
+  window.__resetEmail = email; window.__resetToken = token;
+}
+async function submitPasswordReset(){
+  const p1 = document.getElementById('rp_password').value;
+  const p2 = document.getElementById('rp_password2').value;
+  const errEl = document.getElementById('resetErr');
+  errEl.style.display='none';
+  if(!p1 || p1.length<6){ errEl.textContent='Password must be at least 6 characters.'; errEl.style.display='block'; return; }
+  if(p1!==p2){ errEl.textContent='Passwords do not match.'; errEl.style.display='block'; return; }
+  const btn = document.getElementById('resetSubmitBtn'); btn.disabled=true; btn.textContent='Saving…';
+  try{
+    await api('resetPasswordWithToken', {email: window.__resetEmail, token: window.__resetToken, newPassword: p1});
+    document.getElementById('resetFormFields').style.display='none';
+    document.getElementById('resetSuccessBlock').style.display='block';
+  }catch(e){
+    errEl.textContent = e.message||'Could not reset password'; errEl.style.display='block';
+  } finally { btn.disabled=false; btn.textContent='Set New Password'; }
+}
+function goToLoginAfterReset(){
+  history.replaceState(null, '', window.location.pathname);
+  document.getElementById('panel-reset').style.display='none';
+  chooseLanding('login');
 }
 
 // ═══════════════════════════════
@@ -2708,7 +2816,7 @@ function drawSignatureBox(doc, y, marginL, contentW, labels){
   y += 8;
   doc.setDrawColor(210,210,210);
   doc.line(marginL, y, marginL+contentW, y);
-  y += 30;
+  y += 42;
   const colW = contentW/labels.length;
   labels.forEach((lbl,i)=>{
     const x = marginL + i*colW;
@@ -2719,15 +2827,17 @@ function drawSignatureBox(doc, y, marginL, contentW, labels){
   });
   return y + 24;
 }
-// Once a document has already been manually signed, replace the blank signature box
-// with a confirmation line instead — there's nothing left to sign on a reprinted copy.
-function drawSignedConfirmation(doc, y, marginL, contentW, signedBy, signedAt){
+// Once a document has already been signed off (electronically via the app's own
+// approval/sign-off action), replace the blank signature box with a formal record line —
+// there's nothing left to sign on a reprinted copy.
+function drawSignedConfirmation(doc, y, marginL, contentW, signedBy, signedByRole, signedAt){
   y += 8;
   doc.setDrawColor(210,210,210);
   doc.line(marginL, y, marginL+contentW, y);
-  y += 20;
+  y += 18;
   doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(15,110,86);
-  doc.text('✍️  Manually signed by '+(signedBy||'—')+' on '+fmtDate(signedAt), marginL, y);
+  const roleTxt = signedByRole ? ' ('+roleLabel(signedByRole)+')' : '';
+  doc.text('e-Signed by '+(signedBy||'—')+roleTxt+', '+fmtDate(signedAt), marginL, y);
   doc.setTextColor(0,0,0);
   return y + 16;
 }
@@ -3741,7 +3851,7 @@ function downloadPOPdf(id){
   checkPageBreak(90);
   y += 34;
   if(po.signedStatus==='Signed'){
-    y = drawSignedConfirmation(doc, y, marginL, contentW, po.signedBy, po.signedAt);
+    y = drawSignedConfirmation(doc, y, marginL, contentW, po.signedBy, po.signedByRole, po.signedAt);
   } else {
     y = drawSignatureBox(doc, y, marginL, contentW, ['Prepared By','Approved By','Date']);
   }
@@ -3984,7 +4094,7 @@ function downloadPRQPdf(id){
   checkPageBreak(90);
   y += 34;
   if(pq.signedStatus==='Signed'){
-    y = drawSignedConfirmation(doc, y, marginL, contentW, pq.signedBy, pq.signedAt);
+    y = drawSignedConfirmation(doc, y, marginL, contentW, pq.signedBy, pq.signedByRole, pq.signedAt);
   } else {
     y = drawSignatureBox(doc, y, marginL, contentW, ['Requested By','Approved By (Finance)','Date']);
   }
@@ -4775,6 +4885,10 @@ function openUserForm(id){
     document.getElementById('uf_department').value=u.department||'';
     document.getElementById('uf_isLineManager').checked = (u.isLineManager===true||u.isLineManager==='TRUE');
     document.getElementById('uf_pwWrap').style.display='none';
+    document.getElementById('uf_resetPwToggleWrap').style.display='';
+    document.getElementById('uf_resetPwWrap').style.display='none';
+    document.getElementById('uf_resetPassword').value='';
+    document.getElementById('uf_resetPwToggleBtn').textContent='🔑 Reset Password';
     document.getElementById('uf_activeWrap').style.display='flex';
     document.getElementById('uf_active').checked = !(u.active===false||u.active==='FALSE');
   } else {
@@ -4784,9 +4898,18 @@ function openUserForm(id){
     document.getElementById('uf_role').value='LineManager'; document.getElementById('uf_entity').value='Both';
     document.getElementById('uf_isLineManager').checked=false;
     document.getElementById('uf_pwWrap').style.display='';
+    document.getElementById('uf_resetPwToggleWrap').style.display='none';
+    document.getElementById('uf_resetPwWrap').style.display='none';
     document.getElementById('uf_activeWrap').style.display='none';
   }
   document.getElementById('userFormOverlay').classList.add('open');
+}
+function toggleResetPwField(){
+  const wrap = document.getElementById('uf_resetPwWrap');
+  const open = wrap.style.display!=='none';
+  wrap.style.display = open ? 'none' : '';
+  document.getElementById('uf_resetPwToggleBtn').textContent = open ? '🔑 Reset Password' : '✕ Cancel Reset';
+  if(open) document.getElementById('uf_resetPassword').value='';
 }
 function closeUserForm(){ document.getElementById('userFormOverlay').classList.remove('open'); editingUserId=null; }
 async function saveUser(){
@@ -4800,9 +4923,16 @@ async function saveUser(){
   try{
     if(editingUserId){
       const active=document.getElementById('uf_active').checked;
-      const r=await api('updateUser',{id:editingUserId,name,role,entity,department,active,isLineManager});
+      const payload={id:editingUserId,name,role,entity,department,active,isLineManager};
+      const resetPwOpen = document.getElementById('uf_resetPwWrap').style.display!=='none';
+      if(resetPwOpen){
+        const newPw = document.getElementById('uf_resetPassword').value.trim();
+        if(!newPw || newPw.length<6){ toast('New password must be at least 6 characters','error'); return; }
+        payload.password = newPw;
+      }
+      const r=await api('updateUser',payload);
       mergeInto(allUsers,r);
-      toast('✅ User updated');
+      toast(resetPwOpen ? '✅ User updated — password reset' : '✅ User updated');
     } else {
       const password=document.getElementById('uf_password').value.trim();
       if(!password){ toast('Set a temporary password','error'); return; }
@@ -4819,6 +4949,21 @@ async function saveUser(){
 // ═══════════════════════════════
 (function initApp(){
   pubAddLine(); // seed the public request form with one empty line item
+  const urlParams = new URLSearchParams(window.location.search);
+  const resetToken = urlParams.get('reset');
+  const resetEmail = urlParams.get('email');
+
+  if(resetToken && resetEmail){
+    // Someone followed a password-reset email link — show that flow regardless of any existing session.
+    setTimeout(()=>{
+      const splash=document.getElementById('splashShell');
+      if(splash) splash.style.display='none';
+      document.getElementById('landingShell').style.display='flex';
+      showResetPasswordPanel(resetEmail, resetToken);
+    }, 3500);
+    return;
+  }
+
   const restored = restoreSession();
   let bootPromise = Promise.resolve();
   if(restored && restored.email && restored.sessionToken){
