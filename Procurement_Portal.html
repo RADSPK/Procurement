@@ -140,6 +140,9 @@ html,body{height:100%;font-family:var(--f);background:var(--canvas);color:var(--
 .tb-btn:hover{border-color:var(--b300);color:var(--b800);background:var(--b50)}
 .tb-btn.primary{background:var(--rads);color:#fff;border-color:var(--rads)}
 .tb-btn.primary:hover{background:var(--rads-d);border-color:var(--rads-d)}
+.chk-opt.active{background:var(--rads);color:#fff;border-color:var(--rads)}
+.pd-toggle.active-yes{background:var(--green-l);color:var(--green-d);border-color:#A7F3D0}
+.pd-toggle.active-no{background:var(--rose-l);color:var(--rose);border-color:#FECDD3}
 
 /* ── SCROLL AREA ── */
 .scroll-area{flex:1;overflow-y:auto;padding:24px}
@@ -1215,6 +1218,14 @@ Example Vendor,SUPPLIES,Printing,John Doe,0300-1234567,Islamabad,Blue Area,john@
         <label class="flabel">Payment Terms</label>
         <input class="finput" id="aw_paymentTerms" type="text" placeholder="e.g. Net 30 days after delivery">
       </div>
+      <div class="fg">
+        <label class="flabel">Date Required By</label>
+        <input class="finput" id="aw_dateRequiredBy" type="date">
+      </div>
+      <div class="fg s2">
+        <label class="flabel">Remarks / Notes</label>
+        <textarea class="finput" id="aw_notes" placeholder="Any additional remarks for this Purchase Order (optional)"></textarea>
+      </div>
       <div class="s2" style="grid-column:1/-1;overflow-x:auto">
         <table class="li-table">
           <thead><tr>
@@ -1260,6 +1271,14 @@ Example Vendor,SUPPLIES,Printing,John Doe,0300-1234567,Islamabad,Blue Area,john@
         <label class="flabel">Payment Terms</label>
         <input class="finput" id="bp_paymentTerms" type="text" placeholder="e.g. Net 30 days after delivery">
       </div>
+      <div class="fg">
+        <label class="flabel">Date Required By</label>
+        <input class="finput" id="bp_dateRequiredBy" type="date">
+      </div>
+      <div class="fg s2">
+        <label class="flabel">Remarks / Notes</label>
+        <textarea class="finput" id="bp_notes" placeholder="Any additional remarks for this Purchase Order (optional)"></textarea>
+      </div>
       <div class="s2" style="grid-column:1/-1;overflow-x:auto">
         <table class="li-table">
           <thead><tr>
@@ -1276,6 +1295,87 @@ Example Vendor,SUPPLIES,Printing,John Doe,0300-1234567,Islamabad,Blue Area,john@
   <div class="modal-foot">
     <button class="tb-btn" onclick="closeBypassPOForm()">Cancel</button>
     <button class="tb-btn primary" onclick="submitBypassPO()">⚡ Create Purchase Order</button>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════ MODAL: PROCUREMENT APPROVAL DECISION (RFQ / PO required?) ════════════════ -->
+<div class="overlay" id="procDecisionFormOverlay">
+<div class="modal" style="max-width:600px">
+  <div class="modal-hdr">
+    <div class="modal-hdr-left">
+      <div class="modal-title">Approve Purchase Request</div>
+      <div class="modal-sub">Record whether an RFQ and a Purchase Order are required for this purchase</div>
+    </div>
+    <button class="modal-close" onclick="closeProcDecisionForm()">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="fgrid">
+      <div class="fg s2">
+        <label class="flabel">RFQ Required? <span class="req">*</span></label>
+        <div style="display:flex;gap:8px">
+          <button class="tb-btn pd-toggle" type="button" id="pd_rfqYesBtn" onclick="pdSetRfq('Yes')" style="flex:1">Yes</button>
+          <button class="tb-btn pd-toggle" type="button" id="pd_rfqNoBtn" onclick="pdSetRfq('No')" style="flex:1">No</button>
+        </div>
+      </div>
+      <div class="fg s2" id="pd_rfqReasonWrap" style="display:none">
+        <label class="flabel">Why is an RFQ not required? <span class="req">*</span></label>
+        <textarea class="finput" id="pd_rfqReason" placeholder="e.g. Less than Rs. 200,000 thus no RFQ required / single source vendor"></textarea>
+      </div>
+      <div class="fg s2">
+        <label class="flabel">Purchase Order Required? <span class="req">*</span></label>
+        <div style="display:flex;gap:8px">
+          <button class="tb-btn pd-toggle" type="button" id="pd_poYesBtn" onclick="pdSetPo('Yes')" style="flex:1">Yes</button>
+          <button class="tb-btn pd-toggle" type="button" id="pd_poNoBtn" onclick="pdSetPo('No')" style="flex:1">No</button>
+        </div>
+      </div>
+      <div class="fg s2" id="pd_poReasonWrap" style="display:none">
+        <label class="flabel">Why is a Purchase Order not required? <span class="req">*</span></label>
+        <textarea class="finput" id="pd_poReason" placeholder="e.g. Less than Rs. 25,000 thus no Purchase Order required"></textarea>
+      </div>
+      <div class="fg s2">
+        <label class="flabel">Comments (optional)</label>
+        <textarea class="finput" id="pd_comments" placeholder="Anything else worth noting"></textarea>
+      </div>
+    </div>
+  </div>
+  <div class="modal-foot">
+    <button class="tb-btn" onclick="closeProcDecisionForm()">Cancel</button>
+    <button class="tb-btn primary" onclick="submitProcDecisionApprove()">✓ Approve</button>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════ MODAL: RAISE PAYMENT REQUEST DIRECTLY (no PO) ════════════════ -->
+<div class="overlay" id="prqDirectFormOverlay">
+<div class="modal" style="max-width:640px">
+  <div class="modal-hdr">
+    <div class="modal-hdr-left">
+      <div class="modal-title">Raise Payment Request</div>
+      <div class="modal-sub">No Purchase Order required for this purchase — raised directly against the approved request</div>
+    </div>
+    <button class="modal-close" onclick="closePRQDirectForm()">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="fgrid">
+      <div class="fg s2">
+        <label class="flabel">Vendor <span class="req">*</span></label>
+        <input class="finput" id="pqd_vendorSearch" type="text" placeholder="🔍 Search vendors by name or category…" oninput="renderPqdVendorPicker()">
+        <div id="pqd_vendorPicker" style="max-height:160px;overflow-y:auto;margin-top:8px;display:flex;flex-direction:column;gap:6px"></div>
+        <div id="pqd_selectedVendor" style="margin-top:8px;font-size:12px;color:var(--b600)"></div>
+      </div>
+      <div class="fg"><label class="flabel">Invoice Number</label><input class="finput" id="pqd_invoiceNumber" type="text"></div>
+      <div class="fg"><label class="flabel">Invoice Date</label><input class="finput" id="pqd_invoiceDate" type="date"></div>
+      <div class="fg"><label class="flabel">Invoice Amount</label><input class="finput" id="pqd_invoiceAmount" type="number" min="0" step="0.01" oninput="pqdRecalc()"></div>
+      <div class="fg"><label class="flabel">Tax Deducted</label><input class="finput" id="pqd_taxDeducted" type="number" min="0" step="0.01" oninput="pqdRecalc()"></div>
+      <div class="fg s2"><label class="flabel">Net Payable</label><div class="li-total-row" style="margin:0" id="pqd_netPayable">Rs. 0</div></div>
+      <div class="fsec s2"><span class="fsec-label">Supporting Documents Checklist</span></div>
+      <div class="s2" id="pqd_checklist" style="grid-column:1/-1"></div>
+    </div>
+  </div>
+  <div class="modal-foot">
+    <button class="tb-btn" onclick="closePRQDirectForm()">Cancel</button>
+    <button class="tb-btn primary" onclick="submitPRQDirect()">💳 Raise Payment Request</button>
   </div>
 </div>
 </div>
@@ -1359,6 +1459,8 @@ Example Vendor,SUPPLIES,Printing,John Doe,0300-1234567,Islamabad,Blue Area,john@
         <label class="flabel">Link Goods Receiving / Delivery Note</label>
         <select class="finput" id="pq_dcId"><option value="">— None / not applicable —</option></select>
       </div>
+      <div class="fsec s2"><span class="fsec-label">Supporting Documents Checklist</span></div>
+      <div class="s2" id="pq_checklist" style="grid-column:1/-1"></div>
     </div>
   </div>
   <div class="modal-foot">
@@ -1462,6 +1564,44 @@ const ELIG = [
 ];
 const TYPES = ['Retainership','Need Basis','Pre-Qualified','BTC'];
 const TYPE_CLS = {Retainership:'tb-ret','Need Basis':'tb-need','Pre-Qualified':'tb-qual',BTC:'tb-btc'};
+
+const PRQ_CHECKLIST_ITEMS = [
+  {key:'invoiceReceived', label:'Original Invoice Received'},
+  {key:'agreementOrPoCopy', label:'Copy of Agreement / Purchase Order'},
+  {key:'rfqAttached', label:'RFQ Attached'},
+  {key:'quotationsAttached', label:'Quotations Received Attached'},
+  {key:'grnAttached', label:'Goods Receiving Note Attached'}
+];
+function renderChecklistFields(containerId){
+  document.getElementById(containerId).innerHTML = PRQ_CHECKLIST_ITEMS.map(item=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--b100);font-size:12.5px">
+      <span>${item.label}</span>
+      <div class="chk-group" data-key="${item.key}" style="display:flex;gap:6px">
+        <button class="tb-btn chk-opt" type="button" data-val="Yes" onclick="setChecklistVal(this,'${containerId}')" style="padding:4px 10px;font-size:11px">Yes</button>
+        <button class="tb-btn chk-opt" type="button" data-val="No" onclick="setChecklistVal(this,'${containerId}')" style="padding:4px 10px;font-size:11px">No</button>
+        <button class="tb-btn chk-opt active" type="button" data-val="N/A" onclick="setChecklistVal(this,'${containerId}')" style="padding:4px 10px;font-size:11px">N/A</button>
+      </div>
+    </div>`).join('');
+}
+function setChecklistVal(btn, containerId){
+  const group = btn.closest('.chk-group');
+  group.querySelectorAll('.chk-opt').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function getChecklistValues(containerId){
+  const out = {};
+  document.querySelectorAll('#'+containerId+' .chk-group').forEach(g=>{
+    const active = g.querySelector('.chk-opt.active');
+    out[g.dataset.key] = active ? active.dataset.val : 'N/A';
+  });
+  return out;
+}
+function setChecklistValues(containerId, values){
+  document.querySelectorAll('#'+containerId+' .chk-group').forEach(g=>{
+    const val = (values && values[g.dataset.key]) || 'N/A';
+    g.querySelectorAll('.chk-opt').forEach(b=>b.classList.toggle('active', b.dataset.val===val));
+  });
+}
 
 // ═══════════════════════════════
 // API CONFIG — set this to your deployed Apps Script Web App URL
@@ -2868,6 +3008,14 @@ function downloadProcurementLogPdf(prId){
     doc.text('Procurement Portal — Procurement Log', marginL, 40);
     doc.setFont('helvetica','bold'); doc.setFontSize(12);
     doc.text(pr.prNumber, pageW-marginR, 26, {align:'right'});
+    if(typeof overallStatus!=='undefined' && overallStatus){
+      doc.setFont('helvetica','normal'); doc.setFontSize(9);
+      const pillW = doc.getTextWidth(overallStatus)+18;
+      doc.setFillColor(255,255,255);
+      doc.roundedRect(pageW-marginR-pillW, 32, pillW, 15, 7.5, 7.5, 'F');
+      doc.setTextColor(br,bg,bb);
+      doc.text(overallStatus, pageW-marginR-pillW/2, 42.5, {align:'center'});
+    }
     doc.setTextColor(0,0,0);
   }
   function drawFooter(){
@@ -2935,6 +3083,14 @@ function downloadProcurementLogPdf(prId){
     }
   });
   events.sort((a,b)=> new Date(a.t) - new Date(b.t));
+
+  const anyPaid = paymentRequests.some(p=>poIds.indexOf(p.poId)>-1 && p.status==='Paid');
+  let overallStatus;
+  if(anyPaid) overallStatus = 'Procurement Done — Payment Done';
+  else if(pr.status==='Rejected') overallStatus = 'Rejected';
+  else if(relatedPOs.length) overallStatus = 'Procurement In Progress — PO Issued';
+  else if(pr.status==='Approved') overallStatus = 'Approved — Awaiting Procurement';
+  else overallStatus = 'Pending Approval — '+stageLabel(pr.currentStage);
 
   drawHeader();
   y = 84;
@@ -3735,6 +3891,7 @@ function downloadPOPdf(id){
   if(!po){ toast('PO not found','error'); return; }
   if(!window.jspdf){ toast('PDF library still loading — try again in a second','error'); return; }
   const linkedRfq = rfqs.find(r=>r.id===po.rfqId);
+  const vendor = vendors.find(v=>v.id===po.vendorId);
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({unit:'pt', format:'a4'});
   const pageW = doc.internal.pageSize.getWidth();
@@ -3777,10 +3934,12 @@ function downloadPOPdf(id){
   drawHeader();
   y = 84;
 
+  const contactLine = vendor ? [vendor.phone, vendor.email].filter(Boolean).join('  /  ') : '—';
   const gridData = [
-    ['Vendor', po.vendorName||'—', 'Entity', po.entity],
-    ['Linked RFQ', linkedRfq?linkedRfq.rfqNumber:'—', 'Issue date', fmtDate(po.issueDate)],
-    ['Delivery terms', po.deliveryTerms||'—', 'Payment terms', po.paymentTerms||'—']
+    ['Vendor / Supplier', po.vendorName||'—', 'Entity', po.entity],
+    ['Contact', contactLine, 'Linked RFQ', linkedRfq?linkedRfq.rfqNumber:'—'],
+    ['Issue Date', fmtDate(po.issueDate), 'Date Required By', po.dateRequiredBy?fmtDate(po.dateRequiredBy):'—'],
+    ['Delivery Terms', po.deliveryTerms||'—', 'Payment Terms', po.paymentTerms||'—']
   ];
   const colW = contentW/2;
   const cellH = 24;
@@ -3848,12 +4007,27 @@ function downloadPOPdf(id){
   doc.text('Total:  '+fmtMoney(po.totalAmount), marginL+contentW-8, y, {align:'right'});
   doc.setTextColor(0,0,0);
 
+  if(po.notes){
+    y += 24;
+    checkPageBreak(30);
+    doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
+    doc.text('Remarks / Notes', marginL, y); y += 14;
+    const noteLines = doc.splitTextToSize(po.notes, contentW-24);
+    const noteBoxH = 14*noteLines.length + 16;
+    checkPageBreak(noteBoxH);
+    doc.setDrawColor(215,215,215);
+    doc.rect(marginL, y, contentW, noteBoxH);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(40,40,40);
+    doc.text(noteLines, marginL+12, y+16);
+    y += noteBoxH;
+  }
+
   checkPageBreak(90);
   y += 34;
   if(po.signedStatus==='Signed'){
     y = drawSignedConfirmation(doc, y, marginL, contentW, po.signedBy, po.signedByRole, po.signedAt);
   } else {
-    y = drawSignatureBox(doc, y, marginL, contentW, ['Prepared By','Approved By','Date']);
+    y = drawSignatureBox(doc, y, marginL, contentW, ['Prepared By (Procurement)','Approved By (CEO)','Date']);
   }
 
   drawFooter();
@@ -3986,13 +4160,14 @@ function downloadPRQPdf(id){
   if(!window.jspdf){ toast('PDF library still loading — try again in a second','error'); return; }
   const po = purchaseOrders.find(p=>p.id===pq.poId);
   const dc = deliveryChallans.find(d=>d.id===pq.dcId);
+  const linkedPr = purchaseRequests.find(p=>p.id===pq.prId);
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({unit:'pt', format:'a4'});
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
   const marginL = 40, marginR = 40;
   const contentW = pageW - marginL - marginR;
-  const theme = pdfTheme(po?po.entity:'RADS');
+  const theme = pdfTheme(po?po.entity:(linkedPr?linkedPr.entity:'RADS'));
   const [br,bg,bb] = theme.brand;
   let y = 0;
   let pageNum = 1;
@@ -4029,9 +4204,10 @@ function downloadPRQPdf(id){
   y = 84;
 
   const gridData = [
-    ['Vendor', pq.vendorName||'—', 'Linked PO / DC', (po?po.poNumber:'—')+' / '+(dc?dc.dcNumber:'—')],
-    ['Invoice number', pq.invoiceNumber||'—', 'Invoice date', pq.invoiceDate?fmtDate(pq.invoiceDate):'—'],
-    ['Requested by', pq.requestedBy||'—', 'Requested on', fmtDate(pq.requestedAt)]
+    ['Vendor', pq.vendorName||'—', 'Linked Purchase Request', linkedPr?linkedPr.prNumber:'—'],
+    ['Linked PO', po?po.poNumber:'No Purchase Order (not required)', 'Linked GRN/DN', dc?dc.dcNumber:'—'],
+    ['Invoice Number', pq.invoiceNumber||'—', 'Invoice Date', pq.invoiceDate?fmtDate(pq.invoiceDate):'—'],
+    ['Requested By', pq.requestedBy||'—', 'Requested On', fmtDate(pq.requestedAt)]
   ];
   const colW = contentW/2;
   const cellH = 24;
@@ -4076,6 +4252,40 @@ function downloadPRQPdf(id){
   });
   doc.setTextColor(0,0,0);
   y += 20;
+
+  const checklist = safeParse(pq.documentChecklistJson, {});
+  if(Object.keys(checklist).length){
+    checkPageBreak(30);
+    doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
+    doc.text('Supporting Documents Checklist', marginL, y); y += 14;
+    const clCw = [contentW*0.7, contentW*0.3];
+    const clCx = [marginL, marginL+clCw[0]];
+    doc.setFillColor(theme.tint[0],theme.tint[1],theme.tint[2]);
+    doc.rect(marginL, y, contentW, 18, 'F');
+    drawGridRow(doc, marginL, y, clCx, clCw, 18);
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(br,bg,bb);
+    doc.text('Item', clCx[0]+8, y+12);
+    doc.text('Status', clCx[1]+8, y+12);
+    y += 18;
+    doc.setFont('helvetica','normal'); doc.setTextColor(30,30,30);
+    let clZebra = false;
+    PRQ_CHECKLIST_ITEMS.forEach(item=>{
+      const rowH = 17;
+      checkPageBreak(rowH);
+      if(clZebra){ doc.setFillColor(249,249,249); doc.rect(marginL, y, contentW, rowH, 'F'); }
+      clZebra = !clZebra;
+      drawGridRow(doc, marginL, y, clCx, clCw, rowH);
+      doc.setFontSize(8.5);
+      doc.text(item.label, clCx[0]+8, y+12);
+      const val = checklist[item.key]||'N/A';
+      doc.setFont('helvetica','bold');
+      doc.setTextColor(val==='Yes'?15:val==='No'?200:120, val==='Yes'?110:val==='No'?30:120, val==='Yes'?86:val==='No'?30:120);
+      doc.text(val, clCx[1]+8, y+12);
+      doc.setFont('helvetica','normal'); doc.setTextColor(30,30,30);
+      y += rowH;
+    });
+    y += 16;
+  }
 
   if(pq.financeComments){
     checkPageBreak(30);
@@ -4135,10 +4345,26 @@ function renderPRDetail(){
       <button class="tb-btn primary" onclick="actOnPRPrompt('${pr.id}','Approve')">✓ Approve${pr.currentStage==='OperationsManager'?' & Finalize':''}</button>`;
   } else if(pr.status==='Approved' && (currentUser.role==='OpsProcurement'||currentUser.role==='Admin')){
     const hasRfq = rfqs.some(r=>r.prId===pr.id);
-    actionsHtml = hasRfq ? `<span style="font-size:12px;color:var(--b400);align-self:center">RFQ already issued for this PR</span>` :
-      `<button class="tb-btn primary" onclick="openRFQForm('${pr.id}')">📨 Issue RFQ</button>
-       <button class="tb-btn" onclick="openBypassPOForm('${pr.id}')">⚡ Bypass RFQ — Create PO Directly</button>`;
+    const hasPO = purchaseOrders.some(p=>p.prId===pr.id);
+    const hasDirectPRQ = paymentRequests.some(p=>p.prId===pr.id && !p.poId);
+    if(pr.poRequired==='No'){
+      actionsHtml = hasDirectPRQ ? `<span style="font-size:12px;color:var(--b400);align-self:center">Payment Request already raised for this PR</span>` :
+        `<button class="tb-btn primary" onclick="openPRQDirectForm('${pr.id}')">💳 Raise Payment Request</button>`;
+    } else if(pr.rfqRequired==='No'){
+      actionsHtml = hasPO ? `<span style="font-size:12px;color:var(--b400);align-self:center">PO already issued for this PR</span>` :
+        `<button class="tb-btn primary" onclick="openBypassPOForm('${pr.id}')">⚡ Create Purchase Order Directly</button>`;
+    } else {
+      actionsHtml = hasRfq ? `<span style="font-size:12px;color:var(--b400);align-self:center">RFQ already issued for this PR</span>` :
+        `<button class="tb-btn primary" onclick="openRFQForm('${pr.id}')">📨 Issue RFQ</button>
+         <button class="tb-btn" onclick="openBypassPOForm('${pr.id}')">⚡ Bypass RFQ — Create PO Directly</button>`;
+    }
   }
+
+  const procDecisionHtml = pr.rfqRequired ? `<div class="table-shell" style="padding:14px 18px;margin-bottom:16px;font-size:12.5px">
+    <div style="font-size:11px;font-weight:800;color:var(--b400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Procurement Decision</div>
+    <div style="margin-bottom:${pr.poRequired?'6px':'0'}"><b>RFQ Required:</b> ${pr.rfqRequired}${pr.rfqRequired==='No'&&pr.rfqNotRequiredReason?' — '+escHtml(pr.rfqNotRequiredReason):''}</div>
+    ${pr.poRequired?`<div><b>Purchase Order Required:</b> ${pr.poRequired}${pr.poRequired==='No'&&pr.poNotRequiredReason?' — '+escHtml(pr.poNotRequiredReason):''}</div>`:''}
+  </div>` : '';
 
   document.getElementById('prDetailBody').innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
@@ -4153,6 +4379,7 @@ function renderPRDetail(){
       </div>
     </div>
     <div class="stepper">${stepsHtml}</div>
+    ${procDecisionHtml}
     <div class="table-shell" style="padding:18px;margin-bottom:16px">
       ${pr.notes?`<div style="font-size:11px;font-weight:800;color:var(--b400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Additional Notes</div>
       <div style="font-size:13px;color:var(--b700);margin-bottom:16px">${escHtml(pr.notes)}</div>`:''}
@@ -4172,18 +4399,60 @@ function renderPRDetail(){
   `;
 }
 function actOnPRPrompt(id,action){
+  if(action==='Approve'){
+    const pr = purchaseRequests.find(p=>p.id===id);
+    if(pr && pr.currentStage==='Procurement'){ openProcDecisionForm(id); return; }
+  }
   let comments='';
   if(action==='Approve') comments=prompt('Optional comments:')||'';
   else { comments=prompt(action==='Reject'?'Reason for rejection (required):':'What needs to change? (required)'); if(!comments){ toast('Comments are required for '+action,'error'); return; } }
   actOnPR(id,action,comments);
 }
-async function actOnPR(id,action,comments){
+async function actOnPR(id,action,comments,extra){
   try{
-    const r=await api('actOnPR',{id,decision:action,comments});
+    const r=await api('actOnPR',Object.assign({id,decision:action,comments},extra||{}));
     mergeInto(purchaseRequests,r);
     toast(action==='Approve'?'✅ Approved':action==='Reject'?'❌ Rejected':'↩ Sent back to Line Manager');
     renderPRDetail(); updateSidebarCounts();
   }catch(e){ toast(e.message,'error'); }
+}
+
+// ═══════════════════════════════
+// PROCUREMENT APPROVAL DECISION (RFQ / PO required?)
+// ═══════════════════════════════
+let pdPrId=null, pdRfq='Yes', pdPo='Yes';
+function openProcDecisionForm(prId){
+  pdPrId=prId; pdRfq='Yes'; pdPo='Yes';
+  document.getElementById('pd_rfqReason').value='';
+  document.getElementById('pd_poReason').value='';
+  document.getElementById('pd_comments').value='';
+  pdSetRfq('Yes'); pdSetPo('Yes');
+  document.getElementById('procDecisionFormOverlay').classList.add('open');
+}
+function closeProcDecisionForm(){ document.getElementById('procDecisionFormOverlay').classList.remove('open'); }
+function pdSetRfq(val){
+  pdRfq=val;
+  document.getElementById('pd_rfqYesBtn').classList.toggle('active-yes', val==='Yes');
+  document.getElementById('pd_rfqNoBtn').classList.toggle('active-no', val==='No');
+  document.getElementById('pd_rfqReasonWrap').style.display = val==='No' ? '' : 'none';
+}
+function pdSetPo(val){
+  pdPo=val;
+  document.getElementById('pd_poYesBtn').classList.toggle('active-yes', val==='Yes');
+  document.getElementById('pd_poNoBtn').classList.toggle('active-no', val==='No');
+  document.getElementById('pd_poReasonWrap').style.display = val==='No' ? '' : 'none';
+}
+function submitProcDecisionApprove(){
+  const rfqReason = document.getElementById('pd_rfqReason').value.trim();
+  const poReason = document.getElementById('pd_poReason').value.trim();
+  if(pdRfq==='No' && !rfqReason){ toast('Give a reason why an RFQ is not required','error'); return; }
+  if(pdPo==='No' && !poReason){ toast('Give a reason why a Purchase Order is not required','error'); return; }
+  const comments = document.getElementById('pd_comments').value.trim();
+  closeProcDecisionForm();
+  actOnPR(pdPrId, 'Approve', comments, {
+    rfqRequired: pdRfq, rfqNotRequiredReason: pdRfq==='No'?rfqReason:'',
+    poRequired: pdPo, poNotRequiredReason: pdPo==='No'?poReason:''
+  });
 }
 function openDelegatePicker(id){
   const options = allUsers.filter(u=>u.email!==currentUser.email);
@@ -4477,6 +4746,8 @@ function openAwardForm(rfqId, vendorId){
   document.getElementById('awardFormSub').textContent = 'Vendor: '+(v?v.name:'—')+' · '+rfq.rfqNumber;
   document.getElementById('aw_deliveryTerms').value = rfq.deliveryTerms||'';
   document.getElementById('aw_paymentTerms').value = rfq.paymentTerms||'';
+  document.getElementById('aw_dateRequiredBy').value = rfq.deliveryRequiredBy||'';
+  document.getElementById('aw_notes').value = '';
   document.getElementById('aw_lineItems').innerHTML=''; awLineSeq=0;
   (q.lineItems||[]).forEach(li=>awAddLine(li));
   document.getElementById('awardFormOverlay').classList.add('open');
@@ -4529,7 +4800,9 @@ async function submitAward(){
     const po = await api('awardRFQ', {
       rfqId: currentAwardRfqId, vendorId: currentAwardVendorId, lineItemsOverride,
       deliveryTerms: document.getElementById('aw_deliveryTerms').value.trim(),
-      paymentTerms: document.getElementById('aw_paymentTerms').value.trim()
+      paymentTerms: document.getElementById('aw_paymentTerms').value.trim(),
+      dateRequiredBy: document.getElementById('aw_dateRequiredBy').value,
+      notes: document.getElementById('aw_notes').value.trim()
     });
     mergeInto(purchaseOrders, po);
     const r=rfqs.find(x=>x.id===currentAwardRfqId); if(r){ r.status='Awarded'; r.awardedVendorId=currentAwardVendorId; }
@@ -4551,6 +4824,8 @@ function openBypassPOForm(prId){
   document.getElementById('bp_selectedVendor').innerHTML='';
   document.getElementById('bp_deliveryTerms').value='';
   document.getElementById('bp_paymentTerms').value='';
+  document.getElementById('bp_dateRequiredBy').value = pr?pr.neededBy||'':'';
+  document.getElementById('bp_notes').value='';
   document.getElementById('bp_lineItems').innerHTML=''; bpLineSeq=0;
   const prLines = pr?safeParse(pr.lineItemsJson,[]):[];
   if(prLines.length) prLines.forEach(l=>bpAddLine({description:l.description,qty:l.qty,unit:l.unit,rate:0})); else bpAddLine();
@@ -4625,7 +4900,9 @@ async function submitBypassPO(){
     const po = await api('createPODirect', {
       prId: bypassPrId, vendorId: bypassSelectedVendorId, lineItems,
       deliveryTerms: document.getElementById('bp_deliveryTerms').value.trim(),
-      paymentTerms: document.getElementById('bp_paymentTerms').value.trim()
+      paymentTerms: document.getElementById('bp_paymentTerms').value.trim(),
+      dateRequiredBy: document.getElementById('bp_dateRequiredBy').value,
+      notes: document.getElementById('bp_notes').value.trim()
     });
     mergeInto(purchaseOrders, po);
     const pr=purchaseRequests.find(p=>p.id===bypassPrId); if(pr) pr.status='POIssued';
@@ -4663,36 +4940,44 @@ function renderPODetail(){
   const po=purchaseOrders.find(p=>p.id===currentPOId);
   if(!po){ document.getElementById('poDetailBody').innerHTML=emptyState('❓','Not found',''); return; }
   const lines=safeParse(po.lineItemsJson,[]);
+  const vendor=vendors.find(v=>v.id===po.vendorId);
   const dcs=deliveryChallans.filter(d=>d.poId===po.id).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
   const prqs=paymentRequests.filter(p=>p.poId===po.id).sort((a,b)=>new Date(b.requestedAt)-new Date(a.requestedAt));
   const canOps = currentUser.role==='OpsProcurement'||currentUser.role==='Admin';
+  const canSignPO = currentUser.role==='CEO'||currentUser.role==='Admin';
   const isSigned = po.signedStatus==='Signed';
   let actions='';
-  if(canOps){
-    if(!isSigned){
-      actions += `<button class="tb-btn primary" onclick="markPOSigned('${po.id}')">✍️ Mark as Signed</button>`;
-    } else {
-      if(['Issued','PartiallyDelivered'].includes(po.status)) actions += `<button class="tb-btn" onclick="openDCForm('${po.id}')">🚚 Record Goods Receiving / Delivery Note</button>`;
-      actions += `<button class="tb-btn primary" onclick="openPRQForm('${po.id}')">💳 Raise Payment Request</button>`;
-    }
+  if(!isSigned && canSignPO){
+    actions += `<button class="tb-btn primary" onclick="markPOSigned('${po.id}')">✍️ Mark as Signed</button>`;
   }
+  if(isSigned && canOps){
+    if(['Issued','PartiallyDelivered'].includes(po.status)) actions += `<button class="tb-btn" onclick="openDCForm('${po.id}')">🚚 Record Goods Receiving / Delivery Note</button>`;
+    actions += `<button class="tb-btn primary" onclick="openPRQForm('${po.id}')">💳 Raise Payment Request</button>`;
+  }
+  const contactLine = vendor ? [vendor.phone, vendor.email].filter(Boolean).join('  ·  ') : '';
   document.getElementById('poDetailBody').innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
       <div><div style="font-size:20px;font-weight:900;color:var(--b900)">${po.poNumber}</div>
-      <div style="font-size:12px;color:var(--b400);margin-top:2px">Vendor: ${escHtml(po.vendorName)} · ${po.entity} · Issued ${fmtDate(po.issueDate)}${po.bypassedRFQ?' · <span style="color:var(--amber)">RFQ Bypassed</span>':''}</div></div>
+      <div style="font-size:12px;color:var(--b400);margin-top:2px">Vendor / Supplier: ${escHtml(po.vendorName)} · ${po.entity} · Issued ${fmtDate(po.issueDate)}${po.bypassedRFQ?' · <span style="color:var(--amber)">RFQ Bypassed</span>':''}</div>
+      ${contactLine?`<div style="font-size:11px;color:var(--b400);margin-top:2px">Contact: ${escHtml(contactLine)}</div>`:''}
+      ${po.dateRequiredBy?`<div style="font-size:11px;color:var(--b400);margin-top:2px">Date Required By: ${fmtDate(po.dateRequiredBy)}</div>`:''}</div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
         ${statusBadge(po.status)}
         <span class="stbadge ${isSigned?'st-approved':'st-pending'}">${isSigned?'✍️ Signed by '+escHtml(po.signedBy):'Unsigned'}</span>
         <button class="tb-btn" style="font-size:11px;padding:5px 10px" onclick="downloadPOPdf('${po.id}')">📄 Download PDF</button>
       </div>
     </div>
-    ${!isSigned?`<div style="background:var(--amber-l);border:1px solid #FDE68A;border-radius:var(--r8);padding:10px 14px;margin-bottom:14px;font-size:12px;color:#92400E">This PO must be marked as signed before a Goods Receiving / Delivery Note or Payment Request can be raised against it.</div>`:''}
+    ${!isSigned?`<div style="background:var(--amber-l);border:1px solid #FDE68A;border-radius:var(--r8);padding:10px 14px;margin-bottom:14px;font-size:12px;color:#92400E">This PO must be signed by the CEO before a Goods Receiving / Delivery Note or Payment Request can be raised against it.</div>`:''}
     <div class="table-shell" style="padding:18px;margin-bottom:16px">
       <div style="font-size:11px;font-weight:800;color:var(--b400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Line Items</div>
       <table class="vtbl"><thead><tr><th>Description</th><th>Qty</th><th>Rate</th><th>GST %</th><th>Inc. Tax %</th><th>Amount</th></tr></thead>
       <tbody>${lines.map(l=>`<tr><td>${escHtml(l.description)}</td><td>${l.qty} ${escHtml(l.unit||'')}</td><td>${fmtMoney(l.rate)}</td><td>${l.gstPct||0}%${l.gstInclusive?' (incl.)':''}</td><td>${l.incomeTaxPct||0}%${l.incomeTaxInclusive?' (incl.)':''}</td><td style="font-weight:700">${fmtMoney(l.amount)}</td></tr>`).join('')}</tbody></table>
       <div class="li-total-row">Total: ${fmtMoney(po.totalAmount)}</div>
     </div>
+    ${po.notes?`<div class="table-shell" style="padding:18px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:800;color:var(--b400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Remarks / Notes</div>
+      <div style="font-size:13px;color:var(--b700)">${escHtml(po.notes)}</div>
+    </div>`:''}
     ${dcs.length?`<div class="table-shell" style="padding:18px;margin-bottom:16px">
       <div style="font-size:11px;font-weight:800;color:var(--b400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Goods Receiving / Delivery Notes</div>
       ${dcs.map(d=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--b100);font-size:12px">
@@ -4784,6 +5069,7 @@ function openPRQForm(poId){
   document.getElementById('pq_tax').value=0;
   const dcs=deliveryChallans.filter(d=>d.poId===poId);
   document.getElementById('pq_dcId').innerHTML='<option value="">— None / not applicable —</option>'+dcs.map(d=>`<option value="${d.id}">${d.dcNumber} — ${fmtDate(d.deliveryDate)}</option>`).join('');
+  renderChecklistFields('pq_checklist');
   pqRecalc();
   document.getElementById('prqFormOverlay').classList.add('open');
 }
@@ -4800,11 +5086,71 @@ async function savePaymentRequest(){
   if(!invoiceNumber||!invoiceDate||!invoiceAmount){ toast('Invoice number, date and amount are required','error'); return; }
   try{
     const prq=await api('createPaymentRequest',{poId:currentPOId, dcId:document.getElementById('pq_dcId').value, invoiceNumber, invoiceDate,
-      invoiceAmount, taxDeducted:Number(document.getElementById('pq_tax').value)||0});
+      invoiceAmount, taxDeducted:Number(document.getElementById('pq_tax').value)||0, documentChecklist: getChecklistValues('pq_checklist')});
     mergeInto(paymentRequests,prq);
     closePRQForm(); toast('💳 Payment request '+prq.prqNumber+' submitted to Finance');
     updateSidebarCounts();
     if(document.getElementById('view-po-detail').classList.contains('active')) renderPODetail();
+  }catch(e){ toast(e.message,'error'); }
+}
+
+// ═══════════════════════════════
+// RAISE PAYMENT REQUEST DIRECTLY (no PO — "Purchase Order Required: No")
+// ═══════════════════════════════
+let pqdPrId=null, pqdSelectedVendorId=null;
+function openPRQDirectForm(prId){
+  pqdPrId=prId; pqdSelectedVendorId=null;
+  document.getElementById('pqd_vendorSearch').value='';
+  document.getElementById('pqd_selectedVendor').innerHTML='';
+  document.getElementById('pqd_vendorPicker').innerHTML='';
+  document.getElementById('pqd_invoiceNumber').value='';
+  document.getElementById('pqd_invoiceDate').value='';
+  document.getElementById('pqd_invoiceAmount').value='';
+  document.getElementById('pqd_taxDeducted').value='0';
+  renderChecklistFields('pqd_checklist');
+  pqdRecalc();
+  document.getElementById('prqDirectFormOverlay').classList.add('open');
+}
+function closePRQDirectForm(){ document.getElementById('prqDirectFormOverlay').classList.remove('open'); }
+function renderPqdVendorPicker(){
+  const q=(document.getElementById('pqd_vendorSearch').value||'').toLowerCase();
+  if(!q){ document.getElementById('pqd_vendorPicker').innerHTML=''; return; }
+  const list=vendors.filter(v=> v.name.toLowerCase().includes(q) || (CAT[v.cat]?.l||'').toLowerCase().includes(q));
+  document.getElementById('pqd_vendorPicker').innerHTML = list.slice(0,30).map(v=>`
+    <div onclick="selectPqdVendor('${v.id}')" style="padding:8px 10px;border:1.5px solid var(--b200);border-radius:var(--r8);cursor:pointer;font-size:12px">
+      <span style="font-weight:700">${escHtml(v.name)}</span>
+      <span style="color:var(--b400)"> — ${CAT[v.cat]?.l||v.cat} · ${escHtml(v.city)}</span>
+    </div>`).join('') || '<div style="font-size:12px;color:var(--b400)">No vendors match</div>';
+}
+function selectPqdVendor(vendorId){
+  pqdSelectedVendorId = vendorId;
+  const v = vendors.find(x=>x.id===vendorId);
+  document.getElementById('pqd_selectedVendor').innerHTML = v ? `Selected: <b>${escHtml(v.name)}</b> <a href="#" onclick="event.preventDefault();pqdSelectedVendorId=null;document.getElementById('pqd_selectedVendor').innerHTML='';document.getElementById('pqd_vendorSearch').value='';renderPqdVendorPicker();" style="color:var(--rose);margin-left:8px">change</a>` : '';
+  document.getElementById('pqd_vendorPicker').innerHTML='';
+  document.getElementById('pqd_vendorSearch').value='';
+}
+function pqdRecalc(){
+  const amt=Number(document.getElementById('pqd_invoiceAmount').value)||0;
+  const tax=Number(document.getElementById('pqd_taxDeducted').value)||0;
+  document.getElementById('pqd_netPayable').textContent=fmtMoney(amt-tax);
+}
+async function submitPRQDirect(){
+  if(!pqdSelectedVendorId){ toast('Select a vendor','error'); return; }
+  const invoiceNumber=document.getElementById('pqd_invoiceNumber').value.trim();
+  const invoiceDate=document.getElementById('pqd_invoiceDate').value;
+  const invoiceAmount=Number(document.getElementById('pqd_invoiceAmount').value)||0;
+  if(!invoiceNumber||!invoiceDate||!invoiceAmount){ toast('Invoice number, date and amount are required','error'); return; }
+  try{
+    const prq = await api('createPaymentRequestDirect', {
+      prId: pqdPrId, vendorId: pqdSelectedVendorId, invoiceNumber, invoiceDate,
+      invoiceAmount, taxDeducted: Number(document.getElementById('pqd_taxDeducted').value)||0,
+      documentChecklist: getChecklistValues('pqd_checklist')
+    });
+    mergeInto(paymentRequests, prq);
+    closePRQDirectForm();
+    toast('💳 Payment request '+prq.prqNumber+' submitted to Finance');
+    updateSidebarCounts();
+    if(document.getElementById('view-pr-detail').classList.contains('active')) renderPRDetail();
   }catch(e){ toast(e.message,'error'); }
 }
 function showPRQList(){
@@ -4835,7 +5181,7 @@ function renderPRQList(){
       <div class="rec-meta"><span>🧾 Inv# ${escHtml(pq.invoiceNumber)}</span><span>📅 ${fmtDate(pq.invoiceDate)}</span><span class="rec-amt">Net: ${fmtMoney(pq.netPayable)}</span></div>
       ${actions}
     </div>`;
-  }).join('') : emptyState('💳','No payment requests yet','Raise one from a Purchase Order once goods are delivered');
+  }).join('') : emptyState('💳','No payment requests yet','Raise one from a Purchase Order, or directly from an approved request when no PO is required');
 }
 async function markPRQSigned(id){
   try{
