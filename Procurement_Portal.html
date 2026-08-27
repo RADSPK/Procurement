@@ -663,6 +663,7 @@ textarea.finput{min-height:72px;resize:vertical}
       <div style="font-size:10px;color:rgba(255,255,255,.4)" id="sbUserRole">—</div>
     </div>
     <button class="sb-add-btn" id="sbAddVendorBtn" onclick="openAdd()">＋ Add Vendor</button>
+    <button class="sb-add-btn" style="background:transparent;border:1.5px solid rgba(255,255,255,.15);margin-top:6px" onclick="openChangePasswordForm()">🔑 Change Password</button>
     <button class="sb-add-btn" style="background:transparent;border:1.5px solid rgba(255,255,255,.15);margin-top:6px" onclick="doLogout()">Log out</button>
   </div>
 </nav>
@@ -1462,6 +1463,40 @@ Example Vendor,SUPPLIES,Printing,John Doe,0300-1234567,Islamabad,Blue Area,john@
 </div>
 </div>
 
+<!-- ════════════════ MODAL: CHANGE PASSWORD ════════════════ -->
+<div class="overlay" id="changePwFormOverlay">
+<div class="modal" style="max-width:420px">
+  <div class="modal-hdr">
+    <div class="modal-hdr-left">
+      <div class="modal-title">Change Password</div>
+      <div class="modal-sub">Update the password for your account</div>
+    </div>
+    <button class="modal-close" onclick="closeChangePasswordForm()">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="login-err" id="changePwErr"></div>
+    <div class="fgrid">
+      <div class="fg s2">
+        <label class="flabel">Current Password</label>
+        <input class="finput" id="cpw_old" type="password" placeholder="••••••••">
+      </div>
+      <div class="fg s2">
+        <label class="flabel">New Password</label>
+        <input class="finput" id="cpw_new" type="password" placeholder="At least 6 characters">
+      </div>
+      <div class="fg s2">
+        <label class="flabel">Confirm New Password</label>
+        <input class="finput" id="cpw_confirm" type="password" placeholder="Re-enter your new password" onkeydown="if(event.key==='Enter')submitChangePassword()">
+      </div>
+    </div>
+  </div>
+  <div class="modal-foot">
+    <button class="tb-btn" onclick="closeChangePasswordForm()">Cancel</button>
+    <button class="tb-btn primary" id="changePwBtn" onclick="submitChangePassword()">🔑 Update Password</button>
+  </div>
+</div>
+</div>
+
 <!-- ════════════════ MODAL: DELIVERY CHALLAN ════════════════ -->
 <div class="overlay" id="dcFormOverlay">
 <div class="modal" style="max-width:680px">
@@ -2088,6 +2123,35 @@ async function doLogout(){
   document.getElementById('appShell').style.display='none';
   document.getElementById('landingShell').style.display='flex';
   document.getElementById('li_pw').value='';
+}
+
+// ═══════════════════════════════
+// CHANGE PASSWORD (self-service, for a logged-in user)
+// ═══════════════════════════════
+function openChangePasswordForm(){
+  document.getElementById('cpw_old').value='';
+  document.getElementById('cpw_new').value='';
+  document.getElementById('cpw_confirm').value='';
+  document.getElementById('changePwErr').style.display='none';
+  document.getElementById('changePwFormOverlay').classList.add('open');
+}
+function closeChangePasswordForm(){ document.getElementById('changePwFormOverlay').classList.remove('open'); }
+async function submitChangePassword(){
+  const oldPassword = document.getElementById('cpw_old').value;
+  const newPassword = document.getElementById('cpw_new').value;
+  const confirm = document.getElementById('cpw_confirm').value;
+  const errEl = document.getElementById('changePwErr');
+  errEl.style.display='none';
+  if(!oldPassword){ errEl.textContent='Enter your current password.'; errEl.style.display='block'; return; }
+  if(!newPassword || newPassword.length<6){ errEl.textContent='New password must be at least 6 characters.'; errEl.style.display='block'; return; }
+  if(newPassword!==confirm){ errEl.textContent='New passwords do not match.'; errEl.style.display='block'; return; }
+  try{
+    await api('changePassword', {email: currentUser.email, oldPassword, newPassword});
+    closeChangePasswordForm();
+    toast('🔑 Password updated');
+  }catch(e){
+    errEl.textContent = e.message||'Could not update password'; errEl.style.display='block';
+  }
 }
 
 async function bootApp(){
