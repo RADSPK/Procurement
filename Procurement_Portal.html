@@ -380,6 +380,7 @@ textarea.finput{min-height:72px;resize:vertical}
 /* ══ RECORD CARD (PR/RFQ/PO/DC/PRQ list rows) ══ */
 .rec-card{background:var(--surface);border:1px solid var(--b200);border-radius:var(--r12);padding:16px 18px;margin-bottom:10px;cursor:pointer;transition:all .15s;box-shadow:var(--shadow-xs)}
 .rec-card:hover{border-color:var(--b300);box-shadow:var(--shadow-sm)}
+.rec-card-completed{border-left:4px solid var(--green,#16A34A);background:var(--green-l,#F0FDF4)}
 .rec-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
 .rec-id{font-size:13px;font-weight:800;color:var(--b900)}
 .rec-meta{font-size:11px;color:var(--b400);display:flex;gap:12px;flex-wrap:wrap;margin-top:4px}
@@ -753,6 +754,11 @@ textarea.finput{min-height:72px;resize:vertical}
     <div class="view" id="view-pr">
       <div class="results-bar">
         <div class="results-count" id="prCount"></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:14px" id="prFilterRow">
+        <button class="chip active" data-prfilter="all" onclick="setPRListFilter('all')">All</button>
+        <button class="chip" data-prfilter="active" onclick="setPRListFilter('active')">In Progress</button>
+        <button class="chip" data-prfilter="completed" onclick="setPRListFilter('completed')">✅ Completed</button>
       </div>
       <div id="prList"></div>
     </div>
@@ -2956,6 +2962,7 @@ function escHtml(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&a
 function escAttr(s){ return escHtml(s).replace(/'/g,'&#39;'); }
 function fmtDate(iso){ if(!iso) return '—'; try{ return new Date(iso).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }catch(e){ return String(iso).slice(0,10); } }
 function fmtDateTime(iso){ if(!iso) return '—'; try{ const d=new Date(iso); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}); }catch(e){ return String(iso).slice(0,16); } }
+function emailName(e){ const u = allUsers.find(x=>x.email && String(x.email).toLowerCase()===String(e||'').toLowerCase()); return u?u.name:(e||'—'); }
 function fmtMoney(n){ return 'Rs. '+Number(n||0).toLocaleString(undefined,{maximumFractionDigits:0}); }
 function emptyState(icon,head,sub){ return `<div class="empty-state"><div class="empty-icon">${icon}</div><div class="empty-head">${head}</div><div class="empty-sub">${sub}</div></div>`; }
 function stageLabel(s){ return {LineManager:'Line Manager',Procurement:'Procurement Dept',Finance:'Finance',OperationsManager:'Operations Manager',Delegate:'Delegated Approval','—':'—'}[s]||s; }
@@ -2972,7 +2979,8 @@ const STATUS_MAP = {
   Delivered:['st-approved','Delivered'], PartiallyReceived:['st-active','Partially Received'],
   FullyReceived:['st-approved','Fully Received'], QuotesReceived:['st-active','Quotes Received'],
   Awarded:['st-done','Vendor Selected'], ApprovedForPayment:['st-approved','Approved For Payment'],
-  Paid:['st-done','Paid'], Cancelled:['st-rejected','Cancelled']
+  Paid:['st-done','Paid'], Cancelled:['st-rejected','Cancelled'],
+  Completed:['st-approved','Completed']
 };
 function statusBadge(status){
   const [cls,label] = STATUS_MAP[status]||['st-draft',status||'—'];
@@ -3000,11 +3008,19 @@ function showPRList(){
   renderPRList();
   showView('pr');
 }
+let prListFilter = 'all';
+function setPRListFilter(f){
+  prListFilter = f;
+  document.querySelectorAll('#prFilterRow .chip').forEach(b=>b.classList.toggle('active', b.dataset.prfilter===f));
+  renderPRList();
+}
 function renderPRList(){
-  document.getElementById('prCount').textContent = purchaseRequests.length+' purchase request'+(purchaseRequests.length!==1?'s':'');
-  const sorted=[...purchaseRequests].sort((a,b)=> new Date(b.createdAt)-new Date(a.createdAt));
+  let sorted=[...purchaseRequests].sort((a,b)=> new Date(b.createdAt)-new Date(a.createdAt));
+  if(prListFilter==='completed') sorted = sorted.filter(p=>p.status==='Completed');
+  else if(prListFilter==='active') sorted = sorted.filter(p=>p.status!=='Completed'&&p.status!=='Rejected');
+  document.getElementById('prCount').textContent = sorted.length+' purchase request'+(sorted.length!==1?'s':'');
   document.getElementById('prList').innerHTML = sorted.length ? sorted.map(pr=>`
-    <div class="rec-card" onclick="openPRDetail('${pr.id}')">
+    <div class="rec-card${pr.status==='Completed'?' rec-card-completed':''}" onclick="openPRDetail('${pr.id}')">
       <div class="rec-top">
         <div class="rec-id">${pr.prNumber} <span style="font-weight:500;color:var(--b400)">— ${escHtml(pr.department)||'—'}</span></div>
         ${statusBadge(pr.status)}
@@ -3015,7 +3031,7 @@ function renderPRList(){
         <span>📅 Raised ${fmtDate(pr.dateRaised)}</span>
         <span class="rec-amt">${fmtMoney(pr.totalEstAmount)}</span>
       </div>
-    </div>`).join('') : emptyState('📝','No purchase requests yet','Requests are submitted via the public "Make a Request" form and will appear here');
+    </div>`).join('') : emptyState('📝', prListFilter==='completed'?'No completed procurements yet':'No purchase requests yet', prListFilter==='completed'?'Requests appear here once payment has been made':'Requests are submitted via the public "Make a Request" form and will appear here');
 }
 
 // PR line items can only be EDITED (by the addressed Line Manager, before they act, or Admin) —
@@ -3203,7 +3219,7 @@ function downloadProcurementLogPdf(prId){
     }
   }
 
-  const emailName = e => { const u = allUsers.find(x=>x.email && String(x.email).toLowerCase()===String(e||'').toLowerCase()); return u?u.name:(e||'—'); };
+  // emailName() is defined globally and reused across all PDF generators
 
   // ── Gather every event across the whole chain, chronologically ──
   const events = [];
@@ -3299,7 +3315,7 @@ function downloadProcurementLogPdf(prId){
   // Chronological log table
   doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
   doc.text('Procurement Timeline', marginL, y); y += 14;
-  const cw = [contentW*0.14, contentW*0.19, contentW*0.16, contentW*0.15, contentW*0.36];
+  const cw = [contentW*0.12, contentW*0.17, contentW*0.15, contentW*0.20, contentW*0.36];
   const cx = [marginL, marginL+cw[0], marginL+cw[0]+cw[1], marginL+cw[0]+cw[1]+cw[2], marginL+cw[0]+cw[1]+cw[2]+cw[3]];
   doc.setFillColor(theme.tint[0],theme.tint[1],theme.tint[2]);
   doc.rect(marginL, y, contentW, 20, 'F');
@@ -3314,9 +3330,11 @@ function downloadProcurementLogPdf(prId){
   doc.setFont('helvetica','normal'); doc.setTextColor(30,30,30);
   let zebra = false;
   events.forEach(ev=>{
-    const detailLines = doc.splitTextToSize(ev.details||'—', cw[4]-12);
+    const stageLines = doc.splitTextToSize(ev.stage||'—', cw[1]-10);
     const actorLines = doc.splitTextToSize(ev.actor||'—', cw[2]-10);
-    const rowH = Math.max(18, 11*Math.max(detailLines.length, actorLines.length)+7);
+    const actionLines = doc.splitTextToSize(ev.action||'—', cw[3]-10);
+    const detailLines = doc.splitTextToSize(ev.details||'—', cw[4]-12);
+    const rowH = Math.max(18, 11*Math.max(stageLines.length, actorLines.length, actionLines.length, detailLines.length)+7);
     checkPageBreak(rowH);
     if(zebra){ doc.setFillColor(249,249,249); doc.rect(marginL, y, contentW, rowH, 'F'); }
     zebra = !zebra;
@@ -3324,10 +3342,10 @@ function downloadProcurementLogPdf(prId){
     doc.setFontSize(7.8);
     doc.text(ev.t?fmtDate(ev.t):'—', cx[0]+6, y+12);
     doc.setFontSize(8.3);
-    doc.text(ev.stage, cx[1]+6, y+12);
+    doc.text(stageLines, cx[1]+6, y+12);
     doc.text(actorLines, cx[2]+6, y+12);
     doc.setFont('helvetica','bold');
-    doc.text(ev.action, cx[3]+6, y+12);
+    doc.text(actionLines, cx[3]+6, y+12);
     doc.setFont('helvetica','normal');
     doc.text(detailLines, cx[4]+6, y+12);
     y += rowH;
@@ -3582,7 +3600,7 @@ function downloadPRPdf(id){
     y += rowH;
   });
 
-  if(pr.status==='Approved'){
+  if(pr.status==='Approved' || pr.status==='Completed'){
     y += 14;
     checkPageBreak(18);
     doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(15,110,86);
@@ -4154,7 +4172,7 @@ function downloadPOPdf(id){
   const dateLine = fmtDate(po.issueDate) + (po.dateRequiredBy ? '  ·  Required by '+fmtDate(po.dateRequiredBy) : '');
   const gridData = [
     ['Vendor / Supplier', po.vendorName||'—', 'Entity', po.entity],
-    ['Linked Purchase Request', linkedPr?linkedPr.prNumber:'—', 'Linked RFQ', linkedRfq?linkedRfq.rfqNumber:(po.bypassedRFQ?'None (RFQ bypassed)':'—')],
+    ['Linked Purchase Request', linkedPr?linkedPr.prNumber:'—', 'Linked RFQ', linkedRfq?linkedRfq.rfqNumber:'N/A'],
     ['Contact', contactLine, 'Issue Date', dateLine],
     ['Delivery Terms', po.deliveryTerms||'—', 'Payment Terms', po.paymentTerms||'—']
   ];
@@ -4300,7 +4318,7 @@ function downloadDCPdf(id){
   y = 84;
 
   const gridData = [
-    ['Linked Purchase Request', linkedPr?linkedPr.prNumber:'—', 'Linked RFQ', linkedRfq?linkedRfq.rfqNumber:'None (RFQ bypassed)'],
+    ['Linked Purchase Request', linkedPr?linkedPr.prNumber:'—', 'Linked RFQ', linkedRfq?linkedRfq.rfqNumber:'N/A'],
     ['Linked PO', po?po.poNumber:'—', 'Vendor', po?po.vendorName:'—'],
     ['Delivery date', fmtDate(dc.deliveryDate), 'Received by', dc.receivedBy||'—']
   ];
@@ -4379,7 +4397,7 @@ function downloadPRQPdf(id){
   if(!window.jspdf){ toast('PDF library still loading — try again in a second','error'); return; }
   const po = purchaseOrders.find(p=>p.id===pq.poId);
   const dc = deliveryChallans.find(d=>d.id===pq.dcId);
-  const linkedPr = purchaseRequests.find(p=>p.id===pq.prId);
+  const linkedPr = purchaseRequests.find(p=>p.id===pq.prId) || (po ? purchaseRequests.find(p=>p.id===po.prId) : null);
   const linkedRfq = po ? rfqs.find(r=>r.id===po.rfqId) : null;
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({unit:'pt', format:'a4'});
@@ -4423,10 +4441,10 @@ function downloadPRQPdf(id){
   drawHeader();
   y = 84;
 
-  const requestedLine = (pq.requestedBy||'—') + '  ·  ' + fmtDate(pq.requestedAt);
+  const requestedLine = emailName(pq.requestedBy) + '  ·  ' + fmtDate(pq.requestedAt);
   const gridData = [
     ['Vendor', pq.vendorName||'—', 'Linked Purchase Request', linkedPr?linkedPr.prNumber:'—'],
-    ['Linked RFQ', linkedRfq?linkedRfq.rfqNumber:(po?'None (RFQ bypassed)':'—'), 'Linked PO', po?po.poNumber:'No Purchase Order (not required)'],
+    ['Linked RFQ', linkedRfq?linkedRfq.rfqNumber:'N/A', 'Linked PO', po?po.poNumber:'No Purchase Order (not required)'],
     ['Linked GRN/DN', dc?dc.dcNumber:'—', 'Invoice Number', pq.invoiceNumber||'—'],
     ['Invoice Date', pq.invoiceDate?fmtDate(pq.invoiceDate):'—', 'Requested By', requestedLine]
   ];
@@ -4540,7 +4558,7 @@ function renderPRDetail(){
   const lines=safeParse(pr.lineItemsJson,[]);
   const hist=approvals.filter(a=>a.prId===pr.id).sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
   const stageIdx = PR_STAGES.indexOf(pr.currentStage);
-  const passedIdx = pr.status==='Approved' ? PR_STAGES.length : stageIdx;
+  const passedIdx = (pr.status==='Approved' || pr.status==='Completed') ? PR_STAGES.length : stageIdx;
   const stepsHtml = PR_STAGES.map((s,i)=>{
     let cls='step';
     if(pr.status==='Rejected' && i===stageIdx) cls+=' rejected';
@@ -4593,7 +4611,7 @@ function renderPRDetail(){
   const linkedPOs = purchaseOrders.filter(p=>p.prId===pr.id);
   const linkedPOIds = linkedPOs.map(p=>p.id);
   const linkedDCs = deliveryChallans.filter(d=>linkedPOIds.indexOf(d.poId)>-1);
-  const linkedPRQs = paymentRequests.filter(p=>p.prId===pr.id);
+  const linkedPRQs = paymentRequests.filter(p=>p.prId===pr.id || linkedPOIds.indexOf(p.poId)>-1);
   let procStatusLine;
   if(linkedPRQs.some(p=>p.status==='Paid')) procStatusLine = '✅ Procurement complete — payment made';
   else if(linkedPRQs.length) procStatusLine = '💳 Payment request in progress';
@@ -5460,8 +5478,8 @@ function openPRQDetail(id){
 function renderPRQDetailPage(){
   const pq=paymentRequests.find(p=>p.id===currentPRQId);
   if(!pq){ document.getElementById('prqDetailBody').innerHTML=emptyState('❓','Not found',''); return; }
-  const pr = purchaseRequests.find(p=>p.id===pq.prId);
   const po = purchaseOrders.find(p=>p.id===pq.poId);
+  const pr = purchaseRequests.find(p=>p.id===pq.prId) || (po ? purchaseRequests.find(p=>p.id===po.prId) : null);
   const linkedRfq = po ? rfqs.find(r=>r.id===po.rfqId) : null;
   const dc = deliveryChallans.find(d=>d.id===pq.dcId);
   const checklist = safeParse(pq.documentChecklistJson, {});
@@ -5480,7 +5498,7 @@ function renderPRQDetailPage(){
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
       <div>
         <div style="font-size:20px;font-weight:900;color:var(--b900)">${pq.prqNumber}</div>
-        <div style="font-size:12px;color:var(--b400);margin-top:2px">Vendor: ${escHtml(pq.vendorName)} · Requested by ${escHtml(pq.requestedBy)} on ${fmtDate(pq.requestedAt)}</div>
+        <div style="font-size:12px;color:var(--b400);margin-top:2px">Vendor: ${escHtml(pq.vendorName)} · Requested by ${escHtml(emailName(pq.requestedBy))} on ${fmtDate(pq.requestedAt)}</div>
         ${pr?`<div style="font-size:11px;color:var(--b400);margin-top:2px">From: <a href="#" onclick="event.preventDefault();openPRDetail('${pr.id}')" style="color:var(--rads);font-weight:700">${pr.prNumber}</a> — raised by ${escHtml(pr.requestorName)} (${escHtml(pr.department)||'—'})${linkedRfq?` · RFQ: <a href="#" onclick="event.preventDefault();openRFQDetail('${linkedRfq.id}')" style="color:var(--rads);font-weight:700">${linkedRfq.rfqNumber}</a>`:''}${po?` · PO: <a href="#" onclick="event.preventDefault();openPODetail('${po.id}')" style="color:var(--rads);font-weight:700">${po.poNumber}</a>`:' · No Purchase Order (not required)'}${dc?` · GRN: ${escHtml(dc.dcNumber)}`:''}</div>`:''}
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
@@ -5521,6 +5539,14 @@ async function actOnPRQ(id,action){
   try{
     const r=await api('actOnPaymentRequest',{id,decision:action,comments});
     mergeInto(paymentRequests,r);
+    if(action==='MarkPaid'){
+      let prId = r.prId;
+      if(!prId && r.poId){ const po = purchaseOrders.find(p=>p.id===r.poId); if(po) prId = po.prId; }
+      if(prId){
+        const pr = purchaseRequests.find(p=>p.id===prId);
+        if(pr && pr.status!=='Rejected') pr.status='Completed';
+      }
+    }
     toast(action==='Approve'?'✅ Approved for payment':action==='MarkPaid'?'💰 Marked as paid':'❌ Rejected');
     if(currentPRQId===id && document.getElementById('view-prq-detail').classList.contains('active')) renderPRQDetailPage(); else renderPRQList();
   }catch(e){ toast(e.message,'error'); }
