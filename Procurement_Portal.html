@@ -4554,6 +4554,62 @@ function downloadPRQPdf(id){
   doc.setTextColor(0,0,0);
   y += 20;
 
+  // Procurement history — PR initiation through every approval, RFQ, PO signing, and GRN —
+  // mirrors what's already shown on the on-screen detail page, so the printed copy carries
+  // the same audit trail for Finance.
+  const historyEvents = [];
+  if(linkedPr){
+    historyEvents.push({label: linkedPr.prNumber+' Initiated', detail:'Raised by '+linkedPr.requestorName, when: linkedPr.dateRaised});
+    approvals.filter(a=>a.prId===linkedPr.id).sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp)).forEach(a=>{
+      historyEvents.push({label: stageLabel(a.stage)+': '+actionLabel(a.action), detail: a.actorName, when: a.timestamp});
+    });
+  }
+  if(linkedRfq){
+    historyEvents.push({label: linkedRfq.rfqNumber+' Issued', detail: linkedRfq.title, when: linkedRfq.createdAt});
+    if(linkedRfq.awardedVendorId) historyEvents.push({label:'Vendor Selected', detail: po?po.vendorName:'', when: linkedRfq.updatedAt});
+  }
+  if(po){
+    historyEvents.push({label: po.poNumber+' Issued', detail: po.vendorName+' — '+fmtMoney(po.totalAmount), when: po.issueDate});
+    if(po.opsManagerSignedStatus==='Signed') historyEvents.push({label:'PO Signed (Operations Manager)', detail: po.opsManagerSignedBy, when: po.opsManagerSignedAt});
+    if(po.signedStatus==='Signed') historyEvents.push({label:'PO Signed (CEO)', detail: po.signedBy, when: po.signedAt});
+  }
+  if(dc){
+    historyEvents.push({label: dc.dcNumber+' — '+(dc.status==='FullyReceived'?'Fully Received':'Partially Received'), detail:'Received by '+(dc.receivedBy||'—'), when: dc.createdAt});
+  }
+  if(historyEvents.length){
+    checkPageBreak(40);
+    doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(br,bg,bb);
+    doc.text('Procurement History (Through Goods Receiving)', marginL, y); y += 14;
+    const hCw = [contentW*0.16, contentW*0.5, contentW*0.34];
+    const hCx = [marginL, marginL+hCw[0], marginL+hCw[0]+hCw[1]];
+    doc.setFillColor(theme.tint[0],theme.tint[1],theme.tint[2]);
+    doc.rect(marginL, y, contentW, 18, 'F');
+    drawGridRow(doc, marginL, y, hCx, hCw, 18);
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(br,bg,bb);
+    doc.text('Date', hCx[0]+8, y+12);
+    doc.text('Event', hCx[1]+8, y+12);
+    doc.text('Detail', hCx[2]+8, y+12);
+    y += 18;
+    doc.setFont('helvetica','normal'); doc.setTextColor(30,30,30);
+    let hZebra = false;
+    historyEvents.forEach(ev=>{
+      const labelLines = doc.splitTextToSize(ev.label||'—', hCw[1]-10);
+      const detailLines = doc.splitTextToSize(ev.detail||'—', hCw[2]-10);
+      const rowH = Math.max(16, 11*Math.max(labelLines.length, detailLines.length)+6);
+      checkPageBreak(rowH);
+      if(hZebra){ doc.setFillColor(249,249,249); doc.rect(marginL, y, contentW, rowH, 'F'); }
+      hZebra = !hZebra;
+      drawGridRow(doc, marginL, y, hCx, hCw, rowH);
+      doc.setFontSize(7.8);
+      doc.text(ev.when?fmtDate(ev.when):'—', hCx[0]+8, y+12);
+      doc.setFontSize(8.3);
+      doc.text(labelLines, hCx[1]+8, y+12);
+      doc.text(detailLines, hCx[2]+8, y+12);
+      y += rowH;
+    });
+    y += 18;
+  }
+
   const checklist = safeParse(pq.documentChecklistJson, {});
   if(Object.keys(checklist).length){
     checkPageBreak(30);
