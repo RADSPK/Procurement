@@ -353,11 +353,18 @@ textarea.finput{min-height:72px;resize:vertical}
 @keyframes splashFade{0%{opacity:1}75%{opacity:1}100%{opacity:0;visibility:hidden;pointer-events:none}}
 
 /* ══ CHOICE BUTTONS (landing) ══ */
-.choice-btn{background:var(--surface);border:1.5px solid var(--b200);border-radius:var(--r16);padding:24px 26px;margin-bottom:14px;cursor:pointer;transition:all .15s;box-shadow:var(--shadow-sm);text-align:left}
-.choice-btn:hover{border-color:var(--rads);box-shadow:var(--shadow-lg);transform:translateY(-1px)}
-.choice-btn-icon{font-size:28px;margin-bottom:8px}
-.choice-btn-title{font-size:15px;font-weight:900;color:var(--b900);margin-bottom:4px}
-.choice-btn-sub{font-size:12px;color:var(--b400)}
+.choice-btn-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;width:100%}
+.choice-btn{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);border-radius:var(--r12);padding:26px 18px;cursor:pointer;transition:all .15s;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px}
+.choice-btn:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.16);transform:translateY(-1px)}
+.choice-btn.accent-login{background:rgba(123,31,46,.16);border-color:rgba(217,120,140,.35)}
+.choice-btn.accent-login:hover{background:rgba(123,31,46,.24);border-color:rgba(217,120,140,.5)}
+.choice-btn-icon{width:40px;height:40px;border-radius:var(--r10,10px);display:flex;align-items:center;justify-content:center;font-size:19px}
+.choice-btn.accent-request .choice-btn-icon{background:rgba(186,117,23,.18)}
+.choice-btn.accent-track .choice-btn-icon{background:rgba(15,110,86,.2)}
+.choice-btn.accent-login .choice-btn-icon{background:rgba(217,120,140,.22)}
+.choice-btn-title{font-size:15px;font-weight:600;color:#fff}
+.choice-btn-sub{font-size:12px;color:#8892a8;line-height:1.4}
+@media(max-width:640px){.choice-btn-grid{grid-template-columns:1fr}}
 
 /* ══ STATUS BADGES (workflow) ══ */
 .stbadge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;white-space:nowrap;text-transform:uppercase;letter-spacing:.03em}
@@ -431,27 +438,29 @@ textarea.finput{min-height:72px;resize:vertical}
 
   <!-- ── CHOICE SCREEN (shown first — no form visible) ── -->
   <div class="landing-panel" id="panel-choice" style="max-width:760px;text-align:center">
-    <div class="choice-btn" onclick="chooseLanding('request')">
-      <div class="choice-btn-icon">📝</div>
-      <div class="choice-btn-title">Make a Request</div>
-      <div class="choice-btn-sub">Submit a purchase request — no account needed</div>
-    </div>
-    <div class="choice-btn" onclick="chooseLanding('track')">
-      <div class="choice-btn-icon">🔎</div>
-      <div class="choice-btn-title">Track My Request</div>
-      <div class="choice-btn-sub">Check the status of a request you've already submitted</div>
-    </div>
-    <div class="choice-btn" onclick="chooseLanding('login')">
-      <div class="choice-btn-icon">🔐</div>
-      <div class="choice-btn-title">Staff Login</div>
-      <div class="choice-btn-sub">Line Managers, Procurement, Finance, Operations &amp; Admin</div>
+    <div class="choice-btn-grid">
+      <div class="choice-btn accent-login" onclick="chooseLanding('login')">
+        <div class="choice-btn-icon">🔐</div>
+        <div class="choice-btn-title">Staff Login</div>
+        <div class="choice-btn-sub">Line Managers, Procurement, Finance, Operations And Admin</div>
+      </div>
+      <div class="choice-btn accent-request" onclick="chooseLanding('request')">
+        <div class="choice-btn-icon">📝</div>
+        <div class="choice-btn-title">Make A Request</div>
+        <div class="choice-btn-sub">Submit A Purchase Request — No Account Needed</div>
+      </div>
+      <div class="choice-btn accent-track" onclick="chooseLanding('track')">
+        <div class="choice-btn-icon">🔎</div>
+        <div class="choice-btn-title">Track My Request</div>
+        <div class="choice-btn-sub">Check The Status Of A Request You've Already Submitted</div>
+      </div>
     </div>
   </div>
 
   <div class="landing-tabs" id="landingTabs" style="display:none">
+    <button class="landing-tab" id="tab-login" onclick="switchLandingTab('login')">🔐 Staff Login</button>
     <button class="landing-tab" id="tab-request" onclick="switchLandingTab('request')">📝 Make a Request</button>
     <button class="landing-tab" id="tab-track" onclick="switchLandingTab('track')">🔎 Track My Request</button>
-    <button class="landing-tab" id="tab-login" onclick="switchLandingTab('login')">🔐 Staff Login</button>
     <button class="landing-tab" onclick="showLandingChoice()" style="color:rgba(255,255,255,.85)">← Back</button>
   </div>
 
@@ -2002,7 +2011,7 @@ function renderTrackResults(prs, email){
     else if(pr.status==='Rejected') procLine = '❌ Rejected';
     else procLine = '⏳ Awaiting approval — currently with '+stageLabel(pr.currentStage);
     const approvalRows = pr.approvals.map(a=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--b100);font-size:12px">
-      <span><b>${stageLabel(a.stage)}</b> — ${escHtml(a.actorName)}: <span style="font-weight:700;color:${a.action==='Approve'?'#0F6E56':a.action==='Reject'?'#E11D48':'#B45309'}">${a.action}</span></span>
+      <span><b>${stageLabel(a.stage)}</b> — ${escHtml(a.actorName)}: <span style="font-weight:700;color:${a.action==='Approve'?'#0F6E56':a.action==='Reject'?'#E11D48':'#B45309'}">${actionLabel(a.action)}</span></span>
       <span style="color:var(--b400)">${fmtDate(a.timestamp)}</span></div>`).join('');
     const poRows = pr.pos.map(po=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--b100);font-size:12px">
       <span>📦 ${escHtml(po.poNumber)} — ${escHtml(po.vendorName)}</span><span>${escHtml(po.status)}</span></div>`).join('');
@@ -3017,6 +3026,7 @@ function emailName(e){ const u = allUsers.find(x=>x.email && String(x.email).toL
 function fmtMoney(n){ return 'Rs. '+Number(n||0).toLocaleString(undefined,{maximumFractionDigits:0}); }
 function emptyState(icon,head,sub){ return `<div class="empty-state"><div class="empty-icon">${icon}</div><div class="empty-head">${head}</div><div class="empty-sub">${sub}</div></div>`; }
 function stageLabel(s){ return {LineManager:'Line Manager',Procurement:'Procurement Dept',Finance:'Finance',OperationsManager:'Operations Manager',Delegate:'Delegated Approval','—':'—'}[s]||s; }
+function actionLabel(a){ return {Approve:'Approved', Reject:'Rejected', Query:'Sent Back', Delegate:'Delegated'}[a] || a; }
 const STATUS_MAP = {
   PendingLineManager:['st-pending','Pending Line Manager'],
   PendingProcurement:['st-pending','Pending Procurement'],
@@ -3204,12 +3214,12 @@ function drawSignedConfirmation(doc, y, marginL, contentW, signedBy, signedByRol
   doc.rect(marginL, y, contentW, 16, 'F');
   drawGridRow(doc, marginL, y, cx, cw, 16);
   doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(140,140,140);
-  doc.text('SIGNED BY', cx[0]+8, y+11);
+  doc.text('E-SIGNED BY', cx[0]+8, y+11);
   doc.text('ROLE', cx[1]+8, y+11);
   doc.text('DATE & TIME', cx[2]+8, y+11);
   y += 16;
   drawGridRow(doc, marginL, y, cx, cw, rowH);
-  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(20,20,20);
+  doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(20,20,20);
   doc.text(signedBy||'—', cx[0]+8, y+15);
   doc.text(signedByRole?roleLabel(signedByRole):'—', cx[1]+8, y+15);
   doc.text(fmtDateTime(signedAt), cx[2]+8, y+15);
@@ -3277,7 +3287,7 @@ function downloadProcurementLogPdf(prId){
   events.push({t: pr.dateRaised, stage:'Purchase Request', actor: pr.requestorName, action:'Initiated', details: pr.prNumber+' submitted, addressed to '+emailName(pr.lineManagerEmail)});
   approvals.filter(a=>a.prId===pr.id).forEach(a=>{
     const lbl = a.stage==='Delegate' ? 'Delegated Approval' : stageLabel(a.stage);
-    const act = {Approve:'Approved', Reject:'Rejected', Query:'Sent Back', Delegate:'Approved'}[a.action] || a.action;
+    const act = actionLabel(a.action);
     events.push({t: a.timestamp, stage: lbl, actor: a.actorName, action: act, details: a.comments||''});
   });
 
@@ -3420,7 +3430,7 @@ function drawPoAuthorizationTable(doc, y, marginL, contentW, po){
   drawGridRow(doc, marginL, y, cx, cw, 16);
   doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(140,140,140);
   doc.text('ROLE', cx[0]+8, y+11);
-  doc.text('SIGNED BY', cx[1]+8, y+11);
+  doc.text('E-SIGNED BY', cx[1]+8, y+11);
   doc.text('DATE & TIME', cx[2]+8, y+11);
   y += 16;
   const rows = [
@@ -3430,7 +3440,7 @@ function drawPoAuthorizationTable(doc, y, marginL, contentW, po){
   const rowH = 22;
   rows.forEach(([roleName, signed, by, at])=>{
     drawGridRow(doc, marginL, y, cx, cw, rowH);
-    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(20,20,20);
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(20,20,20);
     doc.text(roleName, cx[0]+8, y+14);
     if(signed){
       doc.text(by||'—', cx[1]+8, y+14);
@@ -3619,7 +3629,7 @@ function downloadPRPdf(id){
     doc.text('No approval actions recorded yet.', marginL+6, y+12);
     y += 16;
   }
-  const decisionLabel = {Approve:'Approved', Reject:'Rejected', Query:'Sent back', Delegate:'Approved'};
+  const decisionLabel = {Approve:'Approved', Reject:'Rejected', Query:'Sent Back', Delegate:'Delegated'};
   const decisionColor = {Approve:[15,110,86],Reject:[161,45,45],Query:[133,79,11],Delegate:[15,110,86]};
   let hZebra = false;
   hist.forEach(a=>{
@@ -4220,12 +4230,12 @@ function downloadPOPdf(id){
   y = 84;
 
   const contactLine = vendor ? [vendor.phone, vendor.email].filter(Boolean).join('  /  ') : '—';
-  const dateLine = fmtDate(po.issueDate) + (po.dateRequiredBy ? '  ·  Required by '+fmtDate(po.dateRequiredBy) : '');
+  const termsLine = [po.deliveryTerms, po.paymentTerms].filter(Boolean).join('  ·  ') || '—';
   const gridData = [
     ['Vendor / Supplier', po.vendorName||'—', 'Entity', po.entity],
     ['Linked Purchase Request', linkedPr?linkedPr.prNumber:'—', 'Linked RFQ', linkedRfq?linkedRfq.rfqNumber:'N/A'],
-    ['Contact', contactLine, 'Issue Date', dateLine],
-    ['Delivery Terms', po.deliveryTerms||'—', 'Payment Terms', po.paymentTerms||'—']
+    ['Contact', contactLine, 'Issue Date', fmtDate(po.issueDate)],
+    ['Date Required By', po.dateRequiredBy?fmtDate(po.dateRequiredBy):'—', 'Delivery / Payment Terms', termsLine]
   ];
   const colW = contentW/2;
   const cellH = 24;
@@ -4726,7 +4736,7 @@ function renderPRDetail(){
     ${hist.length? `<div class="table-shell" style="padding:18px;margin-bottom:16px">
       <div style="font-size:11px;font-weight:800;color:var(--b400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Approval History</div>
       ${hist.map(a=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--b100);font-size:12px">
-        <span><b>${stageLabel(a.stage)}</b> — ${escHtml(a.actorName)}: <span style="color:${a.action==='Approve'?'var(--green-d)':a.action==='Reject'?'var(--rose)':'var(--amber)'};font-weight:700">${a.action}</span>${a.comments?' — '+escHtml(a.comments):''}</span>
+        <span><b>${stageLabel(a.stage)}</b> — ${escHtml(a.actorName)}: <span style="color:${a.action==='Approve'?'var(--green-d)':a.action==='Reject'?'var(--rose)':'var(--amber)'};font-weight:700">${actionLabel(a.action)}</span>${a.comments?' — '+escHtml(a.comments):''}</span>
         <span style="color:var(--b400)">${fmtDate(a.timestamp)}</span>
       </div>`).join('')}
     </div>`:''}
@@ -5300,7 +5310,7 @@ function renderPODetail(){
     actions += `<button class="tb-btn primary" onclick="openPRQForm('${po.id}')">💳 Raise Payment Request</button>`;
   }
   const contactLine = vendor ? [vendor.phone, vendor.email].filter(Boolean).join('  ·  ') : '';
-  const signRow = (label, signed, by) => `<span class="stbadge ${signed?'st-approved':'st-pending'}">${signed?'✍️ '+label+': Signed by '+escHtml(by):label+': Unsigned'}</span>`;
+  const signRow = (label, signed, by) => `<span class="stbadge ${signed?'st-approved':'st-pending'}">${signed?'✍️ '+label+': e-Signed by '+escHtml(by):label+': Unsigned'}</span>`;
   document.getElementById('poDetailBody').innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
       <div><div style="font-size:20px;font-weight:900;color:var(--b900)">${po.poNumber}</div>
@@ -5554,7 +5564,7 @@ function renderPRQDetailPage(){
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
         ${statusBadge(pq.status)}
-        <span class="stbadge ${pq.signedStatus==='Signed'?'st-approved':'st-pending'}">${pq.signedStatus==='Signed'?'✍️ Signed by '+escHtml(pq.signedBy):'Unsigned'}</span>
+        <span class="stbadge ${pq.signedStatus==='Signed'?'st-approved':'st-pending'}">${pq.signedStatus==='Signed'?'✍️ e-Signed by '+escHtml(pq.signedBy):'Unsigned'}</span>
         <button class="tb-btn" style="font-size:11px;padding:5px 10px" onclick="downloadPRQPdf('${pq.id}')">📄 Download PDF</button>
       </div>
     </div>
