@@ -446,13 +446,25 @@ textarea.finput{min-height:72px;resize:vertical}
   <div class="landing-panel" id="panel-track" style="display:none;max-width:640px">
     <div class="request-card" id="trackSearchCard">
       <div class="request-card-title">Track My Request</div>
-      <div class="request-card-sub">Enter the email you used when submitting your request to see its status.</div>
+      <div class="request-card-sub" id="trackStepSub">Enter the email you used when submitting your request. We'll send a verification code to confirm it's you.</div>
       <div class="login-err" id="trackErr"></div>
-      <div class="fg s2" style="margin-bottom:12px">
-        <label class="flabel">Email</label>
-        <input class="finput" id="track_email" type="email" placeholder="you@rads.org.pk" onkeydown="if(event.key==='Enter')doTrackSearch()">
+      <div id="trackStepEmail">
+        <div class="fg s2" style="margin-bottom:12px">
+          <label class="flabel">Email</label>
+          <input class="finput" id="track_email" type="email" placeholder="you@rads.org.pk" onkeydown="if(event.key==='Enter')doTrackSendOtp()">
+        </div>
+        <button class="tb-btn primary" style="width:100%;padding:11px;font-size:13px" id="trackSendBtn" onclick="doTrackSendOtp()">✉️ Send Verification Code</button>
       </div>
-      <button class="tb-btn primary" style="width:100%;padding:11px;font-size:13px" id="trackSearchBtn" onclick="doTrackSearch()">🔎 Find My Requests</button>
+      <div id="trackStepOtp" style="display:none">
+        <div class="fg s2" style="margin-bottom:12px">
+          <label class="flabel">Verification Code</label>
+          <input class="finput" id="track_otp" type="text" inputmode="numeric" maxlength="6" placeholder="6-digit code" onkeydown="if(event.key==='Enter')doTrackSearch()">
+        </div>
+        <button class="tb-btn primary" style="width:100%;padding:11px;font-size:13px" id="trackSearchBtn" onclick="doTrackSearch()">🔎 Verify &amp; View Status</button>
+        <div style="text-align:center;margin-top:10px">
+          <a href="#" onclick="event.preventDefault();doTrackSendOtp()" style="font-size:12px;color:var(--b400)">Resend code</a>
+        </div>
+      </div>
     </div>
     <div id="trackResultsCard" style="display:none"></div>
   </div>
@@ -1712,6 +1724,14 @@ function switchLandingTab(tab){
   document.getElementById('panel-track').style.display = tab==='track' ? 'block' : 'none';
   document.getElementById('panel-login').style.display = tab==='login' ? 'block' : 'none';
   const rp = document.getElementById('panel-reset'); if(rp) rp.style.display='none';
+  if(tab==='track'){
+    document.getElementById('trackStepEmail').style.display='block';
+    document.getElementById('trackStepOtp').style.display='none';
+    document.getElementById('trackStepSub').textContent="Enter the email you used when submitting your request. We'll send a verification code to confirm it's you.";
+    document.getElementById('track_email').value='';
+    document.getElementById('trackErr').style.display='none';
+    document.getElementById('trackResultsCard').style.display='none';
+  }
 }
 
 // ═══════════════════════════════
@@ -1870,21 +1890,39 @@ async function submitPublicPR(){
 }
 
 // ═══════════════════════════════
-// TRACK MY REQUEST (public, no login)
+// TRACK MY REQUEST (public, no login, OTP-verified)
 // ═══════════════════════════════
-async function doTrackSearch(){
+async function doTrackSendOtp(){
   const email = document.getElementById('track_email').value.trim();
   const errEl = document.getElementById('trackErr');
   errEl.style.display='none';
   if(!email){ errEl.textContent='Enter your email address.'; errEl.style.display='block'; return; }
-  const btn = document.getElementById('trackSearchBtn'); btn.disabled=true; btn.textContent='Searching…';
+  const btn = document.getElementById('trackSendBtn'); btn.disabled=true; btn.textContent='Sending…';
   try{
-    const result = await api('trackByEmail', {email});
+    await api('requestTrackOtp', {email});
+    document.getElementById('trackStepEmail').style.display='none';
+    document.getElementById('trackStepOtp').style.display='block';
+    document.getElementById('trackStepSub').textContent='We sent a 6-digit code to '+email+'. Enter it below (valid for 10 minutes).';
+    document.getElementById('track_otp').value='';
+    document.getElementById('track_otp').focus();
+  }catch(e){
+    errEl.textContent = e.message||'Could not send verification code'; errEl.style.display='block';
+  } finally { btn.disabled=false; btn.textContent='✉️ Send Verification Code'; }
+}
+async function doTrackSearch(){
+  const email = document.getElementById('track_email').value.trim();
+  const otp = document.getElementById('track_otp').value.trim();
+  const errEl = document.getElementById('trackErr');
+  errEl.style.display='none';
+  if(!otp){ errEl.textContent='Enter the verification code sent to your email.'; errEl.style.display='block'; return; }
+  const btn = document.getElementById('trackSearchBtn'); btn.disabled=true; btn.textContent='Verifying…';
+  try{
+    const result = await api('trackByEmail', {email, otp});
     renderTrackResults(result.prs||[], email);
   }catch(e){
-    errEl.textContent = e.message||'Could not search'; errEl.style.display='block';
+    errEl.textContent = e.message||'Could not verify code'; errEl.style.display='block';
     document.getElementById('trackResultsCard').style.display='none';
-  } finally { btn.disabled=false; btn.textContent='🔎 Find My Requests'; }
+  } finally { btn.disabled=false; btn.textContent='🔎 Verify & View Status'; }
 }
 function renderTrackResults(prs, email){
   const card = document.getElementById('trackResultsCard');
@@ -4068,6 +4106,7 @@ function downloadPOPdf(id){
   if(!po){ toast('PO not found','error'); return; }
   if(!window.jspdf){ toast('PDF library still loading — try again in a second','error'); return; }
   const linkedRfq = rfqs.find(r=>r.id===po.rfqId);
+  const linkedPr = purchaseRequests.find(p=>p.id===po.prId);
   const vendor = vendors.find(v=>v.id===po.vendorId);
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({unit:'pt', format:'a4'});
@@ -4112,10 +4151,11 @@ function downloadPOPdf(id){
   y = 84;
 
   const contactLine = vendor ? [vendor.phone, vendor.email].filter(Boolean).join('  /  ') : '—';
+  const dateLine = fmtDate(po.issueDate) + (po.dateRequiredBy ? '  ·  Required by '+fmtDate(po.dateRequiredBy) : '');
   const gridData = [
     ['Vendor / Supplier', po.vendorName||'—', 'Entity', po.entity],
-    ['Contact', contactLine, 'Linked RFQ', linkedRfq?linkedRfq.rfqNumber:'—'],
-    ['Issue Date', fmtDate(po.issueDate), 'Date Required By', po.dateRequiredBy?fmtDate(po.dateRequiredBy):'—'],
+    ['Linked Purchase Request', linkedPr?linkedPr.prNumber:'—', 'Linked RFQ', linkedRfq?linkedRfq.rfqNumber:(po.bypassedRFQ?'None (RFQ bypassed)':'—')],
+    ['Contact', contactLine, 'Issue Date', dateLine],
     ['Delivery Terms', po.deliveryTerms||'—', 'Payment Terms', po.paymentTerms||'—']
   ];
   const colW = contentW/2;
@@ -4215,6 +4255,8 @@ function downloadDCPdf(id){
   if(!dc){ toast('Goods Receiving / Delivery Note not found','error'); return; }
   if(!window.jspdf){ toast('PDF library still loading — try again in a second','error'); return; }
   const po = purchaseOrders.find(p=>p.id===dc.poId);
+  const linkedPr = po ? purchaseRequests.find(p=>p.id===po.prId) : null;
+  const linkedRfq = po ? rfqs.find(r=>r.id===po.rfqId) : null;
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({unit:'pt', format:'a4'});
   const pageW = doc.internal.pageSize.getWidth();
@@ -4258,6 +4300,7 @@ function downloadDCPdf(id){
   y = 84;
 
   const gridData = [
+    ['Linked Purchase Request', linkedPr?linkedPr.prNumber:'—', 'Linked RFQ', linkedRfq?linkedRfq.rfqNumber:'None (RFQ bypassed)'],
     ['Linked PO', po?po.poNumber:'—', 'Vendor', po?po.vendorName:'—'],
     ['Delivery date', fmtDate(dc.deliveryDate), 'Received by', dc.receivedBy||'—']
   ];
@@ -4337,6 +4380,7 @@ function downloadPRQPdf(id){
   const po = purchaseOrders.find(p=>p.id===pq.poId);
   const dc = deliveryChallans.find(d=>d.id===pq.dcId);
   const linkedPr = purchaseRequests.find(p=>p.id===pq.prId);
+  const linkedRfq = po ? rfqs.find(r=>r.id===po.rfqId) : null;
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({unit:'pt', format:'a4'});
   const pageW = doc.internal.pageSize.getWidth();
@@ -4379,11 +4423,12 @@ function downloadPRQPdf(id){
   drawHeader();
   y = 84;
 
+  const requestedLine = (pq.requestedBy||'—') + '  ·  ' + fmtDate(pq.requestedAt);
   const gridData = [
     ['Vendor', pq.vendorName||'—', 'Linked Purchase Request', linkedPr?linkedPr.prNumber:'—'],
-    ['Linked PO', po?po.poNumber:'No Purchase Order (not required)', 'Linked GRN/DN', dc?dc.dcNumber:'—'],
-    ['Invoice Number', pq.invoiceNumber||'—', 'Invoice Date', pq.invoiceDate?fmtDate(pq.invoiceDate):'—'],
-    ['Requested By', pq.requestedBy||'—', 'Requested On', fmtDate(pq.requestedAt)]
+    ['Linked RFQ', linkedRfq?linkedRfq.rfqNumber:(po?'None (RFQ bypassed)':'—'), 'Linked PO', po?po.poNumber:'No Purchase Order (not required)'],
+    ['Linked GRN/DN', dc?dc.dcNumber:'—', 'Invoice Number', pq.invoiceNumber||'—'],
+    ['Invoice Date', pq.invoiceDate?fmtDate(pq.invoiceDate):'—', 'Requested By', requestedLine]
   ];
   const colW = contentW/2;
   const cellH = 24;
@@ -5164,6 +5209,8 @@ function renderPODetail(){
   if(!po){ document.getElementById('poDetailBody').innerHTML=emptyState('❓','Not found',''); return; }
   const lines=safeParse(po.lineItemsJson,[]);
   const vendor=vendors.find(v=>v.id===po.vendorId);
+  const linkedPr=purchaseRequests.find(p=>p.id===po.prId);
+  const linkedRfq=rfqs.find(r=>r.id===po.rfqId);
   const dcs=deliveryChallans.filter(d=>d.poId===po.id).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
   const prqs=paymentRequests.filter(p=>p.poId===po.id).sort((a,b)=>new Date(b.requestedAt)-new Date(a.requestedAt));
   const canOps = currentUser.role==='OpsProcurement'||currentUser.role==='Admin';
@@ -5189,6 +5236,7 @@ function renderPODetail(){
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
       <div><div style="font-size:20px;font-weight:900;color:var(--b900)">${po.poNumber}</div>
       <div style="font-size:12px;color:var(--b400);margin-top:2px">Vendor / Supplier: ${escHtml(po.vendorName)} · ${po.entity} · Issued ${fmtDate(po.issueDate)}${po.bypassedRFQ?' · <span style="color:var(--amber)">RFQ Bypassed</span>':''}</div>
+      <div style="font-size:11px;color:var(--b400);margin-top:2px">References: ${linkedPr?`<a href="#" onclick="event.preventDefault();openPRDetail('${linkedPr.id}')" style="color:var(--rads);font-weight:700">${linkedPr.prNumber}</a>`:'—'}${linkedRfq?` → <a href="#" onclick="event.preventDefault();openRFQDetail('${linkedRfq.id}')" style="color:var(--rads);font-weight:700">${linkedRfq.rfqNumber}</a>`:''}</div>
       ${contactLine?`<div style="font-size:11px;color:var(--b400);margin-top:2px">Contact: ${escHtml(contactLine)}</div>`:''}
       ${po.dateRequiredBy?`<div style="font-size:11px;color:var(--b400);margin-top:2px">Date Required By: ${fmtDate(po.dateRequiredBy)}</div>`:''}</div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
@@ -5414,6 +5462,7 @@ function renderPRQDetailPage(){
   if(!pq){ document.getElementById('prqDetailBody').innerHTML=emptyState('❓','Not found',''); return; }
   const pr = purchaseRequests.find(p=>p.id===pq.prId);
   const po = purchaseOrders.find(p=>p.id===pq.poId);
+  const linkedRfq = po ? rfqs.find(r=>r.id===po.rfqId) : null;
   const dc = deliveryChallans.find(d=>d.id===pq.dcId);
   const checklist = safeParse(pq.documentChecklistJson, {});
   const canSign = currentUser.role==='OpsProcurement'||currentUser.role==='Admin';
@@ -5432,7 +5481,7 @@ function renderPRQDetailPage(){
       <div>
         <div style="font-size:20px;font-weight:900;color:var(--b900)">${pq.prqNumber}</div>
         <div style="font-size:12px;color:var(--b400);margin-top:2px">Vendor: ${escHtml(pq.vendorName)} · Requested by ${escHtml(pq.requestedBy)} on ${fmtDate(pq.requestedAt)}</div>
-        ${pr?`<div style="font-size:11px;color:var(--b400);margin-top:2px">From: <a href="#" onclick="event.preventDefault();openPRDetail('${pr.id}')" style="color:var(--rads);font-weight:700">${pr.prNumber}</a> — raised by ${escHtml(pr.requestorName)} (${escHtml(pr.department)||'—'})${po?` · PO: <a href="#" onclick="event.preventDefault();openPODetail('${po.id}')" style="color:var(--rads);font-weight:700">${po.poNumber}</a>`:' · No Purchase Order (not required)'}</div>`:''}
+        ${pr?`<div style="font-size:11px;color:var(--b400);margin-top:2px">From: <a href="#" onclick="event.preventDefault();openPRDetail('${pr.id}')" style="color:var(--rads);font-weight:700">${pr.prNumber}</a> — raised by ${escHtml(pr.requestorName)} (${escHtml(pr.department)||'—'})${linkedRfq?` · RFQ: <a href="#" onclick="event.preventDefault();openRFQDetail('${linkedRfq.id}')" style="color:var(--rads);font-weight:700">${linkedRfq.rfqNumber}</a>`:''}${po?` · PO: <a href="#" onclick="event.preventDefault();openPODetail('${po.id}')" style="color:var(--rads);font-weight:700">${po.poNumber}</a>`:' · No Purchase Order (not required)'}${dc?` · GRN: ${escHtml(dc.dcNumber)}`:''}</div>`:''}
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
         ${statusBadge(pq.status)}
