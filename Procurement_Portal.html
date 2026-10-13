@@ -624,6 +624,30 @@ select.finput option{background:#14243f;color:#e6edf7}
 .sp-bar i{background:linear-gradient(90deg,#1D9E75,#1f5fd0)}
 .sp-pill{background:#0e1a2f;border-color:transparent;box-shadow:0 6px 18px rgba(14,26,47,.3)}
 @media(max-width:560px){.sp-logos img{height:70px}}
+
+/* PR HEADER */
+.prh{background:var(--surface);border:1px solid var(--b200);border-radius:14px;overflow:hidden;margin-bottom:18px}
+.prh-hd{padding:20px 24px 16px;display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--b200);background:linear-gradient(180deg,#17294a,var(--surface))}
+.prh-no{font-size:24px;font-weight:700;color:#fff}.prh-sub{font-size:13px;color:var(--b400);margin-top:3px}
+.prh-chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+.prh-chip{font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;white-space:nowrap}
+.ent-rads{background:rgba(123,31,46,.35);color:#ffb3bf;border:1px solid rgba(255,140,160,.35)}
+.ent-ahkf{background:rgba(42,92,154,.35);color:#a9cdf5;border:1px solid rgba(120,170,230,.4)}
+.c-ceo{background:rgba(29,158,117,.18);color:#5DCAA5;border:1px solid rgba(93,202,165,.4)}
+.prh-grid{display:grid;grid-template-columns:repeat(4,1fr)}
+.prh-c{padding:14px 24px;border-right:1px solid var(--b200);border-bottom:1px solid var(--b200);min-width:0}
+.prh-c:nth-child(4n){border-right:none}
+.prh-grid .prh-c:nth-last-child(-n+4){border-bottom:none}
+.prh-k{font-size:11px;color:var(--b400);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px;font-weight:700}
+.prh-v{font-size:15px;color:#fff;font-weight:600;word-break:break-word}
+.prh-v small{display:block;font-size:12px;color:var(--b400);font-weight:400;margin-top:1px}
+.prh-amt{color:#5DCAA5;font-size:18px}.prh-due{color:#F0C35A}
+.prh-just{padding:14px 24px;border-top:1px solid var(--b200);background:rgba(255,255,255,.02)}
+.prh-just p{margin:4px 0 0;font-size:14px;line-height:1.55;color:var(--b600)}
+@media(max-width:760px){.prh-grid{grid-template-columns:repeat(2,1fr)}.prh-c:nth-child(4n){border-right:1px solid var(--b200)}.prh-c:nth-child(2n){border-right:none}.prh-grid .prh-c:nth-last-child(-n+4){border-bottom:1px solid var(--b200)}.prh-grid .prh-c:nth-last-child(-n+2){border-bottom:none}}
+/* SETTINGS CARD */
+.set-card{background:var(--surface);border:1px solid var(--b200);border-radius:12px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
+.set-card .sc-t{font-weight:700;color:#fff;font-size:15px}.set-card .sc-d{font-size:12.5px;color:var(--b400);margin-top:2px;max-width:520px}
 </style>
 </head>
 <body>
@@ -1050,6 +1074,11 @@ select.finput option{background:#14243f;color:#e6edf7}
 
     <!-- ══ VIEW: ADMIN — USERS ══ -->
     <div class="view" id="view-admin">
+      <div class="set-card">
+        <div style="flex:1;min-width:260px"><div class="sc-t">CEO Approval Threshold</div><div class="sc-d">Purchase requests with an estimated total above this amount need the CEO's final approval, after the Operations Manager. Applies to requests not yet at the Operations Manager stage.</div></div>
+        <div><div class="prh-k">Amount (PKR)</div><input class="finput" id="set_ceoThreshold" type="number" min="0" step="1000" style="width:170px"></div>
+        <button class="tb-btn primary" id="set_saveBtn" onclick="saveSettings()">Save</button>
+      </div>
       <div class="results-bar">
         <div class="results-count">User accounts</div>
         <div style="display:flex;gap:8px"><button class="tb-btn" style="font-size:12px;padding:6px 12px" onclick="openMailStatus()">Email Status</button><button class="tb-btn primary" style="font-size:12px;padding:6px 12px" onclick="openUserForm()">＋ Add User</button></div>
@@ -1994,8 +2023,11 @@ let paymentRequests = [];
 let currentPRId = null, currentRFQId = null, currentPOId = null, currentPRQId = null;
 let pfLineSeq = 0, qfLineSeq = 0;
 let editingPRId = null, editingUserId = null, currentQuoteVendorId = null;
-const PR_STAGES = ['LineManager','Procurement','Finance','OperationsManager'];
-const STAGE_ROLE = {Procurement:'OpsProcurement', Finance:'Finance', OperationsManager:'OperationsManager'};
+const PR_STAGES_BASE = ['LineManager','Procurement','Finance','OperationsManager'];
+const STAGE_ROLE = {Procurement:'OpsProcurement', Finance:'Finance', OperationsManager:'OperationsManager', CEO:'CEO'};
+let appSettings = {ceoThreshold:25000};
+function prNeedsCEO(pr){ return pr && ((Number(pr.totalEstAmount)||0) > Number(appSettings.ceoThreshold)); }
+function prStagesFor(pr){ return (prNeedsCEO(pr) || (pr && pr.currentStage==='CEO')) ? PR_STAGES_BASE.concat(['CEO']) : PR_STAGES_BASE; }
 
 // ═══════════════════════════════
 // API LAYER
@@ -2314,14 +2346,14 @@ function trackProgress(pr){
   if(pr.status==='Completed') return {idx:n, bad:-1};
   if(pr.status==='Rejected'){
     const rej = [...pr.approvals].reverse().find(a=>a.action==='Reject');
-    const map = {LineManager:1,Procurement:2,Finance:3,OperationsManager:4,Delegate:4};
+    const map = {LineManager:1,Procurement:2,Finance:3,OperationsManager:4,CEO:4,Delegate:4};
     return {idx:(rej?map[rej.stage]:1)||1, bad:(rej?map[rej.stage]:1)||1};
   }
   if(pr.prqs.some(p=>p.status==='Paid')) return {idx:n, bad:-1};
   if(pr.prqs.length) return {idx:7, bad:-1};
   if(pr.dcs.length) return {idx:6, bad:-1};
   if(pr.pos.length || pr.rfqs.length) return {idx:5, bad:-1};
-  const map = {LineManager:1,Procurement:2,Finance:3,OperationsManager:4,Delegate:4};
+  const map = {LineManager:1,Procurement:2,Finance:3,OperationsManager:4,CEO:4,Delegate:4};
   if(map[pr.currentStage]) return {idx:map[pr.currentStage], bad:-1};
   if(pr.status==='Approved') return {idx:5, bad:-1};
   return {idx:1, bad:-1};
@@ -2483,12 +2515,13 @@ async function submitEmailAction(){
 // ═══════════════════════════════
 const OVERDUE_DAYS = 2;
 let mwTab = 'action', mwEnt = 'all';
-const MW_STAGES = ['LineManager','Procurement','Finance','OperationsManager'];
+const MW_STAGES = ['LineManager','Procurement','Finance','OperationsManager','CEO'];
 function mwAge(iso){ if(!iso) return 0; const d=Math.floor((Date.now()-new Date(iso).getTime())/86400000); return d<0?0:d; }
 function mwLastTouch(prId){ const t=approvals.filter(a=>a.prId===prId).map(a=>a.timestamp).filter(Boolean).sort(); return t.length?t[t.length-1]:null; }
-function mwProgress(stage){
+function mwProgress(stage, pr){
   const i = MW_STAGES.indexOf(stage==='Delegate'?'OperationsManager':stage);
-  return `<div class="mw-prog">${MW_STAGES.map((s,k)=>`<i class="${k<i?'d':(k===i?'c':'')}"></i>`).join('')}</div>`;
+  const ST = (pr && !prNeedsCEO(pr) && stage!=='CEO') ? MW_STAGES.slice(0,4) : MW_STAGES;
+  return `<div class="mw-prog">${ST.map((s,k)=>`<i class="${k<i?'d':(k===i?'c':'')}"></i>`).join('')}</div>`;
 }
 function mwUrgency(days){ return days>=OVERDUE_DAYS?'late':(days>=1?'soon':'ok'); }
 function mwAgeText(d){ return d<1?'Today':(d===1?'1 day':d+' days'); }
@@ -2502,7 +2535,7 @@ function mwItems(){
   pendingApprovalsForMe().forEach(pr=>{
     mineIds.add(pr.id);
     out.action.push({kind:'Purchase Request', no:pr.prNumber, title:prTitle(pr), who:pr.requestorName, entity:pr.entity, amount:pr.totalEstAmount,
-      since:mwLastTouch(pr.id)||pr.dateRaised, label:stageLabel(pr.currentStage), prog:mwProgress(pr.currentStage), fn:`openPRDetail('${pr.id}')`, cta:'Review'});
+      since:mwLastTouch(pr.id)||pr.dateRaised, label:stageLabel(pr.currentStage), prog:mwProgress(pr.currentStage, pr), fn:`openPRDetail('${pr.id}')`, cta:'Review'});
   });
   if(role==='OpsProcurement'||role==='Admin'){
     purchaseRequests.filter(pr=>pr.status==='Approved').forEach(pr=>{
@@ -2554,7 +2587,7 @@ function mwItems(){
     if(!pending && !(broad && sourcing.indexOf(pr.status)>-1)) return;
     out.waiting.push({kind:'Purchase Request', no:pr.prNumber, title:prTitle(pr), who:pr.requestorName, entity:pr.entity, amount:pr.totalEstAmount,
       since:mwLastTouch(pr.id)||pr.dateRaised, label: pending?('With '+stageLabel(pr.currentStage)):(STATUS_MAP[pr.status]?STATUS_MAP[pr.status][1]:pr.status),
-      prog: pending?mwProgress(pr.currentStage):'', fn:`openPRDetail('${pr.id}')`, cta:'View', idle:true});
+      prog: pending?mwProgress(pr.currentStage, pr):'', fn:`openPRDetail('${pr.id}')`, cta:'View', idle:true});
   });
 
   // Done by me
@@ -2719,6 +2752,7 @@ function applyBootstrap(data){
   purchaseOrders = data.purchaseOrders||[];
   deliveryChallans = data.deliveryChallans||[];
   paymentRequests = data.paymentRequests||[];
+  if(data.settings) appSettings = data.settings;
   updateSidebarCounts();
 }
 function safeParse(s,d){ try{ return s?JSON.parse(s):d; }catch(e){ return d; } }
@@ -3626,12 +3660,13 @@ function fmtDateTime(iso){ if(!iso) return '—'; try{ const d=new Date(iso); re
 function emailName(e){ const u = allUsers.find(x=>x.email && String(x.email).toLowerCase()===String(e||'').toLowerCase()); return u?u.name:(e||'—'); }
 function fmtMoney(n){ return 'Rs. '+Number(n||0).toLocaleString(undefined,{maximumFractionDigits:0}); }
 function emptyState(icon,head,sub){ return `<div class="empty-state"><div class="empty-icon">${icon}</div><div class="empty-head">${head}</div><div class="empty-sub">${sub}</div></div>`; }
-function stageLabel(s){ return {LineManager:'Line Manager',Procurement:'Procurement Dept',Finance:'Finance',OperationsManager:'Operations Manager',Delegate:'Delegated Approval','—':'—'}[s]||s; }
+function stageLabel(s){ return {LineManager:'Line Manager',Procurement:'Procurement Dept',Finance:'Finance',OperationsManager:'Operations Manager',CEO:'CEO Final Approval',Delegate:'Delegated Approval','—':'—'}[s]||s; }
 function actionLabel(a){ return {Approve:'Approved', Reject:'Rejected', Query:'Sent Back', Delegate:'Delegated'}[a] || a; }
 const STATUS_MAP = {
   PendingLineManager:['st-pending','Pending Line Manager'],
   PendingProcurement:['st-pending','Pending Procurement'],
   PendingFinance:['st-pending','Pending Finance'],
+  PendingCEO:['st-pending','Pending CEO'],
   PendingSignature:['st-pending','Pending Signature'],
   PendingOperationsManager:['st-pending','Pending Operations Manager'],
   PendingDelegate:['st-pending','Pending Delegated Approval'],
@@ -5264,11 +5299,20 @@ function downloadPRQPdf(id){
   doc.save(pq.prqNumber+'.pdf');
 }
 
+function prhDate(v){ if(!v) return '—'; const d=new Date(v); if(isNaN(d)) return escHtml(String(v)); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }
+function prhNeeded(v){
+  if(!v) return '—'; const d=new Date(v); if(isNaN(d)) return escHtml(String(v));
+  const days=Math.ceil((d.getTime()-Date.now())/86400000);
+  const note = days<0 ? (-days)+' day'+(days===-1?'':'s')+' overdue' : (days===0?'due today':days+' day'+(days===1?'':'s')+' away');
+  return `<span class="${days<=3?'prh-due':''}">${prhDate(v)}</span><small>${note}</small>`;
+}
+function prhName(email){ const u=(allUsers||[]).find(x=>String(x.email).toLowerCase()===String(email||'').toLowerCase()); return u?u.name:(email||'—'); }
 function renderPRDetail(){
   const pr=purchaseRequests.find(p=>p.id===currentPRId);
   if(!pr){ document.getElementById('prDetailBody').innerHTML=emptyState('❓','Not found',''); return; }
   const lines=safeParse(pr.lineItemsJson,[]);
   const hist=approvals.filter(a=>a.prId===pr.id).sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
+  const PR_STAGES = prStagesFor(pr);
   const stageIdx = PR_STAGES.indexOf(pr.currentStage);
   const passedIdx = (pr.status==='Approved' || pr.status==='Completed') ? PR_STAGES.length : stageIdx;
   const stepsHtml = PR_STAGES.map((s,i)=>{
@@ -5284,7 +5328,7 @@ function renderPRDetail(){
   else if(pr.currentStage==='Delegate') canAct = currentUser.role==='Admin' || String(currentUser.email).toLowerCase()===String(pr.delegatedApproverEmail||'').toLowerCase();
   else if(STAGE_ROLE[pr.currentStage]) canAct = currentUser.role==='Admin' || currentUser.role===STAGE_ROLE[pr.currentStage];
 
-  const isPendingApproval = ['PendingLineManager','PendingProcurement','PendingFinance','PendingOperationsManager','PendingDelegate'].includes(pr.status);
+  const isPendingApproval = ['PendingLineManager','PendingProcurement','PendingFinance','PendingOperationsManager','PendingCEO','PendingDelegate'].includes(pr.status);
   const canEdit = pr.status==='PendingLineManager' && (currentUser.role==='Admin' || String(currentUser.email).toLowerCase()===String(pr.lineManagerEmail||'').toLowerCase());
 
   let actionsHtml='';
@@ -5292,8 +5336,8 @@ function renderPRDetail(){
     actionsHtml = `${canEdit?`<button class="tb-btn" onclick="openPRForm('${pr.id}')">✏️ Edit</button>`:''}
       <button class="tb-btn" style="background:var(--rose-l);color:var(--rose);border-color:#7a3a3a" onclick="actOnPRPrompt('${pr.id}','Reject')">✕ Reject</button>
       ${pr.currentStage!=='Delegate' ? `<button class="tb-btn" onclick="actOnPRPrompt('${pr.id}','Query')">↩ Send Back to Line Manager</button>` : ''}
-      ${pr.currentStage==='OperationsManager' ? `<button class="tb-btn" style="background:var(--violet-l);color:#b9aef7;border-color:#4a4180" onclick="openDelegatePicker('${pr.id}')">↗ Delegate (CEO / Finance Head / Other)</button>`:''}
-      <button class="tb-btn primary" onclick="actOnPRPrompt('${pr.id}','Approve')">✓ Approve${pr.currentStage==='OperationsManager'?' & Finalize':''}</button>`;
+      ${(pr.currentStage==='OperationsManager' && !prNeedsCEO(pr)) ? `<button class="tb-btn" style="background:var(--violet-l);color:#b9aef7;border-color:#4a4180" onclick="openDelegatePicker('${pr.id}')">↗ Delegate (CEO / Finance Head / Other)</button>`:''}
+      <button class="tb-btn primary" onclick="actOnPRPrompt('${pr.id}','Approve')">✓ Approve${(pr.currentStage==='CEO'||(pr.currentStage==='OperationsManager'&&!prNeedsCEO(pr)))?' & Finalize':''}</button>`;
   } else if(pr.status==='Approved' && (currentUser.role==='OpsProcurement'||currentUser.role==='Admin')){
     const hasRfq = rfqs.some(r=>r.prId===pr.id);
     const hasPO = purchaseOrders.some(p=>p.prId===pr.id);
@@ -5362,16 +5406,22 @@ function renderPRDetail(){
   </div>`;
 
   document.getElementById('prDetailBody').innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
-      <div>
-        <div style="font-size:20px;font-weight:900;color:var(--b900)">${pr.prNumber}</div>
-        <div style="font-size:12px;color:var(--b400);margin-top:2px">Raised by ${escHtml(pr.requestorName)} (${escHtml(pr.requestorEmail)}) · ${escHtml(pr.department)||'—'} · ${pr.entity}</div>
-        <div style="font-size:11px;color:var(--b400);margin-top:2px">Line Manager: ${escHtml(pr.lineManagerEmail)}${pr.project?' · Project: '+escHtml(pr.project):''}${pr.station?' · Station: '+escHtml(pr.station):''}</div>
+    <div class="prh">
+      <div class="prh-hd">
+        <div><div class="prh-no">${pr.prNumber}</div><div class="prh-sub">Purchase Request</div></div>
+        <div class="prh-chips"><span class="prh-chip ${pr.entity==='AHKF'?'ent-ahkf':'ent-rads'}">${pr.entity}</span>${statusBadge(pr.status)}${prNeedsCEO(pr)?'<span class="prh-chip c-ceo">CEO Final Approval Required</span>':''}${pdfStatusBlock(pr)}</div>
       </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
-        ${statusBadge(pr.status)}
-        ${pdfStatusBlock(pr)}
+      <div class="prh-grid">
+        <div class="prh-c"><div class="prh-k">Requested By</div><div class="prh-v">${escHtml(pr.requestorName)||'—'}<small>${escHtml(pr.requestorEmail)}</small></div></div>
+        <div class="prh-c"><div class="prh-k">Requested On</div><div class="prh-v">${prhDate(pr.dateRaised||pr.createdAt)}</div></div>
+        <div class="prh-c"><div class="prh-k">Needed By</div><div class="prh-v">${prhNeeded(pr.neededBy)}</div></div>
+        <div class="prh-c"><div class="prh-k">Estimated Total</div><div class="prh-v prh-amt">${fmtMoney(pr.totalEstAmount)}</div></div>
+        <div class="prh-c"><div class="prh-k">Department</div><div class="prh-v">${escHtml(pr.department)||'—'}</div></div>
+        <div class="prh-c"><div class="prh-k">Project</div><div class="prh-v">${escHtml(pr.project)||'—'}</div></div>
+        <div class="prh-c"><div class="prh-k">Station</div><div class="prh-v">${escHtml(pr.station)||'—'}</div></div>
+        <div class="prh-c"><div class="prh-k">Line Manager</div><div class="prh-v">${escHtml(prhName(pr.lineManagerEmail))}<small>${escHtml(pr.lineManagerEmail)}</small></div></div>
       </div>
+      ${pr.justification?`<div class="prh-just"><div class="prh-k">Justification</div><p>${escHtml(pr.justification)}</p></div>`:''}
     </div>
     <div class="stepper">${stepsHtml}</div>
     ${procStatusHtml}
@@ -6560,7 +6610,13 @@ function showAdminUsers(){
   setSbActive('sb-admin'); clearTopbar();
   renderAdminUsers(); showView('admin');
 }
+async function saveSettings(){
+  const v=document.getElementById('set_ceoThreshold').value;
+  try{ const r=await api('updateSettings',{ceoThreshold:v},document.getElementById('set_saveBtn')); appSettings=r; toast('Threshold saved: PKR '+Number(r.ceoThreshold).toLocaleString('en-US')); }
+  catch(e){ toast(e.message,'error'); }
+}
 function renderAdminUsers(){
+  const si=document.getElementById('set_ceoThreshold'); if(si) si.value=appSettings.ceoThreshold;
   document.getElementById('adminUserBody').innerHTML = allUsers.map(u=>{
     const isActive = !(u.active===false||u.active==='FALSE');
     const isLM = u.isLineManager===true||u.isLineManager==='TRUE';
