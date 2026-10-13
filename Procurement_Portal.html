@@ -1052,7 +1052,7 @@ select.finput option{background:#14243f;color:#e6edf7}
     <div class="view" id="view-admin">
       <div class="results-bar">
         <div class="results-count">User accounts</div>
-        <button class="tb-btn primary" style="font-size:12px;padding:6px 12px" onclick="openUserForm()">＋ Add User</button>
+        <div style="display:flex;gap:8px"><button class="tb-btn" style="font-size:12px;padding:6px 12px" onclick="openMailStatus()">Email Status</button><button class="tb-btn primary" style="font-size:12px;padding:6px 12px" onclick="openUserForm()">＋ Add User</button></div>
       </div>
       <div class="table-shell">
         <table class="vtbl">
@@ -1208,6 +1208,18 @@ select.finput option{background:#14243f;color:#e6edf7}
 </div>
 
 <!-- MODAL: CONFIRM DELETE -->
+<div class="overlay" id="mailOverlay">
+<div class="modal" style="max-width:820px">
+  <div class="modal-hdr"><div class="modal-hdr-left"><div class="modal-title">Email Status</div></div><button class="modal-close" onclick="document.getElementById('mailOverlay').classList.remove('open')">✕</button></div>
+  <div class="modal-body">
+    <div id="mailInfo" style="font-size:13px;margin-bottom:12px"></div>
+    <div style="display:flex;gap:8px;margin-bottom:14px"><input class="fi" id="mailTestTo" placeholder="Send a test email to…" style="flex:1"><button class="tb-btn primary" id="mailTestBtn" onclick="sendTestMail()">Send Test</button></div>
+    <div id="mailTestRes" style="font-size:13px;margin-bottom:12px"></div>
+    <div class="table-shell"><table class="vtbl"><thead><tr><th>Time</th><th>To</th><th>Subject</th><th>Status</th><th>Detail</th></tr></thead><tbody id="mailRows"></tbody></table></div>
+  </div>
+</div>
+</div>
+
 <div class="overlay" id="delOverlay">
 <div class="modal" style="max-width:400px">
   <div class="modal-hdr">
@@ -6556,6 +6568,24 @@ function renderAdminUsers(){
     <td>${isActive?'<span class="stbadge st-approved">Active</span>':'<span class="stbadge st-rejected">Disabled</span>'}</td>
     <td><div class="act-btns"><button class="act-btn act-edit" onclick="openUserForm('${u.id}')">Edit</button></div></td></tr>`;
   }).join('');
+}
+
+async function openMailStatus(){
+  document.getElementById('mailOverlay').classList.add('open');
+  document.getElementById('mailTestRes').textContent='';
+  try{
+    const r=await api('getMailLog',{});
+    document.getElementById('mailInfo').innerHTML='Sending account: <b>'+escHtml(r.sender||'—')+'</b> &nbsp;·&nbsp; Emails left today: <b>'+(r.quota==null?'—':r.quota)+'</b>'+(r.rows.length?'':'<br><span style="color:var(--amber,#e0a030)">No send has been attempted yet by this deployed version. Run authorizeMail once in the script editor, deploy a New version, then press Send Test.</span>');
+    document.getElementById('mailRows').innerHTML=r.rows.map(m=>`<tr><td>${escHtml(String(m.timestamp||'').replace('T',' ').slice(0,16))}</td><td>${escHtml(m.toEmail)}</td><td>${escHtml(m.subject)}</td><td><span class="stbadge ${m.status==='Sent'?'st-approved':'st-rejected'}">${escHtml(m.status)}</span></td><td style="font-size:11px">${escHtml(m.detail)}</td></tr>`).join('')||'<tr><td colspan="5" style="text-align:center;opacity:.6">No emails logged yet</td></tr>';
+  }catch(e){ toast(e.message,'error'); }
+}
+async function sendTestMail(){
+  const to=document.getElementById('mailTestTo').value.trim()||currentUser.email;
+  try{
+    const r=await api('sendTestMail',{to},document.getElementById('mailTestBtn'));
+    document.getElementById('mailTestRes').innerHTML=r.ok?'<span style="color:#5DCAA5">Sent to '+escHtml(to)+' ('+escHtml(r.via)+'). Ask them to check the inbox and Junk.</span>':'<span style="color:#ff8a8a">Failed: '+escHtml(r.error)+'</span>';
+    openMailStatus();
+  }catch(e){ toast(e.message,'error'); }
 }
 function openUserForm(id){
   editingUserId=id||null;
