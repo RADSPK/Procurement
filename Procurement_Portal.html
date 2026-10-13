@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Procurement Portal — RADS & AHKF</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Carlito:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root {
@@ -24,7 +24,7 @@
   --shadow-lg:0 10px 15px -3px rgba(0,0,0,.08),0 4px 6px -4px rgba(0,0,0,.05);
   --shadow-xl:0 20px 25px -5px rgba(0,0,0,.10),0 8px 10px -6px rgba(0,0,0,.05);
   --r4:4px;--r6:6px;--r8:8px;--r12:12px;--r16:16px;--r20:20px;
-  --f:Inter,system-ui,sans-serif;
+  --f:Calibri,Carlito,system-ui,sans-serif;
 }
 /* COMPLIANCE / FLAGS */
 .flag-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px;white-space:nowrap}
@@ -141,8 +141,8 @@ html,body{height:100%;font-family:var(--f);background:var(--canvas);color:var(--
 .tb-btn.primary{background:var(--rads);color:#fff;border-color:var(--rads)}
 .tb-btn.primary:hover{background:var(--rads-d);border-color:var(--rads-d)}
 .chk-opt.active{background:var(--rads);color:#fff;border-color:var(--rads)}
-.pd-toggle.active-yes{background:var(--green-l);color:var(--green-d);border-color:#A7F3D0}
-.pd-toggle.active-no{background:var(--rose-l);color:var(--rose);border-color:#FECDD3}
+.pd-toggle.active-yes{background:var(--green-l);color:var(--green-d);border-color:#1D9E75}
+.pd-toggle.active-no{background:var(--rose-l);color:var(--rose);border-color:#7a3a3a}
 
 /* GLOBAL LOADING FEEDBACK — a top progress bar (catches every action) plus a
    processing-dots state applied to whichever button triggered the request. */
@@ -257,7 +257,7 @@ html,body{height:100%;font-family:var(--f);background:var(--canvas);color:var(--
 .act-btns{display:flex;gap:5px}
 .act-btn{padding:4px 10px;border-radius:var(--r6);font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid;transition:all .15s;font-family:var(--f)}
 .act-edit{background:var(--b50);color:var(--b600);border-color:var(--b200)}.act-edit:hover{background:var(--b100);color:var(--b900);border-color:var(--b300)}
-.act-del{background:var(--rose-l);color:var(--rose);border-color:#FECDD3}.act-del:hover{background:#FFB3BC;border-color:var(--rose)}
+.act-del{background:var(--rose-l);color:var(--rose);border-color:#7a3a3a}.act-del:hover{background:#FFB3BC;border-color:var(--rose)}
 
 /* EMPTY */
 .empty-state{text-align:center;padding:64px 32px;color:var(--b400)}
@@ -414,6 +414,153 @@ textarea.finput{min-height:72px;resize:vertical}
   .cat-mosaic{grid-template-columns:1fr 1fr}
   .scroll-area{padding:16px}
 }
+
+/* ══════════════ NAVY / TEAL THEME — DETAILS ══════════════ */
+:root{
+  --f:Calibri,Carlito,'Segoe UI',system-ui,sans-serif;
+  --rads:#1D9E75; --rads-d:#0F6E56; --rads-l:#10332e; --rads-m:#1D9E75;
+  --ahkf:#2A5C9A; --ahkf-d:#1A3A5C; --ahkf-l:#12304a; --ahkf-m:#2A5C9A;
+  --sidebar:#0a1424; --sidebar-hover:#10213b; --sidebar-active:#173a4a;
+  --canvas:#0e1a2f; --surface:#14243f;
+  --b50:#112038;--b100:#1a2d4d;--b200:#233a5e;--b300:#2f4b75;--b400:#8aa0bf;--b500:#a2b5cf;--b600:#bccbe0;--b700:#d3deee;--b800:#e6edf7;--b900:#f4f7fc;
+  --green:#1D9E75;--green-l:#0f3a2e;--green-d:#5DCAA5;
+  --amber:#E0A93B;--amber-l:#3a2f12;
+  --sky:#4C9BE8;--sky-l:#12304a;
+  --violet:#9A8CF0;--violet-l:#2a2450;
+  --rose:#F28B7C;--rose-l:#3d1f22;
+  --teal:#5DCAA5;
+}
+html,body,input,select,textarea,button{font-family:var(--f)}
+body{font-size:15px}
+.flag-warn{color:#F0C35A}.flag-star{background:#3a2f12;color:#F0C35A;border-color:#5a4a1a}
+.tb-need,.st-pending{color:#F0C35A}.tb-qual,.st-active{color:#7fb8ee}.tb-btc,.st-done{color:#b9aef7}
+.st-approved,.tb-ret{color:#5DCAA5}.st-rejected{color:#F28B7C}
+.pd-toggle.active-yes{border-color:#1D9E75}.pd-toggle.active-no{border-color:#7a3a3a}
+.act-del{border-color:#7a3a3a}.act-del:hover{background:#5a2a2e}
+.vtbl tbody tr:hover td{background:var(--b50)}
+.compare-bar{background:#0a1424;border-top:1px solid var(--b200)}
+.toast{background:#0a1424;border:1px solid var(--b200);color:#e6edf7}
+.toast.success{background:#0F6E56;border-color:#1D9E75}.toast.error{background:#8a2f35;border-color:#F28B7C}
+.sb-logo-mark,.login-mark,.landing-brand-mark{background:transparent;box-shadow:none}
+.sb-logo-mark{width:40px;height:34px}.sb-logo-mark img{width:100%!important;height:100%!important;object-fit:contain}
+.sb-add-btn{background:var(--rads);}
+.sb-item-icon{display:flex;align-items:center;justify-content:center}
+.sb-item-icon svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;color:rgba(255,255,255,.65)}
+.sb-item.active .sb-item-icon svg{color:#5DCAA5}
+.sb-item.active{background:var(--sidebar-active);border-color:rgba(93,202,165,.25)}
+.topbar{background:#0a1424;border-bottom:1px solid var(--b200)}
+.notice-btn,.notice-dropdown{background:var(--surface)}
+.notice-row:hover{background:var(--b100)}
+.metrics-panel{background:#0a1424;border:1px solid var(--b200)}
+.metric-card{background:var(--surface);border:1px solid var(--b200)}
+.metric-card.clickable:hover{background:var(--b100)}
+.metric-num{color:#5DCAA5}
+.chip.active{background:#10332e;color:#5DCAA5;border-color:#1D9E75}
+.chip.active.ahkf{background:#12304a;color:#7fb8ee;border-color:#2A5C9A}
+.hero-search:focus,.finput:focus{box-shadow:0 0 0 3px rgba(29,158,117,.18)}
+.finput::placeholder,.hero-search::placeholder{color:#5f7596}
+select.finput option{background:#14243f;color:#e6edf7}
+.modal{border-color:var(--b200)}.modal-foot{background:var(--b50)}
+.overlay{background:rgba(5,10,20,.7)}
+.login-shell,.landing-shell,.splash-shell{background:radial-gradient(1200px 600px at 50% -10%,#16345a 0%,#0e1a2f 55%,#0a1424 100%)}
+.landing-shell{padding-top:40px}
+.landing-brand{gap:12px;margin-bottom:30px}
+.landing-brand-mark{width:auto;height:auto}
+.landing-brand-mark img{width:150px!important;height:auto!important;display:block;filter:drop-shadow(0 8px 22px rgba(0,0,0,.45))}
+.landing-title{font-size:36px;font-weight:700;letter-spacing:-.3px}
+.landing-sub{font-size:16px;color:#8aa0bf}
+.landing-tab.active{background:#1D9E75;color:#fff}
+.login-mark{width:44px;height:44px}.login-mark img{width:100%!important;height:100%!important;object-fit:contain}
+.login-card,.request-card{background:var(--surface);border:1px solid var(--b200)}
+.choice-btn{background:#14243f;border:1px solid #233a5e;padding:28px 18px}
+.choice-btn:hover{background:#18305a;border-color:#1D9E75}
+.choice-btn.accent-login{background:#10332e;border-color:#1D9E75}
+.choice-btn.accent-login:hover{background:#13403a}
+.choice-btn-icon{background:#173a4a!important;color:#5DCAA5}
+.choice-btn-icon svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.choice-btn-title{font-size:17px;font-weight:700}
+.choice-btn-sub{font-size:13px;color:#8aa0bf}
+.step.current{background:#1D9E75}
+.rec-card-completed{background:#0f2f2a;border-left-color:#1D9E75}
+.compare-card.best{background:#0f3a2e}
+.import-drop:hover{background:var(--ahkf-l)}
+#globalLoadingBar{background:linear-gradient(90deg,#1D9E75,#5DCAA5)}
+::-webkit-scrollbar-thumb{background:#233a5e}
+
+/* ══ MY WORK ══ */
+.mw-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.mw-title{font-size:24px;font-weight:700;color:var(--b900)}
+.mw-sub{font-size:13px;color:var(--b400);margin-top:2px}
+.mw-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.mw-tile{background:var(--surface);border:1px solid var(--b200);border-radius:var(--r12);padding:14px 16px}
+.mw-tile.hot{border-color:#1D9E75}
+.mw-tile-l{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--b400)}
+.mw-tile-n{font-size:30px;font-weight:700;margin-top:4px;color:var(--b900);line-height:1.1}
+.mw-tile.hot .mw-tile-n{color:#5DCAA5}.mw-tile.warn .mw-tile-n{color:#F28B7C}
+.mw-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.mw-tab{padding:7px 15px;border-radius:20px;border:1px solid var(--b300);background:transparent;color:var(--b500);font-size:13px;cursor:pointer;font-family:var(--f);font-weight:600}
+.mw-tab:hover{border-color:var(--b400);color:var(--b800)}
+.mw-tab.on{background:#10332e;border-color:#1D9E75;color:#5DCAA5}
+.mw-list{background:var(--surface);border:1px solid var(--b200);border-radius:var(--r12);padding:2px 16px}
+.mw-item{display:flex;align-items:center;gap:14px;padding:14px 0;border-top:1px solid var(--b200);cursor:pointer}
+.mw-item:first-child{border-top:none}
+.mw-item:hover .mw-item-title{color:#5DCAA5}
+.mw-bar{width:4px;align-self:stretch;border-radius:2px;flex-shrink:0}
+.mw-bar.ok{background:#1D9E75}.mw-bar.soon{background:#E0A93B}.mw-bar.late{background:#F28B7C}.mw-bar.idle{background:var(--b300)}
+.mw-item-main{flex:1;min-width:0}
+.mw-item-title{font-size:15px;font-weight:700;color:var(--b900)}
+.mw-item-meta{font-size:12.5px;color:var(--b400);margin-top:2px}
+.mw-prog{display:flex;gap:3px;margin-top:8px;width:200px}
+.mw-prog i{flex:1;height:5px;border-radius:3px;background:var(--b200)}
+.mw-prog i.d{background:#1D9E75}.mw-prog i.c{background:#5DCAA5}
+.mw-pill{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11.5px;font-weight:700;white-space:nowrap}
+.mw-pill.late{background:#3d1f22;color:#F28B7C}.mw-pill.soon{background:#3a2f12;color:#F0C35A}.mw-pill.ok{background:#0f3a2e;color:#5DCAA5}.mw-pill.idle{background:var(--b100);color:var(--b500)}
+.mw-cta{padding:8px 16px;border-radius:8px;background:#1D9E75;color:#fff;font-size:13px;font-weight:700;white-space:nowrap}
+.mw-cta.alt{background:transparent;border:1px solid var(--b300);color:var(--b700)}
+.mw-ent{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:700;margin-left:6px;vertical-align:1px}
+.mw-ent.RADS{background:#3b1c26;color:#f0a0b0}.mw-ent.AHKF{background:#12304a;color:#8fc0f0}
+.mw-empty{padding:40px 10px;text-align:center;color:var(--b400)}
+.mw-empty b{display:block;font-size:17px;color:var(--b700);margin-bottom:4px}
+@media(max-width:640px){.mw-item{flex-wrap:wrap}.mw-prog{width:100%}}
+
+/* ══ TRACKING ══ */
+.tr-wrap{max-width:820px;width:100%;margin:0 auto}
+.tr-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}
+.tr-card{background:var(--surface);border:1px solid var(--b200);border-radius:var(--r12);padding:18px 20px;margin-bottom:12px;text-align:left}
+.tr-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.tr-num{font-size:18px;font-weight:700;color:var(--b900)}
+.tr-meta{font-size:12.5px;color:var(--b400);margin-top:2px}
+.tr-with{margin:12px 0 4px;font-size:14px;color:var(--b700)}
+.tr-with b{color:#5DCAA5}
+.tr-steps{display:flex;margin:14px 0 6px;overflow-x:auto;padding-bottom:4px}
+.tr-step{flex:1;min-width:70px;text-align:center;position:relative;font-size:11px;color:var(--b400)}
+.tr-step::before{content:'';position:absolute;top:9px;left:-50%;width:100%;height:2px;background:var(--b200)}
+.tr-step:first-child::before{display:none}
+.tr-dot{width:20px;height:20px;border-radius:50%;background:var(--b100);border:2px solid var(--b300);margin:0 auto 6px;position:relative;z-index:1;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff}
+.tr-step.done .tr-dot{background:#1D9E75;border-color:#1D9E75}.tr-step.done::before{background:#1D9E75}
+.tr-step.cur .tr-dot{background:#14243f;border-color:#5DCAA5;box-shadow:0 0 0 4px rgba(93,202,165,.18)}.tr-step.cur::before{background:#1D9E75}
+.tr-step.cur,.tr-step.done{color:var(--b700)}.tr-step.cur{font-weight:700;color:#5DCAA5}
+.tr-step.bad .tr-dot{background:#8a2f35;border-color:#F28B7C}.tr-step.bad{color:#F28B7C}
+.tr-det{margin-top:10px;border-top:1px solid var(--b200);padding-top:8px}
+.tr-det summary{cursor:pointer;font-size:13px;color:var(--b500);font-weight:600;padding:4px 0}
+.tr-row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--b100);font-size:13px;color:var(--b600)}
+.tr-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--b400);margin:12px 0 2px}
+.code-input{text-align:center;font-size:22px!important;letter-spacing:4px;font-family:Consolas,monospace!important;text-transform:uppercase}
+.code-box{background:#0f3a2e;border:1px solid #1D9E75;border-radius:12px;padding:16px;margin:14px auto;max-width:360px}
+.code-box-l{font-size:11px;letter-spacing:.1em;color:#8aa0bf}
+.code-box-v{font-size:30px;font-weight:700;letter-spacing:4px;color:#5DCAA5;font-family:Consolas,monospace}
+
+/* ══ EMAIL CONFIRM PAGE ══ */
+.act-card{max-width:680px;width:100%;margin:0 auto;text-align:left}
+.act-hdr{padding:16px 22px;border-radius:12px 12px 0 0;color:#fff}
+.act-hdr h2{font-size:20px;margin:0}.act-hdr div{font-size:12.5px;opacity:.85}
+.act-body{background:var(--surface);border:1px solid var(--b200);border-top:none;border-radius:0 0 12px 12px;padding:20px 22px}
+.act-kv{display:grid;grid-template-columns:150px 1fr;gap:6px 12px;font-size:14px;margin-bottom:14px}
+.act-kv span{color:var(--b400)}.act-kv b{color:var(--b900)}
+.act-choice{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.act-opt{padding:12px;text-align:center;border-radius:10px;border:1.5px solid var(--b300);cursor:pointer;font-weight:700;color:var(--b600)}
+.act-opt.on-approve{border-color:#1D9E75;background:#0f3a2e;color:#5DCAA5}
+.act-opt.on-reject{border-color:#F28B7C;background:#3d1f22;color:#F28B7C}
 </style>
 </head>
 <body>
@@ -441,53 +588,50 @@ textarea.finput{min-height:72px;resize:vertical}
   <div class="landing-panel" id="panel-choice" style="max-width:760px;text-align:center">
     <div class="choice-btn-grid">
       <div class="choice-btn accent-login" onclick="chooseLanding('login')">
-        <div class="choice-btn-icon">🔐</div>
+        <div class="choice-btn-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
         <div class="choice-btn-title">Staff Login</div>
         <div class="choice-btn-sub">Line Managers, Procurement, Finance, Operations And Admin</div>
       </div>
       <div class="choice-btn accent-request" onclick="chooseLanding('request')">
-        <div class="choice-btn-icon">📝</div>
+        <div class="choice-btn-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></div>
         <div class="choice-btn-title">Make A Request</div>
         <div class="choice-btn-sub">Submit A Purchase Request — No Account Needed</div>
       </div>
       <div class="choice-btn accent-track" onclick="chooseLanding('track')">
-        <div class="choice-btn-icon">🔎</div>
+        <div class="choice-btn-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></div>
         <div class="choice-btn-title">Track My Request</div>
-        <div class="choice-btn-sub">Check The Status Of A Request You've Already Submitted</div>
+        <div class="choice-btn-sub">Email And Access Code — See All Your Requests</div>
       </div>
     </div>
   </div>
 
   <div class="landing-tabs" id="landingTabs" style="display:none">
-    <button class="landing-tab" id="tab-login" onclick="switchLandingTab('login')">🔐 Staff Login</button>
-    <button class="landing-tab" id="tab-request" onclick="switchLandingTab('request')">📝 Make a Request</button>
-    <button class="landing-tab" id="tab-track" onclick="switchLandingTab('track')">🔎 Track My Request</button>
+    <button class="landing-tab" id="tab-login" onclick="switchLandingTab('login')">Staff Login</button>
+    <button class="landing-tab" id="tab-request" onclick="switchLandingTab('request')">Make A Request</button>
+    <button class="landing-tab" id="tab-track" onclick="switchLandingTab('track')">Track My Request</button>
     <button class="landing-tab" onclick="showLandingChoice()" style="color:rgba(255,255,255,.85)">← Back</button>
   </div>
 
   <!-- ── TRACK MY REQUEST PANEL ── -->
-  <div class="landing-panel" id="panel-track" style="display:none;max-width:640px">
-    <div class="request-card" id="trackSearchCard">
+  <div class="landing-panel" id="panel-track" style="display:none;max-width:820px">
+    <div class="request-card" id="trackSearchCard" style="max-width:480px;margin:0 auto">
       <div class="request-card-title">Track My Request</div>
-      <div class="request-card-sub" id="trackStepSub">Enter the email you used when submitting your request. We'll send a verification code to confirm it's you.</div>
+      <div class="request-card-sub">Enter your work email and your personal access code to see all your requests and where each one stands.</div>
       <div class="login-err" id="trackErr"></div>
-      <div id="trackStepEmail">
-        <div class="fg s2" style="margin-bottom:12px">
-          <label class="flabel">Email</label>
-          <input class="finput" id="track_email" type="email" placeholder="you@rads.org.pk" onkeydown="if(event.key==='Enter')doTrackSendOtp()">
-        </div>
-        <button class="tb-btn primary" style="width:100%;padding:11px;font-size:13px" id="trackSendBtn" onclick="doTrackSendOtp()">✉️ Send Verification Code</button>
+      <div class="fg s2" style="margin-bottom:12px">
+        <label class="flabel">Work Email</label>
+        <input class="finput" id="track_email" type="email" placeholder="you@resdev.org" onkeydown="if(event.key==='Enter')doTrackSearch()">
       </div>
-      <div id="trackStepOtp" style="display:none">
-        <div class="fg s2" style="margin-bottom:12px">
-          <label class="flabel">Verification Code</label>
-          <input class="finput" id="track_otp" type="text" inputmode="numeric" maxlength="6" placeholder="6-digit code" onkeydown="if(event.key==='Enter')doTrackSearch()">
-        </div>
-        <button class="tb-btn primary" style="width:100%;padding:11px;font-size:13px" id="trackSearchBtn" onclick="doTrackSearch()">🔎 Verify &amp; View Status</button>
-        <div style="text-align:center;margin-top:10px">
-          <a href="#" onclick="event.preventDefault();doTrackSendOtp()" style="font-size:12px;color:var(--b400)">Resend code</a>
-        </div>
+      <div class="fg s2" style="margin-bottom:16px">
+        <label class="flabel">Access Code</label>
+        <input class="finput code-input" id="track_code" type="text" maxlength="9" placeholder="XXXX-XXXX" autocomplete="off" oninput="fmtAccessCode(this)" onkeydown="if(event.key==='Enter')doTrackSearch()">
       </div>
+      <button class="tb-btn primary" style="width:100%;padding:11px;font-size:14px" id="trackSearchBtn" onclick="doTrackSearch()">View My Requests</button>
+      <div style="text-align:center;margin-top:12px;font-size:13px;color:var(--b400)">
+        Don't have your code? It was emailed when you made your first request.<br>
+        <a href="#" id="trackResendLink" onclick="event.preventDefault();doTrackResend()" style="color:#5DCAA5;font-weight:700">Email me my code</a>
+      </div>
+      <div id="trackResendMsg" style="display:none;margin-top:10px;text-align:center;font-size:13px;color:#5DCAA5"></div>
     </div>
     <div id="trackResultsCard" style="display:none"></div>
   </div>
@@ -527,9 +671,13 @@ textarea.finput{min-height:72px;resize:vertical}
       <button class="tb-btn primary" style="width:100%;padding:12px;font-size:13px;margin-top:20px" id="pubSubmitBtn" onclick="submitPublicPR()">➤ Submit Purchase Request</button>
     </div>
     <div class="request-card" id="pubSuccessCard" style="display:none;text-align:center">
-      <div style="font-size:44px;margin-bottom:10px">✅</div>
-      <div style="font-size:18px;font-weight:900;color:var(--b900);margin-bottom:6px" id="pubSuccessTitle">Request Submitted</div>
-      <div style="font-size:13px;color:var(--b500);margin-bottom:20px" id="pubSuccessSub"></div>
+      <div style="width:48px;height:48px;border-radius:50%;background:#1D9E75;color:#fff;font-size:26px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">&#10003;</div>
+      <div style="font-size:20px;font-weight:700;color:var(--b900);margin-bottom:6px" id="pubSuccessTitle">Request Submitted</div>
+      <div style="font-size:13px;color:var(--b500);margin-bottom:16px" id="pubSuccessSub"></div>
+      <div id="pubSuccessCodeWrap" style="display:none;margin-bottom:18px">
+        <div class="code-box"><div class="code-box-l" id="pubSuccessCodeLbl">YOUR PERMANENT ACCESS CODE</div><div class="code-box-v" id="pubSuccessCode"></div></div>
+        <div style="font-size:12.5px;color:var(--b400)" id="pubSuccessCodeNote"></div>
+      </div>
       <button class="tb-btn primary" onclick="resetPublicForm()">Submit Another Request</button>
     </div>
   </div>
@@ -567,6 +715,11 @@ textarea.finput{min-height:72px;resize:vertical}
       </div>
       <div class="login-foot">Contact your Admin if you don't have an account yet.</div>
     </div>
+  </div>
+
+  <!-- ── EMAIL APPROVE / REJECT CONFIRM PAGE (reached via emailed link) ── -->
+  <div class="landing-panel" id="panel-act" style="display:none;max-width:700px">
+    <div class="act-card" id="actCard"><div class="request-card" style="text-align:center;color:var(--b400)">Loading your request…</div></div>
   </div>
 
   <!-- ── SET NEW PASSWORD PANEL (reached via emailed reset link) ── -->
@@ -616,35 +769,36 @@ textarea.finput{min-height:72px;resize:vertical}
 
   <div class="sb-nav" id="sbNav">
     <div class="sb-section-label">Overview</div>
-    <div class="sb-item active" id="sb-home" onclick="goHome()">
-      <span class="sb-item-icon">🏠</span>
-      <span class="sb-item-label">Dashboard</span>
+    <div class="sb-item active" id="sb-mywork" onclick="goHome()">
+      <span class="sb-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></span>
+      <span class="sb-item-label">My Work</span>
+      <span class="sb-item-count" id="sb-mw-count">—</span>
+    </div>
+    <div class="sb-item" id="sb-home" onclick="goVendorOverview()">
+      <span class="sb-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg></span>
+      <span class="sb-item-label">Vendor Overview</span>
       <span class="sb-item-count" id="sb-total">—</span>
     </div>
 
     <div class="sb-section-label" style="margin-top:4px">Procurement Cycle</div>
     <div class="sb-item" id="sb-pr" onclick="showPRList()">
-      <span class="sb-item-icon">📝</span><span class="sb-item-label">Purchase Requests</span>
+      <span class="sb-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8"/></svg></span><span class="sb-item-label">Purchase Requests</span>
       <span class="sb-item-count" id="sb-pr-count">—</span>
     </div>
-    <div class="sb-item" id="sb-approvals" onclick="showApprovalsList()">
-      <span class="sb-item-icon">✅</span><span class="sb-item-label">My Approvals</span>
-      <span class="sb-item-count" id="sb-appr-count">—</span>
-    </div>
     <div class="sb-item" id="sb-rfq" onclick="showRFQList()">
-      <span class="sb-item-icon">📨</span><span class="sb-item-label">RFQs</span>
+      <span class="sb-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg></span><span class="sb-item-label">RFQs</span>
       <span class="sb-item-count" id="sb-rfq-count">—</span>
     </div>
     <div class="sb-item" id="sb-po" onclick="showPOList()">
-      <span class="sb-item-icon">📦</span><span class="sb-item-label">Purchase Orders</span>
+      <span class="sb-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg></span><span class="sb-item-label">Purchase Orders</span>
       <span class="sb-item-count" id="sb-po-count">—</span>
     </div>
     <div class="sb-item" id="sb-dc" onclick="showDCList()">
-      <span class="sb-item-icon">🚚</span><span class="sb-item-label">Goods Receiving / Delivery Notes</span>
+      <span class="sb-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2"/><circle cx="18.5" cy="18.5" r="2"/></svg></span><span class="sb-item-label">Goods Receiving / Delivery Notes</span>
       <span class="sb-item-count" id="sb-dc-count">—</span>
     </div>
     <div class="sb-item" id="sb-prq" onclick="showPRQList()">
-      <span class="sb-item-icon">💳</span><span class="sb-item-label">Payment Requests</span>
+      <span class="sb-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></span><span class="sb-item-label">Payment Requests</span>
       <span class="sb-item-count" id="sb-prq-count">—</span>
     </div>
 
@@ -653,7 +807,7 @@ textarea.finput{min-height:72px;resize:vertical}
 
     <div class="sb-section-label" id="sb-admin-label" style="margin-top:4px;display:none">Admin</div>
     <div class="sb-item" id="sb-admin" style="display:none" onclick="showAdminUsers()">
-      <span class="sb-item-icon">⚙️</span><span class="sb-item-label">Users &amp; Roles</span>
+      <span class="sb-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span class="sb-item-label">Users &amp; Roles</span>
     </div>
   </div>
 
@@ -663,7 +817,7 @@ textarea.finput{min-height:72px;resize:vertical}
       <div style="font-size:10px;color:rgba(255,255,255,.4)" id="sbUserRole">—</div>
     </div>
     <button class="sb-add-btn" id="sbAddVendorBtn" onclick="openAdd()">＋ Add Vendor</button>
-    <button class="sb-add-btn" style="background:transparent;border:1.5px solid rgba(255,255,255,.15);margin-top:6px" onclick="openChangePasswordForm()">🔑 Change Password</button>
+    <button class="sb-add-btn" style="background:transparent;border:1.5px solid rgba(255,255,255,.15);margin-top:6px" onclick="openChangePasswordForm()">Change Password</button>
     <button class="sb-add-btn" style="background:transparent;border:1.5px solid rgba(255,255,255,.15);margin-top:6px" onclick="doLogout()">Log out</button>
   </div>
 </nav>
@@ -791,7 +945,10 @@ textarea.finput{min-height:72px;resize:vertical}
       <div id="prDetailBody"></div>
     </div>
 
-    <!-- ══ VIEW: MY APPROVALS ══ -->
+    <!-- ══ VIEW: MY WORK ══ -->
+    <div class="view" id="view-mywork"><div id="myWorkBody"></div></div>
+
+    <!-- ══ VIEW: MY APPROVALS (legacy, redirected to My Work) ══ -->
     <div class="view" id="view-approvals">
       <div class="results-bar"><div class="results-count" id="apprCount"></div></div>
       <div id="apprList"></div>
@@ -1644,16 +1801,16 @@ Example Vendor,SUPPLIES,Printing,John Doe,0300-1234567,Islamabad,Blue Area,john@
 // CONSTANTS
 // ═══════════════════════════════
 const CAT = {
-  SUPPLIES:      {l:'Supplies',           i:'📦', c:'#B45309', bg:'#FEF9EE'},
-  REPAIR:        {l:'Repair & Maint.',    i:'🔧', c:'#0F766E', bg:'#EFFAF8'},
-  IT:            {l:'IT Equipment',       i:'💻', c:'#1D4ED8', bg:'#EFF5FF'},
-  LOGISTICS:     {l:'Logistics',          i:'✈',  c:'#6D28D9', bg:'#F5F0FF'},
-  ACCOMMODATION: {l:'Accommodation',      i:'🏨', c:'#BE185D', bg:'#FFF0F6'},
-  INSURANCE:     {l:'Insurance',          i:'🛡', c:'#15803D', bg:'#F0FBF4'},
-  FURNITURE:     {l:'Furniture',          i:'🪑', c:'#92400E', bg:'#FFF8EE'},
-  FUEL:          {l:'Fuel & Gas',         i:'⛽', c:'#DC2626', bg:'#FFF5F5'},
-  ELECTRIC:      {l:'Electric Equip.',    i:'⚡', c:'#D97706', bg:'#FFFBEB'},
-  MEDICAL:       {l:'Medical',            i:'💊', c:'#0891B2', bg:'#F0FAFF'},
+  SUPPLIES:      {l:'Supplies',           i:'📦', c:'#F0B35A', bg:'#1a2d4d'},
+  REPAIR:        {l:'Repair & Maint.',    i:'🔧', c:'#5DCAA5', bg:'#1a2d4d'},
+  IT:            {l:'IT Equipment',       i:'💻', c:'#7fb0f5', bg:'#1a2d4d'},
+  LOGISTICS:     {l:'Logistics',          i:'✈',  c:'#b9aef7', bg:'#1a2d4d'},
+  ACCOMMODATION: {l:'Accommodation',      i:'🏨', c:'#f29ac0', bg:'#1a2d4d'},
+  INSURANCE:     {l:'Insurance',          i:'🛡', c:'#6fd39a', bg:'#1a2d4d'},
+  FURNITURE:     {l:'Furniture',          i:'🪑', c:'#e0a070', bg:'#1a2d4d'},
+  FUEL:          {l:'Fuel & Gas',         i:'⛽', c:'#f28b7c', bg:'#1a2d4d'},
+  ELECTRIC:      {l:'Electric Equip.',    i:'⚡', c:'#f0b35a', bg:'#1a2d4d'},
+  MEDICAL:       {l:'Medical',            i:'💊', c:'#6cc8e0', bg:'#1a2d4d'},
 };
 const SUBCATS = {
   SUPPLIES:['Printing','Stationery','Kitchen & Office Supplies'],
@@ -1723,7 +1880,7 @@ function setChecklistValues(containerId, values){
 // ═══════════════════════════════
 // API CONFIG — set this to your deployed Apps Script Web App URL
 // ═══════════════════════════════
-const API_URL = 'https://script.google.com/macros/s/AKfycby9oVK53GI0-MdoJOwed9pSbWIZpaMMIwCV5N9lKX4uvCnwAShWYdAWFWlLbaIvR8YuJw/exec';
+const API_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
 
 // ═══════════════════════════════
 // STATE
@@ -1847,12 +2004,12 @@ function switchLandingTab(tab){
   document.getElementById('panel-login').style.display = tab==='login' ? 'block' : 'none';
   const rp = document.getElementById('panel-reset'); if(rp) rp.style.display='none';
   if(tab==='track'){
-    document.getElementById('trackStepEmail').style.display='block';
-    document.getElementById('trackStepOtp').style.display='none';
-    document.getElementById('trackStepSub').textContent="Enter the email you used when submitting your request. We'll send a verification code to confirm it's you.";
-    document.getElementById('track_email').value='';
+    document.getElementById('trackSearchCard').style.display='block';
+    document.getElementById('track_code').value='';
     document.getElementById('trackErr').style.display='none';
+    document.getElementById('trackResendMsg').style.display='none';
     document.getElementById('trackResultsCard').style.display='none';
+    try{ const e=localStorage.getItem('pcp_track_email'); if(e) document.getElementById('track_email').value=e; else document.getElementById('track_email').value=''; }catch(x){}
   }
 }
 
@@ -2005,6 +2162,13 @@ async function submitPublicPR(){
     document.getElementById('pubFormCard').style.display='none';
     document.getElementById('pubSuccessTitle').textContent = result.pr.prNumber+' Submitted';
     document.getElementById('pubSuccessSub').textContent = 'Sent to '+result.lineManagerName+' for approval. You\'ll be contacted if any information is needed.';
+    const cw = document.getElementById('pubSuccessCodeWrap');
+    if(result.accessCode){
+      document.getElementById('pubSuccessCode').textContent = result.accessCode;
+      document.getElementById('pubSuccessCodeLbl').textContent = result.codeIsNew ? 'YOUR PERMANENT ACCESS CODE' : 'YOUR ACCESS CODE';
+      document.getElementById('pubSuccessCodeNote').textContent = (result.codeEmailSent?'We\'ve also emailed it to you. ':'') + 'Use it with your email under Track My Request to see all your requests'+(result.codeIsNew?' — it never changes, so keep it safe.':'.');
+      cw.style.display='block';
+    } else cw.style.display='none';
     document.getElementById('pubSuccessCard').style.display='block';
   }catch(e){
     errEl.textContent=e.message||'Could not submit request'; errEl.style.display='block';
@@ -2012,82 +2176,353 @@ async function submitPublicPR(){
 }
 
 // ═══════════════════════════════
-// TRACK MY REQUEST (public, no login, OTP-verified)
+// TRACK MY REQUEST (public, no login — email + permanent access code)
 // ═══════════════════════════════
-async function doTrackSendOtp(){
+function fmtAccessCode(el){
+  let v = el.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8);
+  if(v.length>4) v = v.slice(0,4)+'-'+v.slice(4);
+  el.value = v;
+}
+async function doTrackResend(){
   const email = document.getElementById('track_email').value.trim();
-  const errEl = document.getElementById('trackErr');
-  errEl.style.display='none';
-  if(!email){ errEl.textContent='Enter your email address.'; errEl.style.display='block'; return; }
-  const btn = document.getElementById('trackSendBtn'); btn.disabled=true; btn.textContent='Sending…';
+  const errEl = document.getElementById('trackErr'); const msg = document.getElementById('trackResendMsg');
+  errEl.style.display='none'; msg.style.display='none';
+  if(!email){ errEl.textContent='Enter your email address first.'; errEl.style.display='block'; return; }
   try{
-    await api('requestTrackOtp', {email});
-    document.getElementById('trackStepEmail').style.display='none';
-    document.getElementById('trackStepOtp').style.display='block';
-    document.getElementById('trackStepSub').textContent='We sent a 6-digit code to '+email+'. Enter it below (valid for 10 minutes).';
-    document.getElementById('track_otp').value='';
-    document.getElementById('track_otp').focus();
-  }catch(e){
-    errEl.textContent = e.message||'Could not send verification code'; errEl.style.display='block';
-  } finally { btn.disabled=false; btn.textContent='✉️ Send Verification Code'; }
+    await api('resendTrackCode', {email});
+    msg.textContent='If a request was ever made from '+email+', your access code is on its way to that inbox.';
+    msg.style.display='block';
+  }catch(e){ errEl.textContent=e.message||'Could not send your code'; errEl.style.display='block'; }
 }
 async function doTrackSearch(){
   const email = document.getElementById('track_email').value.trim();
-  const otp = document.getElementById('track_otp').value.trim();
+  const code = document.getElementById('track_code').value.trim();
   const errEl = document.getElementById('trackErr');
   errEl.style.display='none';
-  if(!otp){ errEl.textContent='Enter the verification code sent to your email.'; errEl.style.display='block'; return; }
-  const btn = document.getElementById('trackSearchBtn'); btn.disabled=true; btn.textContent='Verifying…';
+  if(!email){ errEl.textContent='Enter your email address.'; errEl.style.display='block'; return; }
+  if(!code){ errEl.textContent='Enter your access code.'; errEl.style.display='block'; return; }
+  const btn = document.getElementById('trackSearchBtn');
   try{
-    const result = await api('trackByEmail', {email, otp});
+    const result = await api('trackByEmail', {email, code}, btn);
+    try{ localStorage.setItem('pcp_track_email', email); }catch(e){}
     renderTrackResults(result.prs||[], email);
   }catch(e){
-    errEl.textContent = e.message||'Could not verify code'; errEl.style.display='block';
+    errEl.textContent = e.message||'Could not verify your code'; errEl.style.display='block';
     document.getElementById('trackResultsCard').style.display='none';
-  } finally { btn.disabled=false; btn.textContent='🔎 Verify & View Status'; }
+  }
+}
+function trackLeave(){
+  document.getElementById('trackResultsCard').style.display='none';
+  document.getElementById('trackSearchCard').style.display='block';
+  document.getElementById('track_code').value='';
+}
+const TRACK_STEPS = ['Submitted','Line Manager','Procurement','Finance','Operations','Sourcing','Delivery','Payment'];
+function trackProgress(pr){
+  // returns {idx (current step index, TRACK_STEPS.length if all done), bad (index of rejected step or -1)}
+  const n = TRACK_STEPS.length;
+  if(pr.status==='Completed') return {idx:n, bad:-1};
+  if(pr.status==='Rejected'){
+    const rej = [...pr.approvals].reverse().find(a=>a.action==='Reject');
+    const map = {LineManager:1,Procurement:2,Finance:3,OperationsManager:4,Delegate:4};
+    return {idx:(rej?map[rej.stage]:1)||1, bad:(rej?map[rej.stage]:1)||1};
+  }
+  if(pr.prqs.some(p=>p.status==='Paid')) return {idx:n, bad:-1};
+  if(pr.prqs.length) return {idx:7, bad:-1};
+  if(pr.dcs.length) return {idx:6, bad:-1};
+  if(pr.pos.length || pr.rfqs.length) return {idx:5, bad:-1};
+  const map = {LineManager:1,Procurement:2,Finance:3,OperationsManager:4,Delegate:4};
+  if(map[pr.currentStage]) return {idx:map[pr.currentStage], bad:-1};
+  if(pr.status==='Approved') return {idx:5, bad:-1};
+  return {idx:1, bad:-1};
+}
+function trackWith(pr){
+  if(pr.status==='Completed' || pr.prqs.some(p=>p.status==='Paid')) return 'Completed — payment has been made';
+  if(pr.status==='Rejected') return 'This request was rejected';
+  if(pr.prqs.length) return 'Payment is being processed';
+  if(pr.dcs.length) return 'Goods received — payment request being prepared';
+  if(pr.pos.length) return 'Purchase order issued — waiting for delivery';
+  if(pr.rfqs.length) return 'Quotations are being collected from vendors';
+  if(pr.status==='Approved') return 'Fully approved — Procurement is arranging the purchase';
+  if(pr.currentStage==='LineManager') return 'Waiting for '+(pr.lineManagerName||'your Line Manager')+' (Line Manager)';
+  if(pr.currentStage==='Delegate') return 'Waiting for '+(pr.delegatedApproverName||'a delegated approver');
+  return 'Waiting for '+stageLabel(pr.currentStage);
 }
 function renderTrackResults(prs, email){
   const card = document.getElementById('trackResultsCard');
+  document.getElementById('trackSearchCard').style.display='none';
+  const head = `<div class="tr-wrap"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+    <div><div style="font-size:24px;font-weight:700;color:#fff">Your Requests</div><div style="font-size:13px;color:#8aa0bf">${escHtml(email)}</div></div>
+    <button class="tb-btn" onclick="trackLeave()">Use A Different Account</button></div>`;
   if(!prs.length){
-    card.innerHTML = `<div class="request-card" style="margin-top:16px;text-align:center;color:var(--b400);font-size:13px">No purchase requests found for ${escHtml(email)}. Double-check the email you used when submitting.</div>`;
-    card.style.display='block';
-    return;
+    card.innerHTML = head+`<div class="tr-card" style="text-align:center;color:var(--b400);margin-top:14px">No purchase requests found for ${escHtml(email)} yet.</div></div>`;
+    card.style.display='block'; return;
   }
-  card.innerHTML = prs.map(pr=>{
+  const done = prs.filter(p=>p.status==='Completed'||p.prqs.some(q=>q.status==='Paid')).length;
+  const rej = prs.filter(p=>p.status==='Rejected').length;
+  const prog = prs.length-done-rej;
+  const tiles = `<div class="tr-tiles">
+    <div class="mw-tile"><div class="mw-tile-l">In Progress</div><div class="mw-tile-n">${prog}</div></div>
+    <div class="mw-tile hot"><div class="mw-tile-l">Completed</div><div class="mw-tile-n">${done}</div></div>
+    <div class="mw-tile"><div class="mw-tile-l">Rejected</div><div class="mw-tile-n">${rej}</div></div></div>`;
+  const cards = prs.map(pr=>{
     const lines = safeParse(pr.lineItemsJson, []);
     const itemsSummary = lines.map(l=>l.description).filter(Boolean).join(', ') || '—';
-    let procLine;
-    const paid = pr.prqs.some(p=>p.status==='Paid');
-    if(paid) procLine = '✅ Procurement complete — payment made';
-    else if(pr.prqs.length) procLine = '💳 Payment request in progress';
-    else if(pr.dcs.length) procLine = '🚚 Goods received — awaiting payment request';
-    else if(pr.pos.length) procLine = '📦 Purchase Order issued';
-    else if(pr.rfqs.length) procLine = '📨 RFQ in progress';
-    else if(pr.status==='Approved') procLine = '⏳ Approved — procurement not yet started';
-    else if(pr.status==='Rejected') procLine = '❌ Rejected';
-    else procLine = '⏳ Awaiting approval — currently with '+stageLabel(pr.currentStage);
-    const approvalRows = pr.approvals.map(a=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--b100);font-size:12px">
-      <span><b>${stageLabel(a.stage)}</b> — ${escHtml(a.actorName)}: <span style="font-weight:700;color:${a.action==='Approve'?'#0F6E56':a.action==='Reject'?'#E11D48':'#B45309'}">${actionLabel(a.action)}</span></span>
-      <span style="color:var(--b400)">${fmtDate(a.timestamp)}</span></div>`).join('');
-    const poRows = pr.pos.map(po=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--b100);font-size:12px">
-      <span>📦 ${escHtml(po.poNumber)} — ${escHtml(po.vendorName)}</span><span>${escHtml(po.status)}</span></div>`).join('');
-    const prqRows = pr.prqs.map(pq=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--b100);font-size:12px">
-      <span>💳 ${escHtml(pq.prqNumber)}</span><span>${escHtml(pq.status)}${pq.paidDate?' — Paid '+fmtDate(pq.paidDate):''}</span></div>`).join('');
-    return `<div class="request-card" style="margin-top:16px">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px">
-        <div style="font-size:16px;font-weight:800;color:var(--b900)">${pr.prNumber}</div>
-        <div style="font-size:12px;font-weight:700;color:var(--b600)">${escHtml(pr.status)}</div>
-      </div>
-      <div style="font-size:12px;color:var(--b500);margin-bottom:2px">Raised ${fmtDate(pr.dateRaised)}${pr.department?' · '+escHtml(pr.department):''}${pr.project?' · '+escHtml(pr.project):''}</div>
-      <div style="font-size:12px;color:var(--b500);margin-bottom:10px">Items: ${escHtml(itemsSummary)}</div>
-      <div style="font-size:13px;font-weight:700;color:var(--b800);margin-bottom:10px">${procLine}</div>
-      ${approvalRows?`<div style="font-size:11px;font-weight:800;color:var(--b400);text-transform:uppercase;letter-spacing:.06em;margin:10px 0 4px">Approval History</div>${approvalRows}`:''}
-      ${poRows?`<div style="font-size:11px;font-weight:800;color:var(--b400);text-transform:uppercase;letter-spacing:.06em;margin:10px 0 4px">Purchase Orders</div>${poRows}`:''}
-      ${prqRows?`<div style="font-size:11px;font-weight:800;color:var(--b400);text-transform:uppercase;letter-spacing:.06em;margin:10px 0 4px">Payment Requests</div>${prqRows}`:''}
-    </div>`;
+    const pg = trackProgress(pr);
+    const steps = TRACK_STEPS.map((nm,i)=>{
+      let cls='', dot='';
+      if(pg.bad===i){ cls='bad'; dot='&#10005;'; }
+      else if(i<pg.idx){ cls='done'; dot='&#10003;'; }
+      else if(i===pg.idx){ cls='cur'; dot=''; }
+      return `<div class="tr-step ${cls}"><div class="tr-dot">${dot}</div>${nm}</div>`;
+    }).join('');
+    const row = (l,r)=>`<div class="tr-row"><span>${l}</span><span style="color:var(--b400);white-space:nowrap">${r}</span></div>`;
+    const approvalRows = pr.approvals.map(a=>row(`<b>${stageLabel(a.stage)}</b> — ${escHtml(a.actorName)}: <span style="font-weight:700;color:${a.action==='Approve'?'#5DCAA5':a.action==='Reject'?'#F28B7C':'#F0C35A'}">${actionLabel(a.action)}</span>${a.comments?`<div style="font-size:12px;color:var(--b400)">&ldquo;${escHtml(a.comments)}&rdquo;</div>`:''}`, fmtDate(a.timestamp))).join('');
+    const poRows = pr.pos.map(po=>row(`${escHtml(po.poNumber)} — ${escHtml(po.vendorName)}`, escHtml(po.status))).join('');
+    const prqRows = pr.prqs.map(pq=>row(escHtml(pq.prqNumber), escHtml(pq.status)+(pq.paidDate?' — Paid '+fmtDate(pq.paidDate):''))).join('');
+    const ent = pr.entity||'RADS';
+    return `<div class="tr-card">
+      <div class="tr-top"><div><div class="tr-num">${pr.prNumber}<span class="mw-ent ${ent}">${ent}</span></div>
+        <div class="tr-meta">Raised ${fmtDate(pr.dateRaised)}${pr.department?' · '+escHtml(pr.department):''}${pr.project?' · '+escHtml(pr.project):''}</div></div>
+        <div style="text-align:right"><div style="font-size:18px;font-weight:700;color:var(--b900)">${fmtMoney(pr.totalEstAmount)}</div>${statusBadge(pr.status)}</div></div>
+      <div class="tr-with">${pg.bad>-1?'':'Right now: '}<b>${escHtml(trackWith(pr))}</b></div>
+      <div class="tr-steps">${steps}</div>
+      <details class="tr-det"><summary>Items and history</summary>
+        <div class="tr-lbl">Items</div><div style="font-size:13px;color:var(--b600)">${escHtml(itemsSummary)}</div>
+        ${approvalRows?`<div class="tr-lbl">Approval History</div>${approvalRows}`:''}
+        ${poRows?`<div class="tr-lbl">Purchase Orders</div>${poRows}`:''}
+        ${prqRows?`<div class="tr-lbl">Payment Requests</div>${prqRows}`:''}
+      </details></div>`;
   }).join('');
+  card.innerHTML = head+tiles+cards+'</div>';
   card.style.display='block';
 }
+
+// ═══════════════════════════════
+// EMAIL APPROVE / REJECT CONFIRM PAGE (public, token-gated)
+// ═══════════════════════════════
+let __act = {token:'', data:null, decision:'approve'};
+function hideLandingPanelsForAct(){
+  ['panel-choice','landingTabs','panel-request','panel-login','panel-track','panel-reset'].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display='none'; });
+  document.getElementById('panel-act').style.display='block';
+}
+async function openEmailActionPage(token, d){
+  hideLandingPanelsForAct();
+  __act = {token, data:null, decision: d==='reject'?'reject':'approve'};
+  const card = document.getElementById('actCard');
+  try{
+    const data = await api('getEmailAction', {token});
+    __act.data = data;
+    renderEmailAction();
+  }catch(e){
+    card.innerHTML = `<div class="request-card" style="text-align:center"><div style="font-size:20px;font-weight:700;color:var(--b900);margin-bottom:6px">This link can't be used</div>
+      <div style="font-size:14px;color:var(--b400);margin-bottom:16px">${escHtml(e.message||'The link is not valid')}</div>
+      <button class="tb-btn primary" onclick="leaveEmailAction()">Open The Portal</button></div>`;
+  }
+}
+function leaveEmailAction(){
+  try{ history.replaceState(null,'',window.location.pathname); }catch(e){}
+  window.location.reload();
+}
+function actSetDecision(d){ __act.decision=d; renderEmailAction(true); }
+function renderEmailAction(keepInputs){
+  const D = __act.data, pr = D.pr;
+  const keep = keepInputs ? {c:(document.getElementById('act_comments')||{}).value||''} : {c:''};
+  const accent = pr.entity==='AHKF' ? '#1F3A6E' : '#7B1F2E';
+  const items = safeParse(pr.lineItemsJson,[]);
+  const itemRows = items.map(li=>`<tr><td style="padding:5px 0">${escHtml(li.description||'')}</td><td style="padding:5px 0;text-align:right;color:var(--b400)">${escHtml(li.qty)} ${escHtml(li.unit||'')}</td><td style="padding:5px 0;text-align:right">${fmtMoney((Number(li.qty)||0)*(Number(li.estUnitRate)||0))}</td></tr>`).join('');
+  const hist = D.approvals.length ? D.approvals.map(a=>`<div class="tr-row"><span><b>${escHtml(a.actorName)}</b> — ${actionLabel(a.action)} <span style="color:var(--b400)">(${stageLabel(a.stage)})</span>${a.comments?`<div style="font-size:12px;color:var(--b400)">&ldquo;${escHtml(a.comments)}&rdquo;</div>`:''}</span><span style="color:var(--b400);white-space:nowrap">${fmtDate(a.timestamp)}</span></div>`).join('') : '<div style="font-size:13px;color:var(--b400)">No approvals yet — this is the first step.</div>';
+  const isApprove = __act.decision==='approve';
+  const proc = (isApprove && D.stage==='Procurement') ? `
+    <div class="tr-lbl" style="margin-top:14px">Procurement Decision</div>
+    <div class="fgrid" style="margin-top:6px">
+      <div class="fg"><label class="flabel">RFQ Required?</label><select class="finput" id="act_rfq" onchange="actProcToggle()"><option value="Yes">Yes</option><option value="No">No</option></select></div>
+      <div class="fg"><label class="flabel">Purchase Order Required?</label><select class="finput" id="act_po" onchange="actProcToggle()"><option value="Yes">Yes</option><option value="No">No</option></select></div>
+      <div class="fg s2" id="act_rfqWhy" style="display:none"><label class="flabel">Why is an RFQ not required? <span class="req">*</span></label><input class="finput" id="act_rfqWhyTxt" type="text"></div>
+      <div class="fg s2" id="act_poWhy" style="display:none"><label class="flabel">Why is a Purchase Order not required? <span class="req">*</span></label><input class="finput" id="act_poWhyTxt" type="text"></div>
+    </div>` : '';
+  document.getElementById('actCard').innerHTML = `
+    <div class="act-hdr" style="background:${accent}"><h2>${escHtml(pr.prNumber)} — ${escHtml(D.stageLabel)}</h2><div>Hello ${escHtml(D.approverName)}, please review and confirm your decision</div></div>
+    <div class="act-body">
+      <div class="login-err" id="actErr"></div>
+      <div class="act-kv"><span>Requested by</span><b>${escHtml(pr.requestorName)}</b>
+        <span>Entity</span><b>${escHtml(pr.entity)}</b>
+        <span>Department / Project</span><b>${escHtml([pr.department,pr.project].filter(Boolean).join(' / ')||'—')}</b>
+        <span>Estimated total</span><b>${fmtMoney(pr.totalEstAmount)}</b>
+        <span>Needed by</span><b>${pr.neededBy?fmtDate(pr.neededBy):'—'}</b></div>
+      <div class="tr-lbl">Items</div><table style="width:100%;font-size:13px;color:var(--b600);border-collapse:collapse">${itemRows}</table>
+      <div class="tr-lbl" style="margin-top:14px">History</div>${hist}
+      <div class="act-choice">
+        <div class="act-opt ${isApprove?'on-approve':''}" onclick="actSetDecision('approve')">Approve</div>
+        <div class="act-opt ${!isApprove?'on-reject':''}" onclick="actSetDecision('reject')">Reject</div>
+      </div>
+      ${proc}
+      <div class="fg s2" style="margin-top:10px"><label class="flabel">${isApprove?'Comments (optional)':'Reason for rejecting <span class="req">*</span>'}</label><textarea class="finput" id="act_comments" placeholder="${isApprove?'Add a note for the record':'Tell the requestor why'}">${escHtml(keep.c)}</textarea></div>
+      <button class="tb-btn primary" id="actSubmitBtn" style="width:100%;padding:12px;font-size:14px;margin-top:16px;${isApprove?'':'background:#B3261E;border-color:#B3261E'}" onclick="submitEmailAction()">${isApprove?'Confirm Approval':'Confirm Rejection'}</button>
+      <div style="text-align:center;margin-top:10px"><a href="#" onclick="event.preventDefault();leaveEmailAction()" style="font-size:12.5px;color:var(--b400)">Open the full portal instead</a></div>
+    </div>`;
+}
+function actProcToggle(){
+  document.getElementById('act_rfqWhy').style.display = document.getElementById('act_rfq').value==='No' ? '' : 'none';
+  document.getElementById('act_poWhy').style.display = document.getElementById('act_po').value==='No' ? '' : 'none';
+}
+async function submitEmailAction(){
+  const errEl = document.getElementById('actErr'); errEl.style.display='none';
+  const isApprove = __act.decision==='approve';
+  const comments = document.getElementById('act_comments').value.trim();
+  if(!isApprove && !comments){ errEl.textContent='Give a reason for rejecting.'; errEl.style.display='block'; return; }
+  const payload = {token:__act.token, decision: isApprove?'Approve':'Reject', comments};
+  if(isApprove && __act.data.stage==='Procurement'){
+    payload.rfqRequired = document.getElementById('act_rfq').value;
+    payload.poRequired = document.getElementById('act_po').value;
+    payload.rfqNotRequiredReason = document.getElementById('act_rfqWhyTxt').value.trim();
+    payload.poNotRequiredReason = document.getElementById('act_poWhyTxt').value.trim();
+  }
+  try{
+    const r = await api('submitEmailAction', payload, document.getElementById('actSubmitBtn'));
+    document.getElementById('actCard').innerHTML = `<div class="request-card" style="text-align:center">
+      <div style="width:52px;height:52px;border-radius:50%;background:${isApprove?'#1D9E75':'#B3261E'};color:#fff;font-size:28px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">${isApprove?'&#10003;':'&#10005;'}</div>
+      <div style="font-size:20px;font-weight:700;color:var(--b900);margin-bottom:6px">${escHtml(r.prNumber)} ${isApprove?'approved':'rejected'}</div>
+      <div style="font-size:14px;color:var(--b400);margin-bottom:18px">Your decision has been recorded and the next person has been notified. You can close this page.</div>
+      <button class="tb-btn primary" onclick="leaveEmailAction()">Open The Portal</button></div>`;
+  }catch(e){ errEl.textContent=e.message||'Could not record your decision'; errEl.style.display='block'; }
+}
+
+// ═══════════════════════════════
+// MY WORK — every role's home: what needs me, what I'm waiting on, what I've done
+// ═══════════════════════════════
+const OVERDUE_DAYS = 2;
+let mwTab = 'action', mwEnt = 'all';
+const MW_STAGES = ['LineManager','Procurement','Finance','OperationsManager'];
+function mwAge(iso){ if(!iso) return 0; const d=Math.floor((Date.now()-new Date(iso).getTime())/86400000); return d<0?0:d; }
+function mwLastTouch(prId){ const t=approvals.filter(a=>a.prId===prId).map(a=>a.timestamp).filter(Boolean).sort(); return t.length?t[t.length-1]:null; }
+function mwProgress(stage){
+  const i = MW_STAGES.indexOf(stage==='Delegate'?'OperationsManager':stage);
+  return `<div class="mw-prog">${MW_STAGES.map((s,k)=>`<i class="${k<i?'d':(k===i?'c':'')}"></i>`).join('')}</div>`;
+}
+function mwUrgency(days){ return days>=OVERDUE_DAYS?'late':(days>=1?'soon':'ok'); }
+function mwAgeText(d){ return d<1?'Today':(d===1?'1 day':d+' days'); }
+function mwItems(){
+  const me=currentUser, role=me.role, myEmail=String(me.email).toLowerCase();
+  const out={action:[],waiting:[],done:[]};
+  const prById = id=>purchaseRequests.find(p=>p.id===id);
+  const prTitle = pr=>[pr.department,pr.project].filter(Boolean).join(' · ')||'Purchase request';
+  const mineIds = new Set();
+
+  pendingApprovalsForMe().forEach(pr=>{
+    mineIds.add(pr.id);
+    out.action.push({kind:'Purchase Request', no:pr.prNumber, title:prTitle(pr), who:pr.requestorName, entity:pr.entity, amount:pr.totalEstAmount,
+      since:mwLastTouch(pr.id)||pr.dateRaised, label:stageLabel(pr.currentStage), prog:mwProgress(pr.currentStage), fn:`openPRDetail('${pr.id}')`, cta:'Review'});
+  });
+  if(role==='OpsProcurement'||role==='Admin'){
+    purchaseRequests.filter(pr=>pr.status==='Approved').forEach(pr=>{
+      mineIds.add(pr.id);
+      out.action.push({kind:'Purchase Request', no:pr.prNumber, title:prTitle(pr), who:pr.requestorName, entity:pr.entity, amount:pr.totalEstAmount,
+        since:mwLastTouch(pr.id)||pr.dateRaised, label:'Approved — start sourcing', prog:'', fn:`openPRDetail('${pr.id}')`, cta:'Start'});
+    });
+    rfqs.filter(r=>r.status==='QuotesReceived').forEach(r=>{
+      out.action.push({kind:'RFQ', no:r.rfqNumber, title:r.title||'RFQ', who:'Quotes received', entity:r.entity, amount:null,
+        since:r.updatedAt||r.createdAt, label:'Select vendor', prog:'', fn:`openRFQDetail('${r.id}')`, cta:'Compare'});
+    });
+    paymentRequests.filter(pq=>pq.status==='PendingSignature').forEach(pq=>{
+      out.action.push({kind:'Payment Request', no:pq.prqNumber, title:pq.vendorName||'Payment request', who:'Needs your signature', entity:'', amount:pq.netPayable,
+        since:pq.requestedAt, label:'Sign before Finance review', prog:'', fn:`openPRQDetail('${pq.id}')`, cta:'Sign'});
+    });
+  }
+  if(role==='OperationsManager'||role==='Admin'){
+    purchaseOrders.filter(po=>po.opsManagerSignedStatus!=='Signed').forEach(po=>{
+      out.action.push({kind:'Purchase Order', no:po.poNumber, title:po.vendorName, who:'Awaiting your signature', entity:po.entity, amount:po.totalAmount,
+        since:po.createdAt||po.issueDate, label:'Operations Manager signature', prog:'', fn:`openPODetail('${po.id}')`, cta:'Sign'});
+    });
+  }
+  if(role==='CEO'||role==='Admin'){
+    purchaseOrders.filter(po=>po.signedStatus!=='Signed').forEach(po=>{
+      out.action.push({kind:'Purchase Order', no:po.poNumber, title:po.vendorName, who:'Awaiting your signature', entity:po.entity, amount:po.totalAmount,
+        since:po.createdAt||po.issueDate, label:'CEO signature', prog:'', fn:`openPODetail('${po.id}')`, cta:'Sign'});
+    });
+  }
+  if(role==='Finance'||role==='Admin'){
+    paymentRequests.filter(pq=>pq.status==='PendingFinance').forEach(pq=>{
+      out.action.push({kind:'Payment Request', no:pq.prqNumber, title:pq.vendorName||'Payment request', who:'Awaiting your review', entity:'', amount:pq.netPayable,
+        since:pq.signedAt||pq.requestedAt, label:'Finance review', prog:'', fn:`openPRQDetail('${pq.id}')`, cta:'Review'});
+    });
+    paymentRequests.filter(pq=>pq.status==='ApprovedForPayment').forEach(pq=>{
+      out.action.push({kind:'Payment Request', no:pq.prqNumber, title:pq.vendorName||'Payment request', who:'Approved — ready to pay', entity:'', amount:pq.netPayable,
+        since:pq.financeActionAt||pq.requestedAt, label:'Mark as paid', prog:'', fn:`openPRQDetail('${pq.id}')`, cta:'Pay'});
+    });
+  }
+
+  // Waiting on others
+  const sourcing = ['RFQIssued','POIssued','PartiallyDelivered','Delivered'];
+  purchaseRequests.forEach(pr=>{
+    if(mineIds.has(pr.id)) return;
+    const acted = approvals.some(a=>a.prId===pr.id && String(a.actorEmail).toLowerCase()===myEmail);
+    const mine = String(pr.lineManagerEmail||'').toLowerCase()===myEmail || String(pr.requestorEmail||'').toLowerCase()===myEmail;
+    const broad = role==='Admin'||role==='OpsProcurement'||role==='OperationsManager';
+    if(!(acted||mine||broad)) return;
+    const pending = String(pr.status).indexOf('Pending')===0;
+    if(!pending && !(broad && sourcing.indexOf(pr.status)>-1)) return;
+    out.waiting.push({kind:'Purchase Request', no:pr.prNumber, title:prTitle(pr), who:pr.requestorName, entity:pr.entity, amount:pr.totalEstAmount,
+      since:mwLastTouch(pr.id)||pr.dateRaised, label: pending?('With '+stageLabel(pr.currentStage)):(STATUS_MAP[pr.status]?STATUS_MAP[pr.status][1]:pr.status),
+      prog: pending?mwProgress(pr.currentStage):'', fn:`openPRDetail('${pr.id}')`, cta:'View', idle:true});
+  });
+
+  // Done by me
+  approvals.filter(a=>String(a.actorEmail).toLowerCase()===myEmail).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,60).forEach(a=>{
+    const pr=prById(a.prId); if(!pr) return;
+    out.done.push({kind:'Purchase Request', no:pr.prNumber, title:prTitle(pr), who:pr.requestorName, entity:pr.entity, amount:pr.totalEstAmount,
+      since:a.timestamp, label:actionLabel(a.action)+' as '+stageLabel(a.stage), prog:'', fn:`openPRDetail('${pr.id}')`, cta:'View', idle:true, done:true, action:a.action});
+  });
+  return out;
+}
+function mwRow(it){
+  const d=mwAge(it.since), u = it.idle?'idle':mwUrgency(d);
+  const pill = it.done ? `<span class="mw-pill ${it.action==='Reject'?'late':'ok'}">${fmtDate(it.since)}</span>`
+    : it.idle ? `<span class="mw-pill idle">${mwAge(it.since)>0?'Since '+mwAgeText(d)+' ago':'Today'}</span>`
+    : `<span class="mw-pill ${u}">${u==='late'?'Overdue · '+mwAgeText(d):(u==='soon'?'Waiting '+mwAgeText(d):'New')}</span>`;
+  return `<div class="mw-item" onclick="${it.fn}">
+    <div class="mw-bar ${u}"></div>
+    <div class="mw-item-main">
+      <div class="mw-item-title">${escHtml(it.no)} — ${escHtml(it.title)}${it.entity?`<span class="mw-ent ${it.entity}">${it.entity}</span>`:''}</div>
+      <div class="mw-item-meta">${escHtml(it.who||'')}${it.amount!=null&&it.amount!==''?' · '+fmtMoney(it.amount):''} · ${escHtml(it.label)}</div>
+      ${it.prog||''}
+    </div>${pill}<span class="mw-cta ${it.idle?'alt':''}">${it.cta}</span></div>`;
+}
+function setMwTab(t){ mwTab=t; renderMyWork(); }
+function setMwEnt(e){ mwEnt=e; renderMyWork(); }
+function renderMyWork(){
+  if(!currentUser) return;
+  const all=mwItems();
+  const f = arr=> mwEnt==='all'?arr:arr.filter(x=>!x.entity||x.entity===mwEnt);
+  const A=f(all.action), W=f(all.waiting), D=f(all.done);
+  const overdue=A.filter(x=>mwAge(x.since)>=OVERDUE_DAYS).length;
+  const weekDone = all.done.filter(x=>x.action==='Approve' && mwAge(x.since)<=7).length;
+  const list = mwTab==='action'?A:(mwTab==='waiting'?W:D);
+  const first = (currentUser.name||'').split(' ')[0];
+  const empty = {
+    action:['You\'re all caught up','Nothing is waiting for you right now.'],
+    waiting:['Nothing in the pipeline','Requests you\'re involved in will show here while others review them.'],
+    done:['No decisions yet','Requests you approve or reject will be listed here.']}[mwTab];
+  const tab=(k,l,n)=>`<button class="mw-tab ${mwTab===k?'on':''}" onclick="setMwTab('${k}')">${l} ${n}</button>`;
+  const ent=(k,l)=>`<button class="mw-tab ${mwEnt===k?'on':''}" onclick="setMwEnt('${k}')">${l}</button>`;
+  document.getElementById('myWorkBody').innerHTML = `
+    <div class="mw-head"><div><div class="mw-title">My Work</div>
+      <div class="mw-sub">Welcome back, ${escHtml(first)} · ${roleLabel(currentUser.role)} · ${A.length?A.length+' item'+(A.length>1?'s':'')+' need your action':'nothing needs your action'}</div></div>
+      <button class="tb-btn primary" onclick="showPRList()">All Purchase Requests</button></div>
+    <div class="mw-tiles">
+      <div class="mw-tile ${A.length?'hot':''}"><div class="mw-tile-l">Needs My Action</div><div class="mw-tile-n">${A.length}</div></div>
+      <div class="mw-tile ${overdue?'warn':''}"><div class="mw-tile-l">Overdue (${OVERDUE_DAYS}+ Days)</div><div class="mw-tile-n">${overdue}</div></div>
+      <div class="mw-tile"><div class="mw-tile-l">Approved This Week</div><div class="mw-tile-n">${weekDone}</div></div>
+      <div class="mw-tile"><div class="mw-tile-l">Waiting On Others</div><div class="mw-tile-n">${W.length}</div></div>
+    </div>
+    <div class="mw-tabs">${tab('action','Needs My Action',A.length)}${tab('waiting','Waiting On Others',W.length)}${tab('done','Done By Me',D.length)}
+      <span style="flex:1"></span>${ent('all','All')}${ent('RADS','RADS')}${ent('AHKF','AHKF')}</div>
+    <div class="mw-list">${list.length?list.map(mwRow).join(''):`<div class="mw-empty"><b>${empty[0]}</b>${empty[1]}</div>`}</div>`;
+}
+function showMyWork(){
+  setBc([{l:'My Work'}]); setSbActive('sb-mywork'); clearTopbar();
+  renderMyWork(); showView('mywork');
+}
+
 // ═══════════════════════════════
 // AUTH
 // ═══════════════════════════════
@@ -2170,7 +2605,7 @@ async function bootApp(){
     document.getElementById('sbAddVendorBtn').style.display='none';
   }
   await loadAll();
-  goHome();
+  showMyWork();
 }
 
 function roleLabel(r){
@@ -2395,7 +2830,7 @@ function rowClass(v){
 function toast(msg,type='success'){
   const el=document.getElementById('toast');
   el.textContent=msg; el.className=`toast ${type} show`;
-  setTimeout(()=>el.classList.remove('show'),3000);
+  clearTimeout(toast._t); toast._t=setTimeout(()=>el.classList.remove('show'), (type==='error'&&msg.length>60)?8000:3000);
 }
 
 function showView(name){
@@ -2656,7 +3091,7 @@ function openCat(cat){
   currentCat=cat; cvSub=''; cvCity=''; cvType='';
   resetTopbarRight();
   const cfg=CAT[cat];
-  setBc([{l:'Dashboard',fn:'goHome()'},{l:cfg.l}]);
+  setBc([{l:'My Work',fn:'goHome()'},{l:'Vendor Overview',fn:'goVendorOverview()'},{l:cfg.l}]);
   document.getElementById('catHero').innerHTML=`
     <div style="display:flex;align-items:center;gap:14px;padding:18px;background:var(--surface);border-radius:var(--r16);border:1px solid var(--b200);box-shadow:var(--shadow-xs)">
       <div style="width:52px;height:52px;border-radius:var(--r12);background:${cfg.bg};display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0">${cfg.i}</div>
@@ -2799,12 +3234,13 @@ function closeCompareModal(){ document.getElementById('compareOverlay').classLis
 function canSeeProcurementTools(){
   return currentUser && (currentUser.role==='OperationsManager' || currentUser.role==='OpsProcurement' || currentUser.role==='Admin');
 }
-function goHome(){
-  if(!canSeeProcurementTools()){ showApprovalsList(); return; }
+function goHome(){ showMyWork(); }
+function goVendorOverview(){
+  if(!canSeeProcurementTools()){ showMyWork(); return; }
   currentCat=null; fCat=''; fSub=''; fCity=''; fType=''; fText='';
   document.getElementById('heroSearch').value='';
   document.getElementById('heroClr').classList.remove('visible');
-  setBc([{l:'Dashboard'}]);
+  setBc([{l:'My Work',fn:'goHome()'},{l:'Vendor Overview'}]);
   renderSidebar();
   setSbActive('sb-home');
   resetTopbarRight();
@@ -2821,12 +3257,13 @@ function resetTopbarRight(){
 function updateSidebarCounts(){
   const myPending = pendingApprovalsForMe();
   document.getElementById('sb-pr-count').textContent = purchaseRequests.length;
-  document.getElementById('sb-appr-count').textContent = myPending.length;
+  const mwc = document.getElementById('sb-mw-count'); if(mwc) mwc.textContent = myPending.length + (typeof mwItems==='function' ? Math.max(0, mwItems().action.length - myPending.length) : 0);
   document.getElementById('sb-rfq-count').textContent = rfqs.length;
   document.getElementById('sb-po-count').textContent = purchaseOrders.length;
   document.getElementById('sb-dc-count').textContent = deliveryChallans.length;
   document.getElementById('sb-prq-count').textContent = paymentRequests.length;
   renderNotices();
+  const mv = document.getElementById('view-mywork'); if(mv && mv.classList.contains('active')) renderMyWork();
 }
 
 // ═══════════════════════════════
@@ -3137,7 +3574,7 @@ function clearTopbar(){ document.getElementById('topbarRight').innerHTML=''; }
 // PURCHASE REQUESTS
 // ═══════════════════════════════
 function showPRList(){
-  setBc([{l:'Dashboard',fn:'goHome()'},{l:'Purchase Requests'}]);
+  setBc([{l:'My Work',fn:'goHome()'},{l:'Purchase Requests'}]);
   setSbActive('sb-pr'); clearTopbar();
   renderPRList();
   showView('pr');
@@ -3231,7 +3668,7 @@ async function savePR(){
 function openPRDetail(id){
   currentPRId=id;
   const pr=purchaseRequests.find(p=>p.id===id);
-  setBc([{l:'Dashboard',fn:'goHome()'},{l:'Purchase Requests',fn:'showPRList()'},{l:pr?pr.prNumber:''}]);
+  setBc([{l:'My Work',fn:'goHome()'},{l:'Purchase Requests',fn:'showPRList()'},{l:pr?pr.prNumber:''}]);
   setSbActive('sb-pr');
   clearTopbar();
   renderPRDetail();
@@ -4762,9 +5199,9 @@ function renderPRDetail(){
   let actionsHtml='';
   if(isPendingApproval && canAct){
     actionsHtml = `${canEdit?`<button class="tb-btn" onclick="openPRForm('${pr.id}')">✏️ Edit</button>`:''}
-      <button class="tb-btn" style="background:var(--rose-l);color:var(--rose);border-color:#FECDD3" onclick="actOnPRPrompt('${pr.id}','Reject')">✕ Reject</button>
+      <button class="tb-btn" style="background:var(--rose-l);color:var(--rose);border-color:#7a3a3a" onclick="actOnPRPrompt('${pr.id}','Reject')">✕ Reject</button>
       ${pr.currentStage!=='Delegate' ? `<button class="tb-btn" onclick="actOnPRPrompt('${pr.id}','Query')">↩ Send Back to Line Manager</button>` : ''}
-      ${pr.currentStage==='OperationsManager' ? `<button class="tb-btn" style="background:var(--violet-l);color:#5B21B6;border-color:#DDD6FE" onclick="openDelegatePicker('${pr.id}')">↗ Delegate (CEO / Finance Head / Other)</button>`:''}
+      ${pr.currentStage==='OperationsManager' ? `<button class="tb-btn" style="background:var(--violet-l);color:#b9aef7;border-color:#4a4180" onclick="openDelegatePicker('${pr.id}')">↗ Delegate (CEO / Finance Head / Other)</button>`:''}
       <button class="tb-btn primary" onclick="actOnPRPrompt('${pr.id}','Approve')">✓ Approve${pr.currentStage==='OperationsManager'?' & Finalize':''}</button>`;
   } else if(pr.status==='Approved' && (currentUser.role==='OpsProcurement'||currentUser.role==='Admin')){
     const hasRfq = rfqs.some(r=>r.prId===pr.id);
@@ -4945,24 +5382,13 @@ async function delegatePR(id, delegateEmail, comments){
 // ═══════════════════════════════
 // MY APPROVALS
 // ═══════════════════════════════
-function showApprovalsList(){
-  setBc([{l:'Dashboard',fn:'goHome()'},{l:'My Approvals'}]);
-  setSbActive('sb-approvals'); clearTopbar();
-  const list=pendingApprovalsForMe();
-  document.getElementById('apprCount').textContent = list.length+' pending your action';
-  document.getElementById('apprList').innerHTML = list.length? list.map(pr=>`
-    <div class="rec-card" onclick="openPRDetail('${pr.id}')">
-      <div class="rec-top"><div class="rec-id">${pr.prNumber} — ${escHtml(pr.department)||'—'}</div>${statusBadge(pr.status)}</div>
-      <div class="rec-meta"><span>👤 ${escHtml(pr.requestorName)}</span><span>🏢 ${pr.entity}</span><span class="rec-amt">${fmtMoney(pr.totalEstAmount)}</span></div>
-    </div>`).join('') : emptyState('✅','Nothing pending','You have no purchase requests awaiting your approval');
-  showView('approvals');
-}
+function showApprovalsList(){ showMyWork(); }
 
 // ═══════════════════════════════
 // RFQ
 // ═══════════════════════════════
 function showRFQList(){
-  setBc([{l:'Dashboard',fn:'goHome()'},{l:'RFQs'}]);
+  setBc([{l:'My Work',fn:'goHome()'},{l:'RFQs'}]);
   setSbActive('sb-rfq'); clearTopbar();
   renderRFQList(); showView('rfq');
 }
@@ -5059,7 +5485,7 @@ async function submitRFQ(){
 function openRFQDetail(id){
   currentRFQId=id;
   const r=rfqs.find(x=>x.id===id);
-  setBc([{l:'Dashboard',fn:'goHome()'},{l:'RFQs',fn:'showRFQList()'},{l:r?r.rfqNumber:''}]);
+  setBc([{l:'My Work',fn:'goHome()'},{l:'RFQs',fn:'showRFQList()'},{l:r?r.rfqNumber:''}]);
   setSbActive('sb-rfq'); clearTopbar();
   renderRFQDetail(); showView('rfq-detail');
 }
@@ -5082,7 +5508,7 @@ function renderRFQDetail(){
       <td><div class="act-btns">
           <button class="act-btn" onclick="downloadRFQVendorPdf('${rfq.id}','${vid}')">📄 PDF</button>
           ${canAct?`<button class="act-btn act-edit" onclick="openQuoteForm('${rfq.id}','${vid}')">${q?'✏️ Edit Quote':'📝 Log Quote'}</button>`:''}
-          ${canAct&&q&&!isSelected?`<button class="act-btn" style="background:var(--green-l);color:var(--green-d);border-color:#A7F3D0" onclick="openAwardForm('${rfq.id}','${vid}')">🏆 Select &amp; Award</button>`:''}
+          ${canAct&&q&&!isSelected?`<button class="act-btn" style="background:var(--green-l);color:var(--green-d);border-color:#1D9E75" onclick="openAwardForm('${rfq.id}','${vid}')">🏆 Select &amp; Award</button>`:''}
         </div></td>
     </tr>`;
   }).join('');
@@ -5655,7 +6081,7 @@ async function submitBypassPO(){
 // PURCHASE ORDERS
 // ═══════════════════════════════
 function showPOList(){
-  setBc([{l:'Dashboard',fn:'goHome()'},{l:'Purchase Orders'}]);
+  setBc([{l:'My Work',fn:'goHome()'},{l:'Purchase Orders'}]);
   setSbActive('sb-po'); clearTopbar();
   renderPOList(); showView('po');
 }
@@ -5673,7 +6099,7 @@ function renderPOList(){
 function openPODetail(id){
   currentPOId=id;
   const po=purchaseOrders.find(p=>p.id===id);
-  setBc([{l:'Dashboard',fn:'goHome()'},{l:'Purchase Orders',fn:'showPOList()'},{l:po?po.poNumber:''}]);
+  setBc([{l:'My Work',fn:'goHome()'},{l:'Purchase Orders',fn:'showPOList()'},{l:po?po.poNumber:''}]);
   setSbActive('sb-po'); clearTopbar();
   renderPODetail(); showView('po-detail');
 }
@@ -5719,7 +6145,7 @@ function renderPODetail(){
         <button class="tb-btn" style="font-size:11px;padding:5px 10px" onclick="downloadPOPdf('${po.id}')">📄 Download PDF</button>
       </div>
     </div>
-    ${!fullyAuthorized?`<div style="background:var(--amber-l);border:1px solid #FDE68A;border-radius:var(--r8);padding:10px 14px;margin-bottom:14px;font-size:12px;color:#92400E">This PO needs the CEO's signature before a Goods Receiving / Delivery Note or Payment Request can be raised against it. The standard path is for the Operations Manager to sign first, but a CEO signature alone is sufficient to proceed.</div>`:''}
+    ${!fullyAuthorized?`<div style="background:var(--amber-l);border:1px solid #5a4a1a;border-radius:var(--r8);padding:10px 14px;margin-bottom:14px;font-size:12px;color:#F0C35A">This PO needs the CEO's signature before a Goods Receiving / Delivery Note or Payment Request can be raised against it. The standard path is for the Operations Manager to sign first, but a CEO signature alone is sufficient to proceed.</div>`:''}
     <div class="table-shell" style="padding:18px;margin-bottom:16px">
       <div style="font-size:11px;font-weight:800;color:var(--b400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Line Items</div>
       <table class="vtbl"><thead><tr><th>Description</th><th>Qty</th><th>Rate</th><th>GST %</th><th>Inc. Tax %</th><th>Amount</th></tr></thead>
@@ -5761,7 +6187,7 @@ async function markPOSigned(id, signerRole){
 // DELIVERY CHALLANS
 // ═══════════════════════════════
 function showDCList(){
-  setBc([{l:'Dashboard',fn:'goHome()'},{l:'Goods Receiving / Delivery Notes'}]);
+  setBc([{l:'My Work',fn:'goHome()'},{l:'Goods Receiving / Delivery Notes'}]);
   setSbActive('sb-dc'); clearTopbar();
   document.getElementById('dcCount').textContent = deliveryChallans.length+' Goods Receiving / Delivery Note'+(deliveryChallans.length!==1?'s':'');
   const sorted=[...deliveryChallans].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
@@ -5907,7 +6333,7 @@ async function submitPRQDirect(){
   }catch(e){ toast(e.message,'error'); }
 }
 function showPRQList(){
-  setBc([{l:'Dashboard',fn:'goHome()'},{l:'Payment Requests'}]);
+  setBc([{l:'My Work',fn:'goHome()'},{l:'Payment Requests'}]);
   setSbActive('sb-prq'); clearTopbar();
   renderPRQList(); showView('prq');
 }
@@ -5926,7 +6352,7 @@ function renderPRQList(){
 function openPRQDetail(id){
   currentPRQId=id;
   const pq=paymentRequests.find(p=>p.id===id);
-  setBc([{l:'Dashboard',fn:'goHome()'},{l:'Payment Requests',fn:'showPRQList()'},{l:pq?pq.prqNumber:''}]);
+  setBc([{l:'My Work',fn:'goHome()'},{l:'Payment Requests',fn:'showPRQList()'},{l:pq?pq.prqNumber:''}]);
   setSbActive('sb-prq'); clearTopbar();
   renderPRQDetailPage(); showView('prq-detail');
 }
@@ -5944,7 +6370,7 @@ function renderPRQDetailPage(){
   if(canSign && pq.status==='PendingSignature'){
     actions=`<button class="tb-btn primary" onclick="markPRQSigned('${pq.id}')">✍️ Mark as Signed</button>`;
   } else if(canAct && pq.status==='PendingFinance'){
-    actions=`<button class="tb-btn" style="background:var(--rose-l);color:var(--rose);border-color:#FECDD3" onclick="actOnPRQ('${pq.id}','Reject')">✕ Reject</button>
+    actions=`<button class="tb-btn" style="background:var(--rose-l);color:var(--rose);border-color:#7a3a3a" onclick="actOnPRQ('${pq.id}','Reject')">✕ Reject</button>
       <button class="tb-btn primary" onclick="actOnPRQ('${pq.id}','Approve')">✓ Approve</button>`;
   } else if(canAct && pq.status==='ApprovedForPayment'){
     actions=`<button class="tb-btn primary" onclick="actOnPRQ('${pq.id}','MarkPaid')">💰 Mark Paid</button>`;
@@ -6039,7 +6465,7 @@ async function actOnPRQ(id,action){
 // ADMIN — USERS
 // ═══════════════════════════════
 function showAdminUsers(){
-  setBc([{l:'Dashboard',fn:'goHome()'},{l:'Users & Roles'}]);
+  setBc([{l:'My Work',fn:'goHome()'},{l:'Users & Roles'}]);
   setSbActive('sb-admin'); clearTopbar();
   renderAdminUsers(); showView('admin');
 }
@@ -6117,7 +6543,8 @@ async function saveUser(){
       if(!password){ toast('Set a temporary password','error'); return; }
       const r=await api('createUser',{name,email,role,entity,department,password,isLineManager});
       allUsers.push(r);
-      toast('✅ User created — share the temporary password securely');
+      if(r.welcomeEmailSent) toast('User created — welcome email sent to '+r.email);
+      else toast('User created, but the welcome email did not send ('+(r.welcomeEmailError||'unknown error')+'). Share the temporary password manually.','error');
     }
     closeUserForm(); renderAdminUsers();
   }catch(e){ toast(e.message,'error'); }
@@ -6131,6 +6558,18 @@ async function saveUser(){
   const urlParams = new URLSearchParams(window.location.search);
   const resetToken = urlParams.get('reset');
   const resetEmail = urlParams.get('email');
+  const actToken = urlParams.get('act');
+
+  if(actToken){
+    // Someone followed an Approve / Reject button in a notification email — show the confirm page.
+    setTimeout(()=>{
+      const splash=document.getElementById('splashShell');
+      if(splash) splash.style.display='none';
+      document.getElementById('landingShell').style.display='flex';
+      openEmailActionPage(actToken, urlParams.get('d'));
+    }, 1800);
+    return;
+  }
 
   if(resetToken && resetEmail){
     // Someone followed a password-reset email link — show that flow regardless of any existing session.
